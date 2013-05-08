@@ -13,7 +13,9 @@ object Rest extends Controller {
 		Ok(views.html.index("timeoflast for "+source))
   }
 	
-	def blacklist(source: String) = Action {
+	def blacklist(source: String) = Action { request =>
+	  println(request.body)	//DELME
+	  
 		Ok(views.html.index("blacklist"))
   }
 	
