@@ -6,7 +6,6 @@
 GET     /                           	controllers.Application.index
 
 # REST endpoints
-GET     /rest                       	controllers.Rest.index
 GET     /rest/timeoflast/:source   		controllers.Rest.timeoflast(source)
 POST    /rest/add/blacklist/:source		controllers.Rest.blacklist(source)
 POST    /rest/add/appeals/:source      	controllers.Rest.appeals(source)
