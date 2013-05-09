@@ -5,6 +5,7 @@ import scala.io.Source
 import play.api._
 import play.api.libs.json._
 import play.api.mvc._
+import com.codahale.jerkson.Json._
 
 object Rest extends Controller {
 
@@ -15,7 +16,8 @@ object Rest extends Controller {
 	def blacklist(source: String) = Action(parse.temporaryFile) { request =>
 	  val str = Source.fromFile(request.body.file).mkString
 	  Logger.info(str.length.toString)	//DELME
-	  val json = Json.parse(str)
+//	  val json = Json.parse(str)
+	  val json = com.codahale.jerkson.Json.parse(str)
 	  Logger.info("PARSING COMPLETE")		//DELME
 //	  val foo = (json \ "1367412595").asOpt[Array[String]]
 //	  println(foo.isDefined)	//DELME
