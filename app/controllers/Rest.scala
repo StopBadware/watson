@@ -5,7 +5,6 @@ import scala.io.Source
 import play.api._
 import play.api.libs.json._
 import play.api.mvc._
-import java.io.FileSystem
 
 object Rest extends Controller {
 
@@ -14,11 +13,13 @@ object Rest extends Controller {
   }
 	
 	def blacklist(source: String) = Action(parse.temporaryFile) { request =>
-	  val json = Source.fromFile(request.body.file).mkString
-	  println(json.length)	//DELME
-//	  val foo = (json \ "object").asOpt[Map[String, String]]
-//	  println(foo.getOrElse("not provided"))
-//	  println(foo.get("a"))
+	  val str = Source.fromFile(request.body.file).mkString
+	  Logger.info(str.length.toString)	//DELME
+	  val json = Json.parse(str)
+	  Logger.info("PARSING COMPLETE")		//DELME
+//	  val foo = (json \ "1367412595").asOpt[Array[String]]
+//	  println(foo.isDefined)	//DELME
+//	  Logger.info(foo.isDefined.toString)	//DELME
 		Ok("blacklist")
   }
 	
