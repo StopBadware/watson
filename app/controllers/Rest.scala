@@ -11,9 +11,10 @@ object Rest extends Controller {
 		Ok(views.html.index("timeoflast for "+source))	//TODO: WTSN-20
   }
 	
-	def blacklist(source: String) = Action { request =>
-	  println(request.body.asJson)	//DELME
-	  val json = (request.body.asJson).get
+	def blacklist(source: String) = Action(parse.temporaryFile) { request =>
+	  request.body.moveTo(new java.io.File("tmp/delme"))
+//	  println(request.body.asJson)	//DELME
+//	  val json = (request.body.asJson).get
 //	  val foo = (json \ "object").asOpt[Map[String, String]]
 //	  println(foo.getOrElse("not provided"))
 //	  println(foo.get("a"))
