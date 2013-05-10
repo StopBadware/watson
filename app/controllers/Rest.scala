@@ -12,11 +12,13 @@ object Rest extends Controller {
 		Ok(views.html.index("timeoflast for "+source))	//TODO: WTSN-20
   }
 	
-	def blacklist(source: String) = Action(parse.temporaryFile) { request =>
-	  val str = Source.fromFile(request.body.file).mkString
-	  Logger.debug(str.length.toString)	//DELME
+	def blacklist(source: String) = Action(parse.json) { request =>
+	  Logger.debug("IN SUBROUTINE")		//DELME
+//	  val str = Source.fromFile(request.body.file).mkString	//parse.temporaryFile
+	  val json = request.body
+//	  Logger.debug(str.length.toString)	//DELME
 //	  val json = Json.parse(str)
-	  val json = Json.toJson(str)
+//	  val json = Json.toJson(str)
 //	  val json = com.codahale.jerkson.Json.parse(request.body.file)	//TODO: FIXME
 	  Logger.debug("PARSING COMPLETE")		//DELME
 	  val foo = (json \ "1367412595").asOpt[Array[String]]	//DELME
