@@ -1,10 +1,12 @@
 package controllers
 
 import scala.collection.immutable.{HashMap, HashSet}
+import scala.collection.JavaConversions._ 	//DELME?
 import scala.io.Source
 import play.api._
 import play.api.libs.json._
 import play.api.mvc._
+import com.fasterxml.jackson.databind.ObjectMapper
 
 object Rest extends Controller {
 
@@ -13,20 +15,22 @@ object Rest extends Controller {
   }
 	
 	def blacklist(source: String) = Action(parse.temporaryFile) { request =>
-	  Logger.debug("BEGIN PARSING")				//DELME
-	  val str = Source.fromFile(new java.io.File("tmp/foo")).mkString	
-	  Logger.debug(str.length.toString)		//DELME
-//	  val json = Json.parse(str)
-	  import com.fasterxml.jackson.core._
-	  val mapper = new com.fasterxml.jackson.databind.ObjectMapper
-//	  val jf = mapper.getJsonFactory
-//	  val jp = jf.createJsonParser(new java.io.File("tmp/foo"))
-	  val json = mapper.readTree(str)			//DELME
-	  Logger.debug("PARSING COMPLETE")		//DELME
-	  val foo = json.get("1367412595")
-	  println(foo.getClass+"\t"+foo.size)
-//	  val foo = (json \ "1367412595").asOpt[Array[String]]	//DELME
-//	  Logger.debug("Defined: "+foo.isDefined)		//DELME
+	  Logger.debug("SUBROUTINE BEGIN")	//DELME
+	  val str = Source.fromFile(request.body.file).mkString	
+	  Logger.debug(str.length.toString)	//DELME
+	  Logger.debug("PARSING BEGIN")			//DELME
+	  val mapper = new ObjectMapper
+	  val json = mapper.readTree(str)	
+	  Logger.debug("PARSING COMPLETE")	//DELME
+//	  val foo = json.get("1367412595")
+//	  println(foo.getClass+"\t"+foo.size)
+//	  val foo = json.get("1367412595")
+	  val foo = json.fieldNames.toList
+	  foo.foreach(f => println(f))
+//	  val foo = json.path(1)
+//	  println(foo.size())
+//	  println(foo.get(0))
+//	  println(foo.path(0).toString())
 	  Logger.debug("SUBROUTINE END")		//DELME
 		Ok("blacklist")
   }
