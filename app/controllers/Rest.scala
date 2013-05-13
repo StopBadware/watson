@@ -8,6 +8,7 @@ import play.api._
 import play.api.libs.json._
 import play.api.mvc._
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
+import models.Uri
 
 object Rest extends Controller {
   
@@ -27,9 +28,8 @@ object Rest extends Controller {
 	  blTimes.foreach { bltime =>
 	    val blacklist = json.get(bltime).iterator.toList
 	    blacklist.foreach { entry =>
-	      //TODO: store entries in db
+	      Uri.add(entry.asText, source, bltime.toLong)
 	    }
-	    Logger.debug("this set: "+blacklist.size)		//DELME
 	  }
 		Ok
   }
