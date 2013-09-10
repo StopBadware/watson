@@ -53,7 +53,7 @@ object Rest extends Controller {
 		Ok
   }
 	
-	private def processList(json: JsonNode, source: String, isBlacklist: Boolean, isDiffBL: Boolean) = {
+	private def processList(json: JsonNode, source: String, isBlacklist: Boolean, isDiffBL: Boolean) {
 	  val blTimes = json.fieldNames.toList
 	  blTimes.foreach { bltime =>
 	    val blacklist = json.get(bltime).iterator.toList
@@ -74,12 +74,14 @@ object Rest extends Controller {
 	  }
 	}
 	
-	private def processDiff(newList: List[JsonNode], source: String, removedTime: Long) = {
+	private def processDiff(newList: List[JsonNode], source: String, removedTime: Long) {
 	  //TODO: WTSN-11 handle diff bl
   	println("process diff bl")	//DELME
 	}
 	
 	def appeals(source: String) = Action { request =>
+	  //TODO: WTSN-11 handle google appealed sites
+	  println("process appealed sites")	//DELME
 		Ok("appeals")
   }
 }
