@@ -1,7 +1,6 @@
 package controllers
 
 import java.io.File
-import scala.collection.immutable.{HashMap, HashSet}
 import scala.collection.JavaConversions._
 import scala.io.Source
 import play.api._
@@ -49,6 +48,7 @@ object Rest extends Controller {
 	
 	private def addToQueue(json: JsonNode, source: String, isBlacklist: Boolean=true) {
 	  Logger.info(json.toString.length+"\t"+json.size+"\t"+System.currentTimeMillis/1000)	//DELME WTSN-11
+	  Redis.set("delme", "yakabouche")	//DELME
 	  //TODO WTSN-11
 	}
 	
