@@ -13,14 +13,14 @@ import models.Uri
 object Rest extends Controller {
   
   def getJson(file: File): Option[JsonNode] = {
-    try {
+    return try {
 	    val str = Source.fromFile(file).mkString
 	    val mapper = new ObjectMapper
-	    return Option(mapper.readTree(str))
+	    Some(mapper.readTree(str))
     } catch {
       case e:JsonMappingException => {
         Logger.error("JsonMappingException thrown parsing JSON:"+e.getMessage)
-        return None
+        None
       }
     }
   }
@@ -29,37 +29,32 @@ object Rest extends Controller {
 		Ok(views.html.index("timeoflast for "+source))	//TODO: WTSN-20
   }
 	
-	def diffblacklist(source: String) = Action(parse.temporaryFile) { request =>
-	  val json = getJson(request.body.file)
-	  if (json.isDefined) {
-	  	processList(json.get, source, true, true)
-	  }
-		Ok
-  }	
-	
 	def blacklist(source: String) = Action(parse.temporaryFile) { request =>
+	  println("received blacklist for "+source)	//DELME: WTSN-11
 	  val json = getJson(request.body.file)
 	  if (json.isDefined) {
-	  	processList(json.get, source, true, false)
+	  	processList(json.get, source)
 	  }
 		Ok
   }
 	
 	def cleanlist(source: String) = Action(parse.temporaryFile) { request =>
+	  println("received cleanlist for "+source)	//DELME: WTSN-11
 	  val json = getJson(request.body.file)
 	  if (json.isDefined) {
-	  	processList(json.get, source, false, false)
+	  	processList(json.get, source, false)
 	  }
 		Ok
   }
 	
-	private def processList(json: JsonNode, source: String, isBlacklist: Boolean, isDiffBL: Boolean) {
+	private def processList(json: JsonNode, source: String, isBlacklist: Boolean=true) {
+	  println(json.toString.length,json.size,System.currentTimeMillis/1000)	//DELME: WTSN-11
 	  val blTimes = json.fieldNames.toList
 	  blTimes.foreach { bltime =>
-	    val blacklist = json.get(bltime).iterator.toList
-	    if (isDiffBL) {
-  	    processDiff(blacklist, source, bltime.toLong)	//TODO move long check
-  	  }	
+	    val blacklist = json.get(bltime).iterator
+//	    if (isDiffBL) {
+//  	    processDiff(blacklist, source, bltime.toLong)	//TODO move long check
+//  	  }	
 	    blacklist.foreach { entry =>
 	      try {
 	        if (isBlacklist) {
@@ -74,10 +69,10 @@ object Rest extends Controller {
 	  }
 	}
 	
-	private def processDiff(newList: List[JsonNode], source: String, removedTime: Long) {
-	  //TODO: WTSN-11 handle diff bl
-  	println("process diff bl")	//DELME
-	}
+//	private def processDiff(newList: List[JsonNode], source: String, removedTime: Long) {
+//	  //TODO: WTSN-11 handle diff bl
+//  	println("process diff bl")	//DELME
+//	}
 	
 	def appeals(source: String) = Action { request =>
 	  //TODO: WTSN-11 handle google appealed sites
