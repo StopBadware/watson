@@ -48,7 +48,7 @@ object Rest extends Controller {
   }
 	
 	private def addToQueue(json: JsonNode, source: String, isBlacklist: Boolean=true) {
-	  println(json.toString.length,json.size,System.currentTimeMillis/1000)	//DELME WTSN-11
+	  Logger.info(json.toString.length+"\t"+json.size+"\t"+System.currentTimeMillis/1000)	//DELME WTSN-11
 	  //TODO WTSN-11
 	}
 	
