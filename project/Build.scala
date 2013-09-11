@@ -8,14 +8,15 @@ object ApplicationBuild extends Build {
   val appVersion      = "1.0-SNAPSHOT"
 
   val appDependencies = Seq(
-    // Add your project dependencies here,
     jdbc,
     anorm,
-    "com.codahale" % "jerkson_2.9.1" % "0.6.0-SNAPSHOT"
+    "com.yuvimasory" % "jerkson_2.10" % "0.6.1",
+    "net.debasishg" % "redisclient_2.10" % "2.10",
+    "com.typesafe" %% "play-plugins-redis" % "2.1.1"
   )
   
   val main = play.Project(appName, appVersion, appDependencies).settings(
-    resolvers += "codahale" at "http://repo.codahale.com/"      
+    resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"    
   )
 
 }

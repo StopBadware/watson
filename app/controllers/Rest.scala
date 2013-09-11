@@ -26,35 +26,37 @@ object Rest extends Controller {
   }
 
 	def timeoflast(source: String) = Action { request =>
-		Ok(views.html.index("timeoflast for "+source))	//TODO: WTSN-20
+		Ok(views.html.index("timeoflast for "+source))	//TODO WTSN-20
   }
 	
 	def blacklist(source: String) = Action(parse.temporaryFile) { request =>
-	  println("received blacklist for "+source)	//DELME: WTSN-11
+	  println("received blacklist for "+source)	//DELME WTSN-11
 	  val json = getJson(request.body.file)
 	  if (json.isDefined) {
-	  	processList(json.get, source)
+	  	addToQueue(json.get, source)
 	  }
 		Ok
   }
 	
 	def cleanlist(source: String) = Action(parse.temporaryFile) { request =>
-	  println("received cleanlist for "+source)	//DELME: WTSN-11
+	  println("received cleanlist for "+source)	//DELME WTSN-11
 	  val json = getJson(request.body.file)
 	  if (json.isDefined) {
-	  	processList(json.get, source, false)
+	  	addToQueue(json.get, source, false)
 	  }
 		Ok
   }
 	
+	private def addToQueue(json: JsonNode, source: String, isBlacklist: Boolean=true) {
+	  println(json.toString.length,json.size,System.currentTimeMillis/1000)	//DELME WTSN-11
+	  //TODO WTSN-11
+	}
+	
 	private def processList(json: JsonNode, source: String, isBlacklist: Boolean=true) {
-	  println(json.toString.length,json.size,System.currentTimeMillis/1000)	//DELME: WTSN-11
+	  println(json.toString.length,json.size,System.currentTimeMillis/1000)	//DELME WTSN-11
 	  val blTimes = json.fieldNames.toList
 	  blTimes.foreach { bltime =>
 	    val blacklist = json.get(bltime).iterator
-//	    if (isDiffBL) {
-//  	    processDiff(blacklist, source, bltime.toLong)	//TODO move long check
-//  	  }	
 	    blacklist.foreach { entry =>
 	      try {
 	        if (isBlacklist) {
@@ -68,11 +70,6 @@ object Rest extends Controller {
 	    }
 	  }
 	}
-	
-//	private def processDiff(newList: List[JsonNode], source: String, removedTime: Long) {
-//	  //TODO: WTSN-11 handle diff bl
-//  	println("process diff bl")	//DELME
-//	}
 	
 	def appeals(source: String) = Action { request =>
 	  //TODO: WTSN-11 handle google appealed sites
