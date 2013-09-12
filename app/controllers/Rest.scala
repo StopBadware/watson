@@ -1,44 +1,46 @@
 package controllers
 
 import java.io.File
+import scala.collection.JavaConversions._
 import scala.io.Source
+import scala.actors.Futures.future
 import play.api._
 import play.api.libs.json._
 import play.api.mvc._
 import models.Uri
 
-object Rest extends Controller {
+object Rest extends Controller with JsonMapper {
   
 	def timeoflast(source: String) = Action { request =>
-	  Logger.debug("calling bg controller...")	//DELME WTSN-11	
-	  controllers.Background.foo	//DELME WTSN-11
-	  Logger.debug("...bg controller called")	//DELME WTSN-11
-//		Ok(views.html.index("timeoflast for "+source))	//TODO WTSN-20
-		Ok(source)
+		Ok(source) //TODO WTSN-20
   }
 	
 	def blacklist(source: String) = Action(parse.temporaryFile) { request =>
 	  Logger.info("Received blacklist for " + source)
-	  addToQueue(Source.fromFile(request.body.file).mkString, source)
-		Ok	//TODO WTSN-11 return 200 or 500
+	  future(proccessImport(Source.fromFile(request.body.file).mkString, source))
+		Ok
   }
 	
 	def cleanlist(source: String) = Action(parse.temporaryFile) { request =>
 	  Logger.info("Received blacklist for " + source)
-	  addToQueue(Source.fromFile(request.body.file).mkString, source, "cleanlist")
-		Ok //TODO WTSN-11 return 200 or 500
+	  future(proccessImport(Source.fromFile(request.body.file).mkString, source, "cleanlist"))
+		Ok
   }
 	
 	def appeals(source: String) = Action(parse.temporaryFile) { request =>
 	  Logger.info("Received appeal results for " + source)
-	  addToQueue(Source.fromFile(request.body.file).mkString, source, "appealresults")
-		Ok //TODO WTSN-11 return 200 or 500
+	  future(proccessImport(Source.fromFile(request.body.file).mkString, source, "appealresults"))
+		Ok
   }
 	
-	private def addToQueue(json: String, source: String, importType: String="blacklist"): Boolean = {
+	private def proccessImport(json: String, source: String, importType: String="blacklist") = {
 	  Logger.debug(json.length+"\t"+System.currentTimeMillis/1000)	//DELME WTSN-11
-//	  return Redis.importQueuePush(source, importType, json)
-	  return true	//DELME
+	  val foo = Redis.importQueueGet("goog1379001958146blacklist").getOrElse("")	//DELME SMALL
+//	  val foo = Redis.importQueueGet("goog1379002972344blacklist").getOrElse("")	//DELME FULL
+	  val baz = mapJson(foo).get							//DELME
+	  println(baz.getClass)										//DELME
+	  println(baz.toString.substring(0, 100))	//DELME
+	  println(baz.fieldNames.toList)					//DELME
 	}
 	
 }
