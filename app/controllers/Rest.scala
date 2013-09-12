@@ -35,9 +35,7 @@ object Rest extends Controller with JsonMapper {
 	
 	private def proccessImport(json: String, source: String, importType: String="blacklist") = {
 	  Logger.debug(json.length+"\t"+System.currentTimeMillis/1000)	//DELME WTSN-11
-	  val foo = Redis.importQueueGet("goog1379001958146blacklist").getOrElse("")	//DELME SMALL
-//	  val foo = Redis.importQueueGet("goog1379002972344blacklist").getOrElse("")	//DELME FULL
-	  val baz = mapJson(foo).get							//DELME
+	  val baz = mapJson(json).get							//DELME
 	  println(baz.getClass)										//DELME
 	  println(baz.toString.substring(0, 100))	//DELME
 	  println(baz.fieldNames.toList)					//DELME
