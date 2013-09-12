@@ -16,7 +16,8 @@ object ApplicationBuild extends Build {
   )
   
   val main = play.Project(appName, appVersion, appDependencies).settings(
-    resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"    
+    resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
+    resolvers += "pk11 repo" at "http://pk11-scratch.googlecode.com/svn/trunk/"
   )
 
 }
