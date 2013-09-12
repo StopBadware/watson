@@ -10,7 +10,11 @@ import models.Uri
 object Rest extends Controller {
   
 	def timeoflast(source: String) = Action { request =>
-		Ok(views.html.index("timeoflast for "+source))	//TODO WTSN-20
+	  Logger.debug("calling bg controller...")	//DELME WTSN-11	
+	  controllers.Background.foo	//DELME WTSN-11
+	  Logger.debug("...bg controller called")	//DELME WTSN-11
+//		Ok(views.html.index("timeoflast for "+source))	//TODO WTSN-20
+		Ok(source)
   }
 	
 	def blacklist(source: String) = Action(parse.temporaryFile) { request =>

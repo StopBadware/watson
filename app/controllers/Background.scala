@@ -1,11 +1,23 @@
 package controllers
 
 import scala.collection.JavaConversions._
+import scala.actors.Futures.future
 import play.api.Logger
 import play.api.mvc.Controller
 import com.fasterxml.jackson.databind.{JsonNode, JsonMappingException, ObjectMapper}
 
-object Background {
+object Background extends Controller {
+  
+  def foo {
+    Logger.debug("before the future")	//DELME WTSN-11
+    future {
+      Logger.debug("future i am in you")	//DELME WTSN-11
+    	Logger.info("about to sleep")	//DELME WTSN-11
+    	Thread.sleep(50000)	//DELME WTSN-11
+    	Logger.debug("yawn, wakie wakie")	//DELME WTSN-11
+    }
+    Logger.debug("after the future")	//DELME WTSN-11
+  }
   
   def importPendingQueue {
     //TODO WTSN-11
