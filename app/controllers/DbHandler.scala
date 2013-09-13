@@ -2,6 +2,7 @@ package controllers
 
 import play.api.Logger
 import play.api.mvc.Controller
+import com.mongodb.casbah.Imports._
 
 object DbHandler extends Controller {
   
