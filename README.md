@@ -9,7 +9,6 @@
 * {"sha2_256":1},{unique:true}
 * {"blacklisted":1}
 * {"reversed_host":1}
-* {"host":1}
 * {"path":1}
 
 ### hosts
