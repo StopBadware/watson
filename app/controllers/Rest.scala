@@ -38,7 +38,7 @@ object Rest extends Controller with JsonMapper {
 	  val baz = mapJson(json).get							//DELME
 	  println(baz.getClass)										//DELME
 	  val bazStr = baz.toString								//DELME
-	  println(bazStr.substring(0, math.min(bazStr.length, 100)))				//DELME
+	  println(bazStr.substring(0, math.min(bazStr.length, 150)))				//DELME
 	  println(baz.fieldNames.toList)					//DELME
 	}
 	
