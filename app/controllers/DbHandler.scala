@@ -5,11 +5,18 @@ import play.api.mvc.Controller
 
 object DbHandler extends Controller {
   
-  def importBlacklist(blacklist: Blacklist) {
-    println("size: "+blacklist.uris.size,"source: "+blacklist.source,"time: "+blacklist.blTime,"isDiff: "+blacklist.isDifferential) //DELME WTSN-11
-    //TODO WTSN-11 add each uri to db
+  def importBlacklist(blist: Blacklist) {
+    println("size: "+blist.uris.size,"source: "+blist.source,"time: "+blist.blTime,"isDiff: "+blist.isDifferential) //DELME WTSN-11
+    blist.uris.foreach(upsertUri(_, blist.source, blist.blTime))
+    if (blist.isDifferential) {
+    	//TODO WTSN-11 update entries for source not in blist with bltimes < bl.time
+    }
     
-    //TODO WTSN-11 ifDff update entries for source not in this list with bltimes < bl.time
+  }
+  
+  private def upsertUri(uri: String, source: String, blTime: Long) {
+  	//TODO WTSN-11 add/update uri in db
+    println(uri, source, blTime)	//DELME WTSN-11
   }
   
 }
