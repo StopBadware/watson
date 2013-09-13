@@ -1,5 +1,7 @@
 package controllers
 
+import java.math.BigInteger
+import java.security.MessageDigest
 import play.api.Logger
 import play.api.mvc.Controller
 import com.mongodb.casbah.Imports._
@@ -8,6 +10,7 @@ object DbHandler extends Controller {
   
   val mongoUrl = MongoClientURI(sys.env("MONGO_URL"))
   val db = MongoClient(mongoUrl).getDB(mongoUrl.database.get)
+  def sha2 = Hash.sha2(_)
   
   def importBlacklist(blist: Blacklist) {
     println("size: "+blist.uris.size,"source: "+blist.source,"time: "+blist.blTime,"isDiff: "+blist.isDifferential) //DELME WTSN-11
@@ -23,9 +26,21 @@ object DbHandler extends Controller {
   
   private def upsertUri(uri: String, source: String, blTime: Long) {
   	//TODO WTSN-11 add/update uri in db
-    println(uri, source, blTime)	//DELME WTSN-11
+    println(uri, sha2(uri), source, blTime)	//DELME WTSN-11
   }
   
+}
+
+object Hash {
+  def sha2(msg: String): Option[String] = {
+    return try {
+      val md = MessageDigest.getInstance("SHA-256").digest(msg.getBytes)
+      val sha2 = (new BigInteger(1, md)).toString(16)
+      Some(sha2.format("%64s", sha2).replace(' ', '0'))
+    } catch {
+      case e: Exception => None
+    }
+  }
 }
 
 case class Blacklist(uris: Set[String], source: String, blTime: Long, isDifferential: Boolean=true)
