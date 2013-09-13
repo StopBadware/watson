@@ -15,25 +15,18 @@ object Rest extends Controller with JsonMapper {
 		Ok(source) //TODO WTSN-20
   }
 	
-	def blacklist(source: String) = Action(parse.temporaryFile) { request =>
-	  Logger.info("Received blacklist for " + source)
-	  future(proccessImport(Source.fromFile(request.body.file).mkString, source))
-		Ok
+	def importList(importType: String, source: String) = Action(parse.temporaryFile) { request =>
+	  Logger.info("Received " + importType + " for " + source)
+	  val validTypes = Set("blacklist", "clean", "appeals")
+	  if (validTypes.contains(importType)) {
+	  	future(proccessImport(Source.fromFile(request.body.file).mkString, source, importType))
+	    Ok
+	  } else {
+	  	NotFound
+	  }
   }
 	
-	def cleanlist(source: String) = Action(parse.temporaryFile) { request =>
-	  Logger.info("Received blacklist for " + source)
-	  future(proccessImport(Source.fromFile(request.body.file).mkString, source, "cleanlist"))
-		Ok
-  }
-	
-	def appeals(source: String) = Action(parse.temporaryFile) { request =>
-	  Logger.info("Received appeal results for " + source)
-	  future(proccessImport(Source.fromFile(request.body.file).mkString, source, "appealresults"))
-		Ok
-  }
-	
-	private def proccessImport(json: String, source: String, importType: String="blacklist") = {
+	private def proccessImport(json: String, source: String, importType: String) = {
 	  Logger.debug(json.length+"\t"+System.currentTimeMillis/1000)	//DELME WTSN-11
 	  val baz = mapJson(json).get							//DELME
 	  println(baz.getClass)										//DELME
