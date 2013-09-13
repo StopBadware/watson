@@ -21,14 +21,14 @@ object Rest extends Controller with JsonMapper {
 	  val types = Set("blacklist", "clean", "appeals")
 	  val sources = Set("goog", "nsf", "tts")
 	  if (types.contains(importType) && sources.contains(source)) {
-	  	future(proccessImport(Source.fromFile(request.body.file).mkString, source, importType))
+	  	future(processImport(Source.fromFile(request.body.file).mkString, source, importType))
 	    Ok
 	  } else {
 	  	NotFound
 	  }
   }
 	
-	private def proccessImport(json: String, source: String, importType: String) = {
+	private def processImport(json: String, source: String, importType: String) = {
 	  Logger.debug("start\t"+System.currentTimeMillis/1000)	//DELME WTSN-11
 	  mapJson(json).foreach { node =>
 	    node.fieldNames.foreach { field =>
