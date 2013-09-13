@@ -11,12 +11,15 @@
 * {"reversed_host":1}
 * {"host":1}
 * {"path":1}
+
 ### hosts
 * {"host":1},{unique:true}
 * {"ips.ip":1},{sparse:true}
+
 ### ips
 * {"ip":1},{unique:true}
 * {"asns.asn":1},{sparse:true}
+
 ### autonomous_systems
 * {"asn":1},{unique:true}
 * {"name":1}
