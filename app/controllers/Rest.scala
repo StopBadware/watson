@@ -8,6 +8,7 @@ import play.api._
 import play.api.libs.json._
 import play.api.mvc._
 import models.Uri
+import controllers.{DbHandler => dbh}
 
 object Rest extends Controller with JsonMapper {
   
@@ -17,8 +18,9 @@ object Rest extends Controller with JsonMapper {
 	
 	def importList(importType: String, source: String) = Action(parse.temporaryFile) { request =>
 	  Logger.info("Received " + importType + " for " + source)
-	  val validTypes = Set("blacklist", "clean", "appeals")
-	  if (validTypes.contains(importType)) {
+	  val types = Set("blacklist", "clean", "appeals")
+	  val sources = Set("goog", "nsf", "tts")
+	  if (types.contains(importType) && sources.contains(source)) {
 	  	future(proccessImport(Source.fromFile(request.body.file).mkString, source, importType))
 	    Ok
 	  } else {
@@ -27,12 +29,24 @@ object Rest extends Controller with JsonMapper {
   }
 	
 	private def proccessImport(json: String, source: String, importType: String) = {
-	  Logger.debug(json.length+"\t"+System.currentTimeMillis/1000)	//DELME WTSN-11
-	  val baz = mapJson(json).get							//DELME
-	  println(baz.getClass)										//DELME
-	  val bazStr = baz.toString								//DELME
-	  println(bazStr.substring(0, math.min(bazStr.length, 150)))				//DELME
-	  println(baz.fieldNames.toList)					//DELME
+	  Logger.debug("start\t"+System.currentTimeMillis/1000)	//DELME WTSN-11
+	  mapJson(json).foreach { node =>
+	    node.fieldNames.foreach { field =>
+			  importType match {
+			    case "blacklist" => {
+			      val isDifferential = source match {
+			        case "nsf" => false
+			        case "tts" | "goog" => true
+			      }
+			      val blacklist = node.get(field).map(_.asText).toSet
+		      	dbh.importBlacklist(Blacklist(blacklist, source, field.toLong, isDifferential))
+			    }
+			    case "clean" => 		//TODO WTSN-11 handle cleanlist
+			    case "appeals" => 	//TODO WTSN-11 handle appeal results
+			  }
+	    }
+	  }
+	  Logger.debug("end\t"+System.currentTimeMillis/1000)	//DELME WTSN-11
 	}
 	
 }
