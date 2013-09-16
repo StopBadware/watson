@@ -1,10 +1,12 @@
 package controllers
 
 import java.math.BigInteger
+import java.net.URI
 import java.security.MessageDigest
 import play.api.Logger
 import play.api.mvc.Controller
 import com.mongodb.casbah.Imports._
+import models._
 
 object DbHandler extends Controller {
   
@@ -26,7 +28,10 @@ object DbHandler extends Controller {
   
   private def upsertUri(uri: String, source: String, blTime: Long) {
   	//TODO WTSN-11 add/update uri in db
-    println(uri, sha2(uri), source, blTime)	//DELME WTSN-11
+//    println(uri, sha2(uri), source, blTime)	//DELME WTSN-11 //DELME WTSN-11
+    val foo = Uri(uri)	 //DELME
+    println(foo.uri,foo.hierarchicalPart,foo.path,foo.query,foo.reversedHost,foo.sha2)	//DELME WTSN-11
+    //TODO WTSN-11 create new URI()
   }
   
 }
