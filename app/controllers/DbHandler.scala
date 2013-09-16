@@ -1,7 +1,6 @@
 package controllers
 
 import java.math.BigInteger
-import java.net.URI
 import java.security.MessageDigest
 import play.api.Logger
 import play.api.mvc.Controller
@@ -12,26 +11,19 @@ object DbHandler extends Controller {
   
   val mongoUrl = MongoClientURI(sys.env("MONGO_URL"))
   val db = MongoClient(mongoUrl).getDB(mongoUrl.database.get)
-  def sha2 = Hash.sha2(_)
   
-  def importBlacklist(blist: Blacklist) {
-    println("size: "+blist.uris.size,"source: "+blist.source,"time: "+blist.blTime,"isDiff: "+blist.isDifferential) //DELME WTSN-11
-    blist.uris.foreach(upsertUri(_, blist.source, blist.blTime))
-    //DELME
-    println(db.collectionNames)
-    //DELME
-    if (blist.isDifferential) {
-    	//TODO WTSN-11 update entries for source not in blist with bltimes < bl.time
-    }
-    
+//  private def addUri(uri: Uri) {	//DELME WTSN-11 ???
+//  	//TODO WTSN-11 add uri in db
+//  }
+  
+  def blacklist(uri: Uri, source: String, time: Long) {
+    //TODO WTSN-11 change blacklisted flag if not already blacklisted by any source
+    //TODO WTSN-11 add source/time entry if not already blacklisted by this source
   }
   
-  private def upsertUri(uri: String, source: String, blTime: Long) {
-  	//TODO WTSN-11 add/update uri in db
-//    println(uri, sha2(uri), source, blTime)	//DELME WTSN-11 //DELME WTSN-11
-    val foo = Uri(uri)	 //DELME
-    println(foo.uri,foo.hierarchicalPart,foo.path,foo.query,foo.reversedHost,foo.sha2)	//DELME WTSN-11
-    //TODO WTSN-11 create new URI()
+  def removeFromBlacklist(uri: Uri, source: String, time: Long) {
+    //TODO WTSN-11 change blacklisted flag if not blacklisted by any other source
+    //TODO WTSN-11 add cleantime for this source 
   }
   
 }
@@ -47,5 +39,3 @@ object Hash {
     }
   }
 }
-
-case class Blacklist(uris: Set[String], source: String, blTime: Long, isDifferential: Boolean=true)

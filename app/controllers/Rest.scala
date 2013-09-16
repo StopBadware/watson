@@ -8,7 +8,6 @@ import play.api._
 import play.api.libs.json._
 import play.api.mvc._
 import models.Uri
-import controllers.{DbHandler => dbh}
 
 object Rest extends Controller with JsonMapper {
   
@@ -39,7 +38,7 @@ object Rest extends Controller with JsonMapper {
 			        case "tts" | "goog" => true
 			      }
 			      val blacklist = node.get(field).map(_.asText).toSet
-		      	dbh.importBlacklist(Blacklist(blacklist, source, field.toLong, isDifferential))
+		      	Blacklist.importBlacklist(Blacklist(blacklist, source, field.toLong, isDifferential))
 			    }
 			    case "clean" => 		//TODO WTSN-11 handle cleanlist
 			    case "appeals" => 	//TODO WTSN-11 handle appeal results
