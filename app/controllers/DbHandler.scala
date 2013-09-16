@@ -11,12 +11,17 @@ object DbHandler extends Controller {
   
   val mongoUrl = MongoClientURI(sys.env("MONGO_URL"))
   val db = MongoClient(mongoUrl).getDB(mongoUrl.database.get)
+  val autonomousSystems = db("autonomous_systems")
+  val hosts = db("hosts")
+  val ips = db("ips")
+  val uris = db("uris")
   
 //  private def addUri(uri: Uri) {	//DELME WTSN-11 ???
 //  	//TODO WTSN-11 add uri in db
 //  }
   
   def blacklist(uri: Uri, source: String, time: Long) {
+//    uris.in
     //TODO WTSN-11 change blacklisted flag if not already blacklisted by any source
     //TODO WTSN-11 add source/time entry if not already blacklisted by this source
   }
