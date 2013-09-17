@@ -6,6 +6,7 @@ import play.api.Logger
 import play.api.mvc.Controller
 import com.mongodb.casbah.Imports._
 import models._
+import com.mongodb.BasicDBObject
 
 object DbHandler extends Controller {
   
@@ -25,6 +26,20 @@ object DbHandler extends Controller {
         "hierPart" -> uri.hierarchicalPart,
         "reversedHost" -> uri.reversedHost,
         "sha256" -> uri.sha256)
+    //TODO WTSN-11 see if already blacklisted by this source
+    println("*****")
+    val foo = uris.findOne(uriDoc)
+    println(foo)
+//    val blacklistEvents = foo.filter(_.get("blacklisted")==true).map(_.get("blacklistEvents"))
+//    println(blacklistEvents)
+    val bar = if (foo.isDefined) {
+      val bat = foo.get.get("blacklistEvents").asInstanceOf[com.mongodb.BasicDBList]
+    } else {
+      0
+    }
+//    println(bar)
+    println("*****")
+    //TODO WTSN-11 update IF new fromtime is older OR not blisted by source
     val eventDoc = {
       $addToSet("blacklistEvents" -> 
       	MongoDBObject("by" -> source, "from" -> time, "to" -> 0L)) ++ 
@@ -32,7 +47,7 @@ object DbHandler extends Controller {
     }
     
     try {
-    	uris.update(uriDoc, eventDoc, true, false)
+//    	uris.update(uriDoc, eventDoc, true, false)
     } catch {
       case e: MongoException => Logger.error("Upsert failed: " + e.getMessage)
     }
