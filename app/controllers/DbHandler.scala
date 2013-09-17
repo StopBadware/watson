@@ -9,21 +9,33 @@ import models._
 
 object DbHandler extends Controller {
   
-  val mongoUrl = MongoClientURI(sys.env("MONGO_URL"))
-  val db = MongoClient(mongoUrl).getDB(mongoUrl.database.get)
-  val autonomousSystems = db("autonomous_systems")
-  val hosts = db("hosts")
-  val ips = db("ips")
-  val uris = db("uris")
-  
-//  private def addUri(uri: Uri) {	//DELME WTSN-11 ???
-//  	//TODO WTSN-11 add uri in db
-//  }
+  private val mongoUrl = MongoClientURI(sys.env("MONGO_URL"))
+  private val db = MongoClient(mongoUrl).getDB(mongoUrl.database.get)
+  private val autonomousSystems = db("autonomousSystems")
+  private val hosts = db("hosts")
+  private val ips = db("ips")
+  private val uris = db("uris")
+  private val DupeErr = 11000
   
   def blacklist(uri: Uri, source: String, time: Long) {
-//    uris.in
-    //TODO WTSN-11 change blacklisted flag if not already blacklisted by any source
-    //TODO WTSN-11 add source/time entry if not already blacklisted by this source
+    val uriDoc = MongoDBObject(
+        "uri" -> uri.toString,
+        "path" -> uri.path,
+        "query" -> uri.query,
+        "hierPart" -> uri.hierarchicalPart,
+        "reversedHost" -> uri.reversedHost,
+        "sha256" -> uri.sha256)
+    val eventDoc = {
+      $addToSet("blacklistEvents" -> 
+      	MongoDBObject("by" -> source, "from" -> time, "to" -> 0L)) ++ 
+      $set("blacklisted" -> true)
+    }
+    
+    try {
+    	uris.update(uriDoc, eventDoc, true, false)
+    } catch {
+      case e: MongoException => Logger.error("Upsert failed: " + e.getMessage)
+    }
   }
   
   def removeFromBlacklist(uri: Uri, source: String, time: Long) {
@@ -34,7 +46,7 @@ object DbHandler extends Controller {
 }
 
 object Hash {
-  def sha2(msg: String): Option[String] = {
+  def sha256(msg: String): Option[String] = {
     return try {
       val md = MessageDigest.getInstance("SHA-256").digest(msg.getBytes)
       val sha2 = (new BigInteger(1, md)).toString(16)

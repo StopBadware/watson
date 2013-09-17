@@ -6,11 +6,14 @@
 
 ## MongoDB Indexes
 ### uris
-* {"sha2_256":1},{unique:true}
+* {"sha256":1},{unique:true}
 * {"blacklisted":1}
-* {"reversed_host":1}
-* {"hier_part":"hashed"}
+* {"reversedHost":1}
+* {"hierPart":"hashed"}
 * {"path":1}
+* {"blacklistEvents.from":1}
+* {"blacklistEvents.to":1}
+* {"blacklistEvents.by":1,"blacklistEvents.from":-1,"sha256":1},{unique:true}
 
 ### hosts
 * {"host":1},{unique:true}
@@ -20,7 +23,7 @@
 * {"ip":1},{unique:true}
 * {"asns.asn":1},{sparse:true}
 
-### autonomous_systems
+### autonomousSystems
 * {"asn":1},{unique:true}
 * {"name":1}
 * {"country":1}

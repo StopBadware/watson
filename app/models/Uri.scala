@@ -4,7 +4,7 @@ import java.net.{URI, URISyntaxException}
 import controllers.{DbHandler => dbh, Hash}
 
 @throws[URISyntaxException]
-case class Uri(uriStr: String) {
+class Uri(uriStr: String) {
   
   val uri: URI = {
     val schemeCheck = "^[a-zA-Z]+[a-zA-Z0-9+.\\-]+://.*"
@@ -15,8 +15,10 @@ case class Uri(uriStr: String) {
   val query = uri.getRawQuery
   val hierarchicalPart = uri.getRawAuthority + uri.getRawPath
   lazy val reversedHost = Host.reverse(uri.getHost)
-  lazy val sha2 = Hash.sha2(uriStr)
+  lazy val sha256 = Hash.sha256(uri.toString)
   
+  override def hashCode: Int = uri.hashCode
+  override def toString: String = uri.toString 
   def blacklist(source: String, time: Long) = dbh.blacklist(this, source, time)
   def removeFromBlacklist(source: String, time: Long) = dbh.removeFromBlacklist(this, source, time)
 
