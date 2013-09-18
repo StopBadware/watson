@@ -18,8 +18,27 @@ object DbHandler extends Controller {
   private val uris = db("uris")
   private val DupeErr = 11000
   
-  def blacklist(uri: Uri, source: String, time: Long) {
-    val uriDoc = MongoDBObject(
+  def blacklist(uri: ReportedUri, source: String, time: Long) {
+    val a = uris.findOne(MongoDBObject("sha256"->uri.sha256))
+    val foo = if (a.isDefined) {
+      a
+    } else {
+      val uriDoc = MongoDBObject(
+        "uri" -> uri.toString,
+        "path" -> uri.path,
+        "query" -> uri.query,
+        "hierPart" -> uri.hierarchicalPart,
+        "reversedHost" -> uri.reversedHost,
+        "sha256" -> uri.sha256)
+      uris.save(uriDoc)
+      uris.findOne(MongoDBObject("sha256"->uri.sha256))
+    }
+    println(foo.size,foo.isDefined,foo.getClass)
+    foo.foreach(f=>println(Uri(f.asDBObject)))
+//    val bar = Uri(foo)
+//    println(foo)	//DELME
+//    println(bar, bar.sha256)	//DELME
+    val delme = MongoDBObject(
         "uri" -> uri.toString,
         "path" -> uri.path,
         "query" -> uri.query,
@@ -28,15 +47,19 @@ object DbHandler extends Controller {
         "sha256" -> uri.sha256)
     //TODO WTSN-11 see if already blacklisted by this source
     println("*****")
-    val foo = uris.findOne(uriDoc)
-    println(foo)
+    val alreadyBlacklisted = uris.findOne(MongoDBObject(
+        "blacklistEvents.by" -> source,
+        "blacklistEvents.to" -> MongoDBObject("$exists" -> true),		//TODO set to false
+        "sha256" -> uri.sha256))
+//    println(alreadyBlacklisted)		//DELME
+//    println(alreadyBlacklisted.isDefined)		//DELME
 //    val blacklistEvents = foo.filter(_.get("blacklisted")==true).map(_.get("blacklistEvents"))
 //    println(blacklistEvents)
-    val bar = if (foo.isDefined) {
-      val bat = foo.get.get("blacklistEvents").asInstanceOf[com.mongodb.BasicDBList]
-    } else {
-      0
-    }
+//    val bar = if (alreadyBlacklisted.isDefined) {
+//      val bat = alreadyBlacklisted.get.get("blacklistEvents").asInstanceOf[com.mongodb.BasicDBList]
+//    } else {
+//      0
+//    }
 //    println(bar)
     println("*****")
     //TODO WTSN-11 update IF new fromtime is older OR not blisted by source
@@ -53,7 +76,7 @@ object DbHandler extends Controller {
     }
   }
   
-  def removeFromBlacklist(uri: Uri, source: String, time: Long) {
+  def removeFromBlacklist(uri: ReportedUri, source: String, time: Long) {
     //TODO WTSN-11 change blacklisted flag if not blacklisted by any other source
     //TODO WTSN-11 add cleantime for this source 
   }

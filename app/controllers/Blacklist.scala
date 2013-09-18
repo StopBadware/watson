@@ -17,7 +17,7 @@ object Blacklist extends Controller {
     println("size: "+blist.uris.size,"source: "+blist.source,"time: "+blist.blTime,"isDiff: "+blist.isDifferential) //DELME WTSN-11
     blist.uris.foreach { rawUri =>
 	    try {
-	    	new Uri(rawUri).blacklist(blist.source, blist.blTime)
+	    	new ReportedUri(rawUri).blacklist(blist.source, blist.blTime)
 //	    	val uri = Uri(rawUri)	//DELME WTSN-11
 //    		println(uri.uri,uri.hierarchicalPart,uri.path,uri.query,uri.reversedHost,uri.sha2)	//DELME WTSN-11	
 	    } catch {

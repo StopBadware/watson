@@ -7,7 +7,7 @@ import scala.actors.Futures.future
 import play.api._
 import play.api.libs.json._
 import play.api.mvc._
-import models.Uri
+import models.ReportedUri
 
 object Rest extends Controller with JsonMapper {
   
