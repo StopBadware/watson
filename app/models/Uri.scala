@@ -10,7 +10,16 @@ import com.mongodb.BasicDBObject
  */
 protected class Uri(uriDoc: DBObject) {
   
+  val id = uriDoc.get("_id").toString
+  val createdAt = uriDoc.get("_id").asInstanceOf[ObjectId]._time
+  val uri: String = uriDoc.get("uri").toString
+  val path = uriDoc.get("path")
+  val query = uriDoc.get("query")
+  val hierPart = uriDoc.get("hierPart")
+  val reversedHost = uriDoc.get("reversedHost")
   val sha256 = uriDoc.get("sha256")
+  
+  override def toString: String = uri 
   
 }
 

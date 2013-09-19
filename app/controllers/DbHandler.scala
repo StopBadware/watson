@@ -19,38 +19,29 @@ object DbHandler extends Controller {
   private val DupeErr = 11000
   
   def blacklist(uri: ReportedUri, source: String, time: Long) {
-    val a = uris.findOne(MongoDBObject("sha256"->uri.sha256))
-    val foo = if (a.isDefined) {
-      a
-    } else {
-      val uriDoc = MongoDBObject(
-        "uri" -> uri.toString,
-        "path" -> uri.path,
-        "query" -> uri.query,
-        "hierPart" -> uri.hierarchicalPart,
-        "reversedHost" -> uri.reversedHost,
-        "sha256" -> uri.sha256)
-      uris.save(uriDoc)
-      uris.findOne(MongoDBObject("sha256"->uri.sha256))
-    }
+    println("*****")
+    val foo = findOrCreate(uri)
     println(foo.size,foo.isDefined,foo.getClass)
-    foo.foreach(f=>println(Uri(f.asDBObject)))
+    foo.foreach { u =>
+    	val bar = Uri(u)
+    	println(bar.hierPart,bar.id,bar.createdAt,bar.path,bar.query,bar.reversedHost,bar.sha256,bar.uri)
+    }
 //    val bar = Uri(foo)
 //    println(foo)	//DELME
 //    println(bar, bar.sha256)	//DELME
-    val delme = MongoDBObject(
-        "uri" -> uri.toString,
-        "path" -> uri.path,
-        "query" -> uri.query,
-        "hierPart" -> uri.hierarchicalPart,
-        "reversedHost" -> uri.reversedHost,
-        "sha256" -> uri.sha256)
+//    val delme = MongoDBObject(
+//        "uri" -> uri.toString,
+//        "path" -> uri.path,
+//        "query" -> uri.query,
+//        "hierPart" -> uri.hierarchicalPart,
+//        "reversedHost" -> uri.reversedHost,
+//        "sha256" -> uri.sha256)
     //TODO WTSN-11 see if already blacklisted by this source
-    println("*****")
-    val alreadyBlacklisted = uris.findOne(MongoDBObject(
-        "blacklistEvents.by" -> source,
-        "blacklistEvents.to" -> MongoDBObject("$exists" -> true),		//TODO set to false
-        "sha256" -> uri.sha256))
+    
+//    val alreadyBlacklisted = uris.findOne(MongoDBObject(
+//        "blacklistEvents.by" -> source,
+//        "blacklistEvents.to" -> MongoDBObject("$exists" -> true),		//TODO set to false
+//        "sha256" -> uri.sha256))
 //    println(alreadyBlacklisted)		//DELME
 //    println(alreadyBlacklisted.isDefined)		//DELME
 //    val blacklistEvents = foo.filter(_.get("blacklisted")==true).map(_.get("blacklistEvents"))
@@ -79,6 +70,25 @@ object DbHandler extends Controller {
   def removeFromBlacklist(uri: ReportedUri, source: String, time: Long) {
     //TODO WTSN-11 change blacklisted flag if not blacklisted by any other source
     //TODO WTSN-11 add cleantime for this source 
+  }
+  
+  def findOrCreate(uri: ReportedUri): Option[DBObject] = {
+    val found = uris.findOne(MongoDBObject("sha256" -> uri.sha256))
+    val foundOrCreated = if (found.isDefined) {
+      found
+    } else {
+      val uriDoc = MongoDBObject(
+        "uri" -> uri.toString,
+        "path" -> uri.path,
+        "query" -> uri.query,
+        "hierPart" -> uri.hierarchicalPart,
+        "reversedHost" -> uri.reversedHost,
+        "sha256" -> uri.sha256)
+      uris.save(uriDoc)
+      uris.findOne(MongoDBObject("sha256" -> uri.sha256))
+    }
+    
+    return foundOrCreated.map(_.asDBObject)
   }
   
 }
