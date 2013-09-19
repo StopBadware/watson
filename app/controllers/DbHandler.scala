@@ -26,16 +26,6 @@ object DbHandler extends Controller {
     	val bar = Uri(u)
     	println(bar.hierPart,bar.id,bar.createdAt,bar.path,bar.query,bar.reversedHost,bar.sha256,bar.uri)
     }
-//    val bar = Uri(foo)
-//    println(foo)	//DELME
-//    println(bar, bar.sha256)	//DELME
-//    val delme = MongoDBObject(
-//        "uri" -> uri.toString,
-//        "path" -> uri.path,
-//        "query" -> uri.query,
-//        "hierPart" -> uri.hierarchicalPart,
-//        "reversedHost" -> uri.reversedHost,
-//        "sha256" -> uri.sha256)
     //TODO WTSN-11 see if already blacklisted by this source
     
 //    val alreadyBlacklisted = uris.findOne(MongoDBObject(

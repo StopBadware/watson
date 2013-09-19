@@ -9,12 +9,12 @@ import com.mongodb.casbah.Imports._
  */
 protected class Uri(uriDoc: DBObject) extends MongoDoc(uriDoc) {
   
-  val uri: String = uriDoc.get("uri").toString
-  val path = uriDoc.get("path")
-  val query = uriDoc.get("query")
-  val hierPart = uriDoc.get("hierPart")
-  val reversedHost = uriDoc.get("reversedHost")
-  val sha256 = uriDoc.get("sha256")
+  val uri = uriDoc.getAsOrElse[String]("uri", "")
+  val path = uriDoc.getAsOrElse[String]("path", "")
+  val query = uriDoc.getAsOrElse[String]("query", "")
+  val hierPart = uriDoc.getAsOrElse[String]("hierPart", "")
+  val reversedHost = uriDoc.getAsOrElse[String]("reversedHost", "")
+  val sha256 = uriDoc.getAsOrElse[String]("sha256", "")
   
   override def toString: String = uri 
   
