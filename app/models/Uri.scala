@@ -3,15 +3,12 @@ package models
 import java.net.{URI, URISyntaxException}
 import controllers.{DbHandler => dbh, Hash}
 import com.mongodb.casbah.Imports._
-import com.mongodb.BasicDBObject
 
 /**
  * Represents a MongoDB document from the uris collection
  */
-protected class Uri(uriDoc: DBObject) {
+protected class Uri(uriDoc: DBObject) extends MongoDoc(uriDoc) {
   
-  val id = uriDoc.get("_id").toString
-  val createdAt = uriDoc.get("_id").asInstanceOf[ObjectId]._time
   val uri: String = uriDoc.get("uri").toString
   val path = uriDoc.get("path")
   val query = uriDoc.get("query")
