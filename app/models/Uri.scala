@@ -16,6 +16,7 @@ protected class Uri(uriDoc: DBObject) extends MongoDoc(uriDoc) {
   val reversedHost = uriDoc.getAsOrElse[String]("reversedHost", "")
   val sha256 = uriDoc.getAsOrElse[String]("sha256", "")
   
+  def isBlacklisted: Boolean = true		//TODO WTSN-11
   override def toString: String = uri 
   
 }

@@ -25,6 +25,7 @@ object DbHandler extends Controller {
     foo.foreach { u =>
     	val bar = Uri(u)
     	println(bar.hierPart,bar.id,bar.createdAt,bar.path,bar.query,bar.reversedHost,bar.sha256,bar.uri)
+    
     }
     //TODO WTSN-11 see if already blacklisted by this source
     
@@ -46,12 +47,13 @@ object DbHandler extends Controller {
     //TODO WTSN-11 update IF new fromtime is older OR not blisted by source
     val eventDoc = {
       $addToSet("blacklistEvents" -> 
-      	MongoDBObject("by" -> source, "from" -> time, "to" -> 0L)) ++ 
-      $set("blacklisted" -> true)
+      	MongoDBObject("by" -> source, "from" -> time, "to" -> None)) 
     }
     
     try {
-//    	uris.update(uriDoc, eventDoc, true, false)
+//      if (foo.get.get("sha256")=="de3f4a571f943e2c0fc53f30134a40dddc5df65bbeb4b0415dec6549d5b22ca8") {
+    	uris.update(foo.get, eventDoc, true, false)
+//      }
     } catch {
       case e: MongoException => Logger.error("Upsert failed: " + e.getMessage)
     }

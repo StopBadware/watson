@@ -7,13 +7,12 @@
 ## MongoDB Indexes
 ### uris
 * {"sha256":1},{unique:true}
-* {"blacklisted":1}
 * {"reversedHost":1}
 * {"hierPart":"hashed"}
 * {"path":1}
 * {"blacklistEvents.from":1}
 * {"blacklistEvents.to":1}
-* {"blacklistEvents.by":1,"blacklistEvents.from":-1,"sha256":1},{unique:true}
+* {"blacklistEvents.by":1}
 
 ### hosts
 * {"host":1},{unique:true}
