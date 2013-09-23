@@ -18,32 +18,17 @@ object DbHandler extends Controller {
   private val uris = db("uris")
   private val DupeErr = 11000
   
-  def blacklist(uri: ReportedUri, source: String, time: Long) {
-    println("*****")
-    val foo = findOrCreate(uri)
-    println(foo.size,foo.isDefined,foo.getClass)
-    foo.foreach { u =>
+  def blacklist(reported: ReportedUri, source: String, time: Long) {
+    println("*****")	//DELME WTSN-11
+    val uri = findOrCreate(reported)
+    println(uri.size,uri.isDefined,uri.getClass)	//DELME WTSN-11
+    uri.foreach { u =>
     	val bar = Uri(u)
     	println(bar.hierPart,bar.id,bar.createdAt,bar.path,bar.query,bar.reversedHost,bar.sha256,bar.uri)
     
     }
     //TODO WTSN-11 see if already blacklisted by this source
     
-//    val alreadyBlacklisted = uris.findOne(MongoDBObject(
-//        "blacklistEvents.by" -> source,
-//        "blacklistEvents.to" -> MongoDBObject("$exists" -> true),		//TODO set to false
-//        "sha256" -> uri.sha256))
-//    println(alreadyBlacklisted)		//DELME
-//    println(alreadyBlacklisted.isDefined)		//DELME
-//    val blacklistEvents = foo.filter(_.get("blacklisted")==true).map(_.get("blacklistEvents"))
-//    println(blacklistEvents)
-//    val bar = if (alreadyBlacklisted.isDefined) {
-//      val bat = alreadyBlacklisted.get.get("blacklistEvents").asInstanceOf[com.mongodb.BasicDBList]
-//    } else {
-//      0
-//    }
-//    println(bar)
-    println("*****")
     //TODO WTSN-11 update IF new fromtime is older OR not blisted by source
     val eventDoc = {
       $addToSet("blacklistEvents" -> 
@@ -51,12 +36,11 @@ object DbHandler extends Controller {
     }
     
     try {
-//      if (foo.get.get("sha256")=="de3f4a571f943e2c0fc53f30134a40dddc5df65bbeb4b0415dec6549d5b22ca8") {
-    	uris.update(foo.get, eventDoc, true, false)
-//      }
+    	uris.update(uri.get, eventDoc, true, false)
     } catch {
       case e: MongoException => Logger.error("Upsert failed: " + e.getMessage)
     }
+    println("*****")	//DELME WTSN-11
   }
   
   def removeFromBlacklist(uri: ReportedUri, source: String, time: Long) {
