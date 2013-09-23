@@ -15,18 +15,21 @@ protected class Uri(uriDoc: DBObject) extends MongoDoc(uriDoc) {
   val hierPart = uriDoc.getAsOrElse[String]("hierPart", "")
   val reversedHost = uriDoc.getAsOrElse[String]("reversedHost", "")
   val sha256 = uriDoc.getAsOrElse[String]("sha256", "")
-  val blacklistEvents: List[BlacklistEvent] = uriDoc.getAsOrElse[MongoDBList]("zblacklistEvents", new MongoDBList()).map { event =>
+  val blacklistEvents: List[BlacklistEvent] = uriDoc.getAsOrElse[MongoDBList]("blacklistEvents", new MongoDBList()).map { event =>
     new BlacklistEvent(event.asInstanceOf[BasicDBObject])
   }.toList
   println(blacklistEvents,blacklistEvents.getClass,blacklistEvents.size)	//DELME WTSN-11
-  def isBlacklisted: Boolean = true		//TODO WTSN-11
-  println(isBlacklisted)	//DELME
+  val isBlacklisted: Boolean = blacklistEvents.filter(_.to.isEmpty).nonEmpty
+  
+  def isBlacklistedBy(source: String): Boolean = {
+    return isBlacklisted && (blacklistEvents.filter(bl => bl.by.equalsIgnoreCase(source) && bl.to.isEmpty).nonEmpty)
+  }
+  
   override def toString: String = uri 
   
   class BlacklistEvent(doc: BasicDBObject) {
     val by = doc.getAsOrElse[String]("by", "")
     val from = doc.getAsOrElse[Long]("from", 0)
-//    val from = doc.getAsOrElse[Option[Long]]("from", None)
     val to: Option[Long] = doc.getAs[Long]("to")
   }
   
