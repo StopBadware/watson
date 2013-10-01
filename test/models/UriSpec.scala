@@ -11,11 +11,20 @@ class UriSpec extends Specification {
   
   private val validUri = "https://example.com/some/path?q=query&a=another#fragment"
   
-  "a URI" should {
+  "a Uri" should {
+    
+    val reported = new ReportedUri(validUri)
+    val uriDoc = controllers.DbHandler.findOrCreate(reported)
+    
+    "map to a document in the uris collection" in {
+      uriDoc.isDefined must beTrue
+      val uri = Uri(uriDoc.get)
+      uri must beAnInstanceOf[Uri]
+    }
     
   }
   
-  "a ReportedURI" should {
+  "a ReportedUri" should {
     
     "not throw a URISyntaxException from a valid URI" in {
       new ReportedUri(validUri) must beAnInstanceOf[ReportedUri]
