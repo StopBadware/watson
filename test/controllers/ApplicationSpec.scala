@@ -1,4 +1,4 @@
-package global
+package controllers
 
 import org.specs2.mutable._
 
