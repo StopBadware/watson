@@ -5,7 +5,7 @@ import play.Project._
 object ApplicationBuild extends Build {
 
   val appName         = "watson"
-  val appVersion      = "1.0-SNAPSHOT"
+  val appVersion      = "1.0"
 
   val appDependencies = Seq(
     jdbc,
@@ -13,7 +13,7 @@ object ApplicationBuild extends Build {
     "com.yuvimasory" % "jerkson_2.10" % "0.6.1",
     "net.debasishg" % "redisclient_2.10" % "2.10",
     "com.typesafe" %% "play-plugins-redis" % "2.1.1",
-    "org.mongodb" %% "casbah" % "2.6.2"
+    "postgresql" % "postgresql" % "9.1-901.jdbc4"
   )
   
   val main = play.Project(appName, appVersion, appDependencies).settings(

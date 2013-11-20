@@ -5,7 +5,6 @@ import org.specs2.mutable._
 import play.api.test._
 import play.api.test.Helpers._
 import java.net.{URI, URISyntaxException}
-import com.mongodb.casbah.Imports._
 
 class UriSpec extends Specification {
   
@@ -18,7 +17,7 @@ class UriSpec extends Specification {
     
     "map to a document in the uris collection" in {
       uriDoc.isDefined must beTrue
-      val uri = Uri(uriDoc.get)
+      val uri = Uri	//TODO WTSN-11
       uri must beAnInstanceOf[Uri]
     }
     

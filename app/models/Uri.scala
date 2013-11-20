@@ -2,41 +2,21 @@ package models
 
 import java.net.{URI, URISyntaxException}
 import controllers.{DbHandler => dbh, Hash}
-import com.mongodb.casbah.Imports._
 
-/**
- * Represents a MongoDB document from the uris collection
- */
-protected class Uri(uriDoc: DBObject) extends MongoDoc(uriDoc) {
+protected class Uri {
   
-  val uri = uriDoc.getAsOrElse[String]("uri", "")
-  val path = uriDoc.getAsOrElse[String]("path", "")
-  val query = uriDoc.getAsOrElse[String]("query", "")
-  val hierPart = uriDoc.getAsOrElse[String]("hierPart", "")
-  val reversedHost = uriDoc.getAsOrElse[String]("reversedHost", "")
-  val sha256 = uriDoc.getAsOrElse[String]("sha256", "")
-  val blacklistEvents: List[BlacklistEvent] = uriDoc.getAsOrElse[MongoDBList]("blacklistEvents", new MongoDBList()).map { event =>
-    new BlacklistEvent(event.asInstanceOf[BasicDBObject])
-  }.toList
-  val isBlacklisted: Boolean = blacklistEvents.filter(_.to.isEmpty).nonEmpty
-  
-  def isBlacklistedBy(source: String): Boolean = {
-    return isBlacklisted && (blacklistEvents.filter(bl => bl.to.isEmpty && bl.by.equalsIgnoreCase(source)).nonEmpty)
-  }
-  
-  override def toString: String = uri
-  
-  class BlacklistEvent(doc: BasicDBObject) {
-    val by = doc.getAsOrElse[String]("by", "")
-    val from = doc.getAsOrElse[Long]("from", 0)
-    val to: Option[Long] = doc.getAs[Long]("to")
-  }
+  val uri = Nil //TODO WTSN-11
+  val path = Nil //TODO WTSN-11
+  val query = Nil //TODO WTSN-11
+  val hierPart = Nil //TODO WTSN-11
+  val reversedHost = Nil //TODO WTSN-11
+  val sha256 = Nil //TODO WTSN-11
   
 }
 
 object Uri {
   
-  def apply(uriDoc: DBObject): Uri = new Uri(uriDoc)
+  def apply(): Uri = new Uri()	//TODO WTSN-11
   
 }
 
