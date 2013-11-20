@@ -15,12 +15,11 @@ object Rest extends Controller with JsonMapper {
 		Ok(source) //TODO WTSN-20
   }
 	
-	def importList(importType: String, source: String) = Action(parse.temporaryFile) { request =>
-	  Logger.info("Received " + importType + " for " + source)
-	  val types = Set("blacklist", "clean", "appeals")
-	  val sources = Set("goog", "nsf", "tts")
-	  if (types.contains(importType) && sources.contains(source)) {
-	  	future(processImport(Source.fromFile(request.body.file).mkString, source, importType))
+	def importList(source: String) = Action(parse.temporaryFile) { request =>
+	  Logger.info("Received import for " + source)
+	  val sources = Set("goog", "googapl", "nsf", "tts")
+	  if (sources.contains(source)) {
+//	  	future(processImport(Source.fromFile(request.body.file).mkString, source, importType))
 	    Ok
 	  } else {
 	  	NotFound
