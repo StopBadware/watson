@@ -1,11 +1,12 @@
-#! /bin/sh
+#! /bin/bash
 play="play \"$1\""
 cmd=""
 while read line 
 do
-    first=`expr index $line '#'` 
-    if [ $first -ne 1 ]; then
+    commented='^#.*'
+    if [[ ! $line =~ $commented ]]; then
     	cmd="$cmd$line "
     fi
 done < .env
-eval "$cmd$play"
+#eval "$cmd$play"
+echo "$cmd$play" #DELME
