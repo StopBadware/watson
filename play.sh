@@ -8,5 +8,4 @@ do
     	cmd="$cmd$line "
     fi
 done < .env
-#eval "$cmd$play"
-echo "$cmd$play" #DELME
+eval "$cmd$play"
