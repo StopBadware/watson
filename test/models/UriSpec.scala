@@ -1,29 +1,31 @@
 package models
 
 import org.specs2.mutable._
-
+import org.junit.runner._
+import org.specs2.runner._
 import play.api.test._
 import play.api.test.Helpers._
 import java.net.{URI, URISyntaxException}
 
+@RunWith(classOf[JUnitRunner])
 class UriSpec extends Specification {
   
   private val validUri = "https://example.com/some/path?q=query&a=another#fragment"
   
-  "a Uri" should {
+  "Uri" should {
     
     val reported = new ReportedUri(validUri)
-    val uriDoc = controllers.DbHandler.findOrCreate(reported)
     
-    "map to a document in the uris collection" in {
-      uriDoc.isDefined must beTrue
-      val uri = Uri	//TODO WTSN-11
-      uri must beAnInstanceOf[Uri]
+    "add a new Uri" in {
+      running(FakeApplication()) {
+      	//TODO WTSN-11 check uri as added
+      	Uri.create(reported) must be equalTo(true)
+      }
     }
     
   }
   
-  "a ReportedUri" should {
+  "ReportedUri" should {
     
     "not throw a URISyntaxException from a valid URI" in {
       new ReportedUri(validUri) must beAnInstanceOf[ReportedUri]
