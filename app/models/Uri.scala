@@ -1,22 +1,54 @@
 package models
 
 import java.net.{URI, URISyntaxException}
+import anorm._
+import play.api.db._
+import play.api.Play.current
 import controllers.{DbHandler => dbh, Hash}
 
-protected class Uri {
-  
-  val uri = Nil //TODO WTSN-11
-  val path = Nil //TODO WTSN-11
-  val query = Nil //TODO WTSN-11
-  val hierPart = Nil //TODO WTSN-11
-  val reversedHost = Nil //TODO WTSN-11
-  val sha256 = Nil //TODO WTSN-11
+//protected class Uri {
+//  
+//  val uri = Nil //TODO WTSN-11
+//  val path = Nil //TODO WTSN-11
+//  val query = Nil //TODO WTSN-11
+//  val hierPart = Nil //TODO WTSN-11
+//  val reversedHost = Nil //TODO WTSN-11
+//  val sha256 = Nil //TODO WTSN-11
+//  
+//}
+
+case class Uri(
+    id: Int,
+    uri: String,
+    reversedHost: String,
+    hierarchicalPart: String,
+    path: String,
+    sha256: String,
+    createdAt: Long
+    ) {
   
 }
 
 object Uri {
   
-  def apply(): Uri = new Uri()	//TODO WTSN-11
+  def create(reported: ReportedUri): Boolean = DB.withConnection { implicit c =>
+    SQL("INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256)" + 
+    		"VALUES ({uri}, {reversedHost}, {hierarchicalPart}, {path}, {sha256})").on(
+    		    "uri"->reported.uri,
+    		    "reversedHost"->reported.reversedHost,
+    		    "hierarchicalPart"->reported.hierarchicalPart,
+    		    "path"->reported.path,
+    		    "sha256"->reported.sha256
+    		)
+    		true //DELME WTSN-11 return Uri
+  }
+  
+  def delete(id: Long) = DB.withConnection { implicit c =>
+    //TODO WTSN-11
+  }
+  
+  def blacklist = {}	//TODO WTSN-11
+  def removeFromBlacklist = {} 	//TODO WTSN-11
   
 }
 
@@ -42,7 +74,5 @@ class ReportedUri(uriStr: String) {
   
   override def hashCode: Int = uri.hashCode
   override def toString: String = uri.toString 
-  def blacklist(source: String, time: Long) = dbh.blacklist(ReportedUri.this, source, time)
-  def removeFromBlacklist(source: String, time: Long) = dbh.removeFromBlacklist(ReportedUri.this, source, time)
 
 }

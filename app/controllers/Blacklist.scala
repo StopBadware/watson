@@ -10,7 +10,7 @@ import models._
 
 object Blacklist extends Controller with JsonMapper {
   
-  def importBlacklist(json: String, source: String) {
+  def importBlacklist(json: String, source: String) = {
 	  println("start\t"+System.currentTimeMillis/1000)	//DELME WTSN-11
 	  mapJson(json).foreach { node =>
       source match {
@@ -24,10 +24,17 @@ object Blacklist extends Controller with JsonMapper {
   
   private def importDifferential(blacklist: List[JsonNode], source: String) = {
     println("TODO WTSN-11 DIFF BLACKLIST")	//DELME WTSN-11
-    val urls = blacklist.foldLeft(Set.empty[(String, Long)]) { (set, node) =>
-      set + ((node.get("url").toString, node.get("time").asLong))
+    blacklist.foreach { node =>
+      val url = node.get("url").toString
+      val time = node.get("time").asLong
+      println(url, time)	//DELME 
+      try {
+        val uri = new ReportedUri(url)
+        Uri.create(uri)	//TODO WTSN-11 return Uri and call blacklist w/time and source
+      } catch {
+        case e: URISyntaxException => Logger.warn("URISyntaxException thrown, unable to create URI for "+url)
+      }
     }
-    println(urls.size, urls)	//DELME WTSN-11
   }
   
   private def importGoogleAppeals(appealResults: List[JsonNode]) = {
