@@ -12,7 +12,7 @@ class BlacklistSpec extends Specification {
   "Blacklist" should {
     
     "import differential blacklist" in {
-      val json = "[{\"url\":\"www.example.com/\",\"time\":1384958939}]"
+      val json = "[{\"url\":\"www.example.com/\",\"time\":1384958939}, {\"url\":\"example.com/\",\"time\":1337958939}]"
       Blacklist.importBlacklist(json, "goog")	//TODO WTSN-11 VERIFY
     }
     
