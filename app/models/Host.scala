@@ -1,6 +1,8 @@
 package models
 
 case class Host(host: String) {
+  
+  val reversed = host.split("\\.").reverse.mkString(".")
 
 }
 

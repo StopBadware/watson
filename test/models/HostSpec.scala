@@ -13,6 +13,8 @@ class HostSpec extends Specification {
       val normal = "www.worldofwarcraft.com"
       val reversed = "com.worldofwarcraft.www"
       Host.reverse(normal) must equalTo (reversed)
+      val host = Host(normal)
+      host.reversed must equalTo (reversed)
     }
     
   }
