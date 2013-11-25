@@ -4,18 +4,8 @@ import java.net.{URI, URISyntaxException}
 import anorm._
 import play.api.db._
 import play.api.Play.current
+import org.postgresql.util.PSQLException
 import controllers.{DbHandler => dbh, Hash}
-
-//protected class Uri {
-//  
-//  val uri = Nil //TODO WTSN-11
-//  val path = Nil //TODO WTSN-11
-//  val query = Nil //TODO WTSN-11
-//  val hierPart = Nil //TODO WTSN-11
-//  val reversedHost = Nil //TODO WTSN-11
-//  val sha256 = Nil //TODO WTSN-11
-//  
-//}
 
 case class Uri(
     id: Int,
@@ -32,15 +22,21 @@ case class Uri(
 object Uri {
   
   def create(reported: ReportedUri): Boolean = DB.withConnection { implicit c =>
-    SQL("INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256)" + 
-    		"VALUES ({uri}, {reversedHost}, {hierarchicalPart}, {path}, {sha256})").on(
-    		    "uri"->reported.uri,
+    val foo = try { 
+      SQL("INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256)" +
+    		"VALUES ({uri}, {reversedHost}, {hierarchicalPart}, {path}, {sha256}) " +
+    		"WHERE NOT EXISTS (SELECT 1 FROM uris WHERE sha2_256={sha256})").on(
+    		    "uri"->reported.uri.toString,
     		    "reversedHost"->reported.reversedHost,
     		    "hierarchicalPart"->reported.hierarchicalPart,
     		    "path"->reported.path,
     		    "sha256"->reported.sha256
-    		)
-    		true //DELME WTSN-11 return Uri
+    		).executeUpdate()
+  	} catch {
+  	  case e: PSQLException => println(e.getMessage())
+  	}
+    println(foo)	//DELME WTSN-11
+		true //DELME WTSN-11 return Uri
   }
   
   def delete(id: Long) = DB.withConnection { implicit c =>

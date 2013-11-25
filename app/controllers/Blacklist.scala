@@ -27,10 +27,10 @@ object Blacklist extends Controller with JsonMapper {
     blacklist.foreach { node =>
       val url = node.get("url").toString
       val time = node.get("time").asLong
-      println(url, time)	//DELME 
+      println(url, time)	//DELME
       try {
         val uri = new ReportedUri(url)
-        Uri.create(uri)	//TODO WTSN-11 return Uri and call blacklist w/time and source
+        Uri.create(uri)		//TODO WTSN-11 return Uri and call blacklist w/time and source
       } catch {
         case e: URISyntaxException => Logger.warn("URISyntaxException thrown, unable to create URI for "+url)
       }
