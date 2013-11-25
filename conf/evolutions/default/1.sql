@@ -27,14 +27,14 @@ CREATE TABLE blacklist_events (
   id SERIAL PRIMARY KEY,
   uri_id INTEGER NOT NULL REFERENCES uris (id) ON DELETE RESTRICT,
   source SOURCE NOT NULL REFERENCES sources (abbr) ON DELETE RESTRICT,
-  flagged BOOLEAN NOT NULL DEFAULT TRUE,
-  flagged_at TIMESTAMP NOT NULL,
-  unflagged_at TIMESTAMP DEFAULT NULL
+  blacklisted BOOLEAN NOT NULL DEFAULT TRUE,
+  blacklisted_at TIMESTAMP NOT NULL,
+  unblacklisted_at TIMESTAMP DEFAULT NULL
 );
 
 CREATE INDEX ON blacklist_events (uri_id);
 CREATE INDEX ON blacklist_events (source);
-CREATE INDEX ON blacklist_events (flagged, flagged_at, unflagged_at);
+CREATE INDEX ON blacklist_events (blacklisted, blacklisted_at, unblacklisted_at);
 
 CREATE TABLE review_requests (
   id SERIAL PRIMARY KEY,
