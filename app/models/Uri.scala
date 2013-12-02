@@ -23,15 +23,17 @@ object Uri {
   
   def create(reported: ReportedUri): Boolean = DB.withConnection { implicit c =>
     val foo = try { 
-      SQL("INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256)" +
-    		"VALUES ({uri}, {reversedHost}, {hierarchicalPart}, {path}, {sha256}) " +
+      val bar = SQL("INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256) " +
+    		"SELECT {uri}, {reversedHost}, {hierarchicalPart}, {path}, {sha256} " +
     		"WHERE NOT EXISTS (SELECT 1 FROM uris WHERE sha2_256={sha256})").on(
     		    "uri"->reported.uri.toString,
     		    "reversedHost"->reported.reversedHost,
     		    "hierarchicalPart"->reported.hierarchicalPart,
     		    "path"->reported.path,
     		    "sha256"->reported.sha256
-    		).executeUpdate()
+    		)
+    		println(bar)
+    		bar.executeUpdate()
   	} catch {
   	  case e: PSQLException => println(e.getMessage())
   	}
