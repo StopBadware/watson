@@ -12,7 +12,8 @@ object ApplicationBuild extends Build {
     anorm,
     "com.yuvimasory" % "jerkson_2.10" % "0.6.1",
     "net.debasishg" % "redisclient_2.10" % "2.10",
-    "com.typesafe" %% "play-plugins-redis" % "2.1.1",
+    "com.typesafe" % "play-plugins-redis_2.10" % "2.1.1",
+    "com.typesafe.play" %% "play-cache" % "2.2.0",
     "postgresql" % "postgresql" % "9.1-901.jdbc4"
   )
   
