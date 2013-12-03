@@ -18,15 +18,19 @@ case class Uri(
     createdAt: Long
     ) {
   
-  def delete() = DB.withConnection { implicit c =>
+  def delete() = DB.withConnection { implicit conn =>
+    try {
+      SQL("DELETE FROM uris WHERE id={id}").on("id"->id).executeUpdate()
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+    }
+  }
+  
+  def blacklist(source: String, time: Long) = DB.withConnection { implicit conn =>
     //TODO WTSN-11
   }
   
-  def blacklist(source: String, time: Long) = DB.withConnection { implicit c =>
-    //TODO WTSN-11
-  }
-  
-  def removeFromBlacklist(source: String, time: Long) = DB.withConnection { implicit c =>
+  def removeFromBlacklist(source: String, time: Long) = DB.withConnection { implicit conn =>
     //TODO WTSN-11
   }
   
@@ -34,7 +38,7 @@ case class Uri(
 
 object Uri {
   
-  def create(reported: ReportedUri): Boolean = DB.withConnection { implicit c =>
+  def create(reported: ReportedUri): Boolean = DB.withConnection { implicit conn =>
     val inserted = try { 
       SQL("""INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256) 
     		SELECT {uri}, {reversedHost}, {hierarchicalPart}, {path}, {sha256} 
@@ -46,7 +50,7 @@ object Uri {
     		    "sha256"->reported.sha256
     		).executeUpdate()
   	} catch {
-  	  case e: PSQLException => Logger.error(e.getMessage())
+  	  case e: PSQLException => Logger.error(e.getMessage)
   	  0
   	}
 		return inserted > 0
@@ -57,12 +61,12 @@ object Uri {
     return find(reported.sha256)
   }
   
-  def find(sha256: String): Option[Uri] = DB.withConnection { implicit c =>
+  def find(sha256: String): Option[Uri] = DB.withConnection { implicit conn =>
     return try {
       val rs = SQL("SELECT * FROM uris WHERE sha2_256={sha256}").on("sha256"->sha256).apply().headOption
       if (rs.isDefined) mapFromRow(rs.get) else None
     } catch {
-      case e: PSQLException => Logger.error(e.getMessage())
+      case e: PSQLException => Logger.error(e.getMessage)
       None
     }
     

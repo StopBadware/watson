@@ -30,14 +30,23 @@ class UriSpec extends Specification {
       }
     }
     
-    "find or create a new Uri" in {
+    "find or create a Uri" in {
       running(FakeApplication()) {
         val reported = new ReportedUri(validUri+Random.nextInt)
         Uri.find(reported.sha256) must beNone
-      	Uri.create(reported) must be equalTo(true)
-      	Uri.find(reported.sha256) must beSome
+      	Uri.findOrCreate(reported) must beSome
       }
     }
+    
+    "remove a Uri" in {
+      running(FakeApplication()) {
+        val reported = new ReportedUri(validUri+Random.nextInt)
+        val uri = Uri.findOrCreate(reported)
+        uri must beSome
+        uri.get.delete()
+        Uri.find(reported.sha256) must beNone
+      }
+    }    
     
   }
   
