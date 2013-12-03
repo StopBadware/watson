@@ -10,16 +10,15 @@ import java.net.{URI, URISyntaxException}
 @RunWith(classOf[JUnitRunner])
 class UriSpec extends Specification {
   
-  private val validUri = "https://example.com/some/path?q=query&a=another#fragment"
+  private val validUri = "https://example.com/some/path?q=query&a=another#fragment"+System.currentTimeMillis
+  private val reported = new ReportedUri(validUri)
   
   "Uri" should {
     
-    val reported = new ReportedUri(validUri)
-    
     "add a new Uri" in {
       running(FakeApplication()) {
-      	//TODO WTSN-11 check uri as added
       	Uri.create(reported) must be equalTo(true)
+      	Uri.find(reported.sha256) must beSome
       }
     }
     

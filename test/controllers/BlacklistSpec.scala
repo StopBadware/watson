@@ -13,7 +13,8 @@ class BlacklistSpec extends Specification {
     
     "import differential blacklist" in {
       running(FakeApplication()) {
-	      val json = "[{\"url\":\"www.example.com/\",\"time\":1384958939}, {\"url\":\"example.com/\",\"time\":1337958939}]"
+        val time = +System.currentTimeMillis / 1000
+	      val json = "[{\"url\":\"www.example.com/\",\"time\":"+time+"}, {\"url\":\"example.com/\",\"time\":"+time+"}]"
 	      Blacklist.importBlacklist(json, "goog")	//TODO WTSN-11 VERIFY
 	      true must be_==(true)
       }
