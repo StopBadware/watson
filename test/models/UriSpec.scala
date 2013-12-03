@@ -6,17 +6,34 @@ import org.specs2.runner._
 import play.api.test._
 import play.api.test.Helpers._
 import java.net.{URI, URISyntaxException}
+import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class UriSpec extends Specification {
   
-  private val validUri = "https://example.com/some/path?q=query&a=another#fragment"+System.currentTimeMillis
-  private val reported = new ReportedUri(validUri)
+  private val validUri = "https://example.com/some/path?q=query#fragment"+System.currentTimeMillis
   
   "Uri" should {
     
-    "add a new Uri" in {
+    "create a new Uri" in {
       running(FakeApplication()) {
+        val reported = new ReportedUri(validUri+Random.nextInt)
+      	Uri.create(reported) must be equalTo(true)
+      }
+    }
+    
+    "find an existing Uri" in {
+      running(FakeApplication()) {
+        val reported = new ReportedUri(validUri+Random.nextInt)
+      	Uri.create(reported) must be equalTo(true)
+      	Uri.find(reported.sha256) must beSome
+      }
+    }
+    
+    "find or create a new Uri" in {
+      running(FakeApplication()) {
+        val reported = new ReportedUri(validUri+Random.nextInt)
+        Uri.find(reported.sha256) must beNone
       	Uri.create(reported) must be equalTo(true)
       	Uri.find(reported.sha256) must beSome
       }

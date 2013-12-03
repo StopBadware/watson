@@ -18,21 +18,21 @@ case class Uri(
     createdAt: Long
     ) {
   
+  def delete() = DB.withConnection { implicit c =>
+    //TODO WTSN-11
+  }
+  
+  def blacklist(source: String, time: Long) = DB.withConnection { implicit c =>
+    //TODO WTSN-11
+  }
+  
+  def removeFromBlacklist(source: String, time: Long) = DB.withConnection { implicit c =>
+    //TODO WTSN-11
+  }
+  
 }
 
 object Uri {
-  
-  def mapFromRow(row: SqlRow): Uri = {
-    return Uri(
-	    row[Int]("id"),
-	    row[String]("uri"),
-	    row[String]("reversed_host"),
-	    row[String]("hierarchical_part"),
-	    row[String]("path"),
-	    row[String]("sha2_256"),
-	    row[Long]("createdAt")    
-  		)
-  }
   
   def create(reported: ReportedUri): Boolean = DB.withConnection { implicit c =>
     val inserted = try { 
@@ -52,14 +52,15 @@ object Uri {
 		return inserted > 0
   }
   
-  def delete(id: Long) = DB.withConnection { implicit c =>
-    //TODO WTSN-11
+  def findOrCreate(reported: ReportedUri): Option[Uri] = {
+    create(reported)
+    return find(reported.sha256)
   }
   
   def find(sha256: String): Option[Uri] = DB.withConnection { implicit c =>
-    try {
+    return try {
       val rs = SQL("SELECT * FROM uris WHERE sha2_256={sha256}").on("sha256"->sha256).apply().headOption
-      if (rs.isDefined) Some(mapFromRow(rs.get)) else None
+      if (rs.isDefined) mapFromRow(rs.get) else None
     } catch {
       case e: PSQLException => Logger.error(e.getMessage())
       None
@@ -67,8 +68,21 @@ object Uri {
     
   }
   
-  def blacklist = {}	//TODO WTSN-11
-  def removeFromBlacklist = {} 	//TODO WTSN-11
+  private def mapFromRow(row: SqlRow): Option[Uri] = {
+    return try {  
+	    Some(Uri(
+		    row[Int]("id"),
+		    row[String]("uri"),
+		    row[String]("reversed_host"),
+		    row[String]("hierarchical_part"),
+		    row[String]("path"),
+		    row[String]("sha2_256"),
+		    row[java.util.Date]("created_at").getTime / 1000    
+  		))
+    } catch {
+      case e: Exception => None
+    }
+  }  
   
 }
 
