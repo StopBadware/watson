@@ -11,7 +11,8 @@ import scala.util.Random
 @RunWith(classOf[JUnitRunner])
 class UriSpec extends Specification {
   
-  private val validUri = "https://example.com/some/path?q=query#fragment"+System.currentTimeMillis
+//  private val validUri = "https://example.com/some/path?q=query#fragment"+System.currentTimeMillis
+  private val validUri = "https://example.com"
   
   "Uri" should {
     

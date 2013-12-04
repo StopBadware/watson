@@ -79,7 +79,7 @@ object Uri {
 		    row[String]("uri"),
 		    row[String]("reversed_host"),
 		    row[String]("hierarchical_part"),
-		    row[String]("path"),
+		    row[Option[String]]("path").getOrElse(""),
 		    row[String]("sha2_256"),
 		    row[java.util.Date]("created_at").getTime / 1000    
   		))
