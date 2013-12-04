@@ -11,21 +11,21 @@ import scala.util.Random
 @RunWith(classOf[JUnitRunner])
 class UriSpec extends Specification {
   
-//  private val validUri = "https://example.com/some/path?q=query#fragment"+System.currentTimeMillis
-  private val validUri = "https://example.com"
+  private val validUri = "https://example.com/some/path?q=query#fragment" + System.currentTimeMillis
+  private def reportedUri: ReportedUri = new ReportedUri(validUri + Random.nextInt) 
   
   "Uri" should {
     
     "create a new Uri" in {
       running(FakeApplication()) {
-        val reported = new ReportedUri(validUri+Random.nextInt)
+        val reported = reportedUri
       	Uri.create(reported) must be equalTo(true)
       }
     }
     
     "find an existing Uri" in {
       running(FakeApplication()) {
-        val reported = new ReportedUri(validUri+Random.nextInt)
+        val reported = reportedUri
       	Uri.create(reported) must be equalTo(true)
       	Uri.find(reported.sha256) must beSome
       }
@@ -33,21 +33,28 @@ class UriSpec extends Specification {
     
     "find or create a Uri" in {
       running(FakeApplication()) {
-        val reported = new ReportedUri(validUri+Random.nextInt)
+        val reported = reportedUri
         Uri.find(reported.sha256) must beNone
       	Uri.findOrCreate(reported) must beSome
+      	Uri.find(reported.sha256) must beSome
       }
     }
     
     "remove a Uri" in {
       running(FakeApplication()) {
-        val reported = new ReportedUri(validUri+Random.nextInt)
+        val reported = reportedUri
         val uri = Uri.findOrCreate(reported)
         uri must beSome
         uri.get.delete()
         Uri.find(reported.sha256) must beNone
       }
-    }    
+    }
+    
+//    "mark a Uri as blacklisted" in {
+//      running(FakeApplication()) {
+//        val reported = reportedUri
+//      }
+//    }
     
   }
   
