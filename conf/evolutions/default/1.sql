@@ -26,10 +26,11 @@ CREATE TABLE sources (
 CREATE TABLE blacklist_events (
   id SERIAL PRIMARY KEY,
   uri_id INTEGER NOT NULL REFERENCES uris (id) ON DELETE RESTRICT,
-  source SOURCE NOT NULL REFERENCES sources (abbr) ON DELETE RESTRICT,
+  source SOURCE NOT NULL,
   blacklisted BOOLEAN NOT NULL DEFAULT TRUE,
   blacklisted_at TIMESTAMP NOT NULL,
-  unblacklisted_at TIMESTAMP DEFAULT NULL
+  unblacklisted_at TIMESTAMP DEFAULT NULL,
+  UNIQUE (uri_id, source, blacklisted_at)
 );
 
 CREATE INDEX ON blacklist_events (uri_id);

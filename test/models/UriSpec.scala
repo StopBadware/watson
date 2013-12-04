@@ -5,14 +5,13 @@ import org.junit.runner._
 import org.specs2.runner._
 import play.api.test._
 import play.api.test.Helpers._
-import java.net.{URI, URISyntaxException}
+import java.net.URISyntaxException
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class UriSpec extends Specification {
   
-  private val validUri = "https://example.com/some/path?q=query#fragment" + System.currentTimeMillis
-  private def reportedUri: ReportedUri = new ReportedUri(validUri + Random.nextInt) 
+  def reportedUri = UriSpec.reportedUri
   
   "Uri" should {
     
@@ -50,18 +49,41 @@ class UriSpec extends Specification {
       }
     }
     
-//    "mark a Uri as blacklisted" in {
-//      running(FakeApplication()) {
-//        val reported = reportedUri
-//      }
-//    }
+    "check if a Uri is blacklisted by any source" in {
+      running(FakeApplication()) {
+        val reported = reportedUri
+        Uri.create(reported) must be equalTo(true)
+        val uri = Uri.find(reported.sha256)
+        uri must beSome
+        uri.get.isBlacklisted must be equalTo(false)
+      }
+    }
+    
+    "check if a Uri is blacklisted by specific source" in {
+      running(FakeApplication()) {
+        val reported = reportedUri
+        Uri.create(reported) must be equalTo(true)
+        val uri = Uri.find(reported.sha256)
+        uri must beSome
+        uri.get.isBlacklisted must be equalTo(false)
+      }
+    }
+    
+    "mark a Uri as blacklisted" in {
+      running(FakeApplication()) {
+        val reported = reportedUri
+        val uri = Uri.findOrCreate(reported)
+        uri must beSome
+        //TODO WTSN-11
+      }
+    }
     
   }
   
   "ReportedUri" should {
     
     "not throw a URISyntaxException from a valid URI" in {
-      new ReportedUri(validUri) must beAnInstanceOf[ReportedUri]
+      new ReportedUri(UriSpec.validUri) must beAnInstanceOf[ReportedUri]
     }
     
     "throw a URISyntaxException from an invalid URI" in {
@@ -71,4 +93,11 @@ class UriSpec extends Specification {
     
   }
 
+}
+
+object UriSpec {
+  
+  val validUri = "https://example.com/some/path?q=query#fragment" + System.currentTimeMillis
+  def reportedUri: ReportedUri = new ReportedUri(validUri + Random.nextInt)
+  
 }
