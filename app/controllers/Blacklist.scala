@@ -25,17 +25,17 @@ object Blacklist extends Controller with JsonMapper {
   private def importDifferential(blacklist: List[JsonNode], source: String) = {
     println("TODO WTSN-11 DIFF BLACKLIST")	//DELME WTSN-11
     blacklist.foreach { node =>
-      val url = node.get("url").asText
-      val time = node.get("time").asLong
-      println(url, time)	//DELME
-      try {
-        Uri.create(new ReportedUri(url))		//TODO WTSN-11 return Uri and call blacklist w/time and source
-      } catch {
-//        case e: URISyntaxException => Logger.warn("URISyntaxException thrown, unable to create URI for '"+url+"': "+e.getMessage)
-//        case e: Exception => Logger.warn("Unable to create URI for '"+url+"': "+e.getMessage)
-        case e: URISyntaxException => println("URISyntaxException thrown, unable to create URI for '"+url+"': "+e.getMessage)
-        case e: Exception => println("Unable to create URI for '"+url+"': "+e.getMessage)
-      }
+//      val url = node.get("url").asText
+//      val time = node.get("time").asLong
+//      println(url, time)	//DELME
+//      try {
+//        Uri.create(new ReportedUri(url))		//TODO WTSN-11 return Uri and call blacklist w/time and source
+//      } catch {
+////        case e: URISyntaxException => Logger.warn("URISyntaxException thrown, unable to create URI for '"+url+"': "+e.getMessage)
+////        case e: Exception => Logger.warn("Unable to create URI for '"+url+"': "+e.getMessage)
+//        case e: URISyntaxException => println("URISyntaxException thrown, unable to create URI for '"+url+"': "+e.getMessage)
+//        case e: Exception => println("Unable to create URI for '"+url+"': "+e.getMessage)
+//      }
     }
   }
   
