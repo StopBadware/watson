@@ -11,7 +11,10 @@ class BlacklistEventSpec extends Specification {
   
   private val source = "SBW"
   private def validUri: Uri = Uri.findOrCreate(UriSpec.reportedUri).get
-  private def reportedEvent: ReportedEvent = {
+  private def blacklistedEvent: ReportedEvent = {
+    ReportedEvent(validUri.id, source, System.currentTimeMillis/1000)
+  }
+  private def unblacklistedEvent: ReportedEvent = {
     ReportedEvent(validUri.id, source, System.currentTimeMillis/1000, Some(System.currentTimeMillis/1000))
   }
   
@@ -19,15 +22,16 @@ class BlacklistEventSpec extends Specification {
     
     "create a blacklist event" in {
       running(FakeApplication()) {
-        BlacklistEvent.create(reportedEvent) must be equalTo(true)
+        BlacklistEvent.create(blacklistedEvent) must be equalTo(true)
+        BlacklistEvent.create(unblacklistedEvent) must be equalTo(true)
       }
     }
     
     "find a blacklist event" in {
       running(FakeApplication()) {
-        val reported = reportedEvent
-        val createdEvent = BlacklistEvent.create(reported)
-        createdEvent must be equalTo(true)	//TODO WTSN-11
+        val reported = blacklistedEvent
+        BlacklistEvent.create(reported) must be equalTo(true)
+        BlacklistEvent.findByUri(reported.uriId).nonEmpty must be equalTo(true)
       }
     }
     

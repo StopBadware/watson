@@ -67,8 +67,13 @@ object Uri {
   }
   
   def findOrCreate(reported: ReportedUri): Option[Uri] = {
-    create(reported)
-    return find(reported.sha256)
+    val findAttempt = find(reported.sha256)
+    return if (findAttempt.isDefined) {
+      findAttempt
+    } else {
+    	create(reported)
+    	find(reported.sha256)
+    }
   }
   
   def find(sha256: String): Option[Uri] = DB.withConnection { implicit conn =>

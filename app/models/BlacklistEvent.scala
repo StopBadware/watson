@@ -42,8 +42,38 @@ object BlacklistEvent {
   }
   
   def findByUri(uriId: Int): List[BlacklistEvent] = DB.withConnection { implicit conn =>
-    //TODO WTSN-11
-    return List()
+    val rs = SQL("SELECT * FROM blacklist_events WHERE uri_id={uriId}").on("uriId"->uriId)
+    return rs().map(mapFromRow).flatten.toList
+  }
+  
+  private def mapFromRow(row: SqlRow): Option[BlacklistEvent] = {
+    return try {
+      val unblacklistedAt = if (row[Option[Date]]("unblacklisted_at").isDefined) {
+        Some(row[Option[Date]]("unblacklisted_at").get.getTime / 1000)
+      } else {
+        None
+      }
+	    Some(BlacklistEvent(
+		    row[Int]("id"),
+		    row[Int]("uri_id"),
+		    row[Object]("source").toString,
+		    row[Boolean]("blacklisted"),
+		    row[Date]("blacklisted_at").getTime / 1000,
+		    unblacklistedAt
+  		))
+    } catch {
+      case e: Exception => println(e) 
+        None
+    }
+  }
+  
+  implicit def rowToObject: Column[Object] = {
+    Column.nonNull[Object] { (value, meta) =>
+      value match {
+        case o: Object => Right(o)
+        case _ => Left(TypeDoesNotMatch(value.toString+" - "+meta))
+      }
+    }
   }
 
 }
