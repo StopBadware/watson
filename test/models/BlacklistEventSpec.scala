@@ -9,7 +9,7 @@ import play.api.test.Helpers._
 @RunWith(classOf[JUnitRunner])
 class BlacklistEventSpec extends Specification {
   
-  private val source = "SBW"
+  private val source = Source.SBW
   private def validUri: Uri = Uri.findOrCreate(UriSpec.reportedUri).get
   private def blacklistedEvent: ReportedEvent = {
     ReportedEvent(validUri.id, source, System.currentTimeMillis/1000)

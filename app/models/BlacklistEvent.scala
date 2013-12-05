@@ -10,7 +10,7 @@ import org.postgresql.util.PSQLException
 case class BlacklistEvent(
     id: Int,
     uriId: Int,
-    source: String, //TODO WTSN-11 ENUM
+    source: Source,
     blacklisted: Boolean,
     blacklistedAt: Long,
     unblacklistedAt: Option[Long]
@@ -27,7 +27,7 @@ object BlacklistEvent {
           WHERE NOT EXISTS (SELECT 1 FROM blacklist_events 
           WHERE uri_id={uriId} AND source={source}::SOURCE AND blacklisted_at={blacklistedAt})""").on(
             "uriId"->reported.uriId,
-            "source"->reported.source,
+            "source"->reported.source.abbr,
             "blacklistedAt"->new Date(reported.blacklistedAt * 1000),
             "unblacklistedAt"-> {
               if (reported.unblacklistedAt.isDefined) new Date(reported.unblacklistedAt.get * 1000) else None
@@ -56,7 +56,7 @@ object BlacklistEvent {
 	    Some(BlacklistEvent(
 		    row[Int]("id"),
 		    row[Int]("uri_id"),
-		    row[Object]("source").toString,
+		    row[Source]("source"),
 		    row[Boolean]("blacklisted"),
 		    row[Date]("blacklisted_at").getTime / 1000,
 		    unblacklistedAt
@@ -67,20 +67,11 @@ object BlacklistEvent {
     }
   }
   
-  implicit def rowToObject: Column[Object] = {
-    Column.nonNull[Object] { (value, meta) =>
-      value match {
-        case o: Object => Right(o)
-        case _ => Left(TypeDoesNotMatch(value.toString+" - "+meta))
-      }
-    }
-  }
-
 }
 
 case class ReportedEvent(
     uriId: Int,
-    source: String, //TODO WTSN-11 ENUM
+    source: Source,
     blacklistedAt: Long,
     unblacklistedAt: Option[Long]=None
     ) {
