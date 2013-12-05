@@ -14,7 +14,7 @@ object Rest extends Controller with JsonMapper {
 	def importList(source: String) = Action(parse.temporaryFile) { request =>
 	  Logger.info("Received import for " + source)
 	  val sources = Set("goog", "googapl", "nsf", "tts")
-	  if (sources.contains(source)) {
+	  if (sources.contains(source.toLowerCase)) {
 	    future(Blacklist.importBlacklist(Source.fromFile(request.body.file).mkString, source))
 	    Ok
 	  } else {
