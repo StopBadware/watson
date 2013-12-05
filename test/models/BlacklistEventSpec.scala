@@ -57,6 +57,8 @@ class BlacklistEventSpec extends Specification {
         BlacklistEvent.createOrUpdate(newer) must be equalTo(true)
         val newerEvent = BlacklistEvent.findByUri(uri.id)
         newerEvent.nonEmpty must be equalTo(true)
+        newerEvent.head.blacklistedAt must be equalTo(newer.blacklistedAt)
+        newerEvent.head.unblacklistedAt must beNone
         newerEvent.head.blacklisted must be equalTo(true)
         
         BlacklistEvent.createOrUpdate(older) must be equalTo(true)
