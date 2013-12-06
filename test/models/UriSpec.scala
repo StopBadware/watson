@@ -12,6 +12,7 @@ import scala.util.Random
 class UriSpec extends Specification {
   
   def reportedUri = UriSpec.reportedUri
+  private val source = Source.SBW
   
   "Uri" should {
     
@@ -55,7 +56,8 @@ class UriSpec extends Specification {
         Uri.create(reported) must be equalTo(true)
         val uri = Uri.find(reported.sha256)
         uri must beSome
-        uri.get.isBlacklisted must be equalTo(false)
+        uri.get.isBlacklisted must be equalTo(true)
+        //TODO WTSN-11
       }
     }
     
@@ -65,18 +67,35 @@ class UriSpec extends Specification {
         Uri.create(reported) must be equalTo(true)
         val uri = Uri.find(reported.sha256)
         uri must beSome
-        uri.get.isBlacklisted must be equalTo(false)
+        uri.get.isBlacklistedBy("TODO") must be equalTo(true)
+        //TODO WTSN-11
       }
     }
     
     "mark a Uri as blacklisted" in {
       running(FakeApplication()) {
         val reported = reportedUri
-        val uri = Uri.findOrCreate(reported)
-        uri must beSome
-        //TODO WTSN-11
+        val created = Uri.findOrCreate(reported)
+        created must beSome
+        val uri = created.get
+        BlacklistEvent.findByUri(uri.id).size must be equalTo(0)
+        uri.blacklist(source, uri.createdAt) must be equalTo(true)
+        BlacklistEvent.findByUri(uri.id).size must be_>(0)
       }
     }
+    
+    "mark a Uri as no longer blacklisted" in {
+      running(FakeApplication()) {
+        val reported = reportedUri
+        val created = Uri.findOrCreate(reported)
+        created must beSome
+        val uri = created.get
+        uri.blacklist(source, uri.createdAt) must be equalTo(true)
+        BlacklistEvent.findByUri(uri.id, Some(source)).size must be_>(0)
+        uri.removeFromBlacklist(source, System.currentTimeMillis/1000)
+        BlacklistEvent.findBlacklistedByUri(uri.id, Some(source)).size must be equalTo(0)
+      }
+    }    
     
   }
   

@@ -28,20 +28,20 @@ case class Uri(
   
   def isBlacklisted: Boolean = DB.withConnection { implicit conn =>
     //TODO WTSN-11 check if blacklistEvent with id && blacklisted==true
-    return true
+    return false
   }
   
   def isBlacklistedBy(source: String): Boolean = DB.withConnection { implicit conn =>
     //TODO WTSN-11 check if blacklistEvent with id by source && blacklisted==true
-    return true
+    return false
   }  
   
-  def blacklist(source: String, time: Long) = DB.withConnection { implicit conn =>
-    //TODO WTSN-11
+  def blacklist(source: Source, time: Long, endTime: Option[Long]=None): Boolean = DB.withConnection { implicit conn =>
+    return BlacklistEvent.createOrUpdate(ReportedEvent(id, source, time, endTime))
   }
   
-  def removeFromBlacklist(source: String, time: Long) = DB.withConnection { implicit conn =>
-    //TODO WTSN-11
+  def removeFromBlacklist(source: Source, time: Long): Boolean = DB.withConnection { implicit conn =>
+    return BlacklistEvent.markNoLongerBlacklisted(id, source, time)
   }
   
 }

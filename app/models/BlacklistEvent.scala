@@ -82,6 +82,13 @@ object BlacklistEvent {
     return inserted > 0
   }  
   
+  def markNoLongerBlacklisted(uriId: Int, source: Source, time: Long): Boolean = DB.withConnection { implicit conn =>
+    val events = findEventsByUri(uriId, Some(source), true)
+    val clean = ReportedEvent(uriId, source, time, Some(time))
+    events.foreach(event=>update(clean, event))
+    return false
+  }  
+  
   def findByUri(uriId: Int, source: Option[Source]=None): List[BlacklistEvent] = DB.withConnection { implicit conn =>
     return findEventsByUri(uriId, source)
   }
