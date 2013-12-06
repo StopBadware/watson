@@ -32,7 +32,7 @@ class SourceSpec extends Specification {
     
     "get full name of source" in {
       running(FakeApplication()) {
-      	Source.SBW.fullName.isEmpty must be equalTo(false)
+      	Source.SBW.fullName.isEmpty must beFalse
       }
     }      
     

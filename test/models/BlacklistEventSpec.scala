@@ -22,52 +22,52 @@ class BlacklistEventSpec extends Specification {
     
     "create a blacklist event" in {
       running(FakeApplication()) {
-        BlacklistEvent.createOrUpdate(blacklistedEvent) must be equalTo(true)
-        BlacklistEvent.createOrUpdate(unblacklistedEvent) must be equalTo(true)
+        BlacklistEvent.createOrUpdate(blacklistedEvent) must beTrue
+        BlacklistEvent.createOrUpdate(unblacklistedEvent) must beTrue
       }
     }
     
     "find blacklist events" in {
       running(FakeApplication()) {
         val reported = blacklistedEvent
-        BlacklistEvent.createOrUpdate(reported) must be equalTo(true)
-        BlacklistEvent.findByUri(reported.uriId).nonEmpty must be equalTo(true)
+        BlacklistEvent.createOrUpdate(reported) must beTrue
+        BlacklistEvent.findByUri(reported.uriId).nonEmpty must beTrue
       }
     }
     
     "find blacklist events by source" in {
       running(FakeApplication()) {
         val reported = blacklistedEvent
-        BlacklistEvent.createOrUpdate(reported) must be equalTo(true)
-        BlacklistEvent.findByUri(reported.uriId, Some(source)).nonEmpty must be equalTo(true)
+        BlacklistEvent.createOrUpdate(reported) must beTrue
+        BlacklistEvent.findByUri(reported.uriId, Some(source)).nonEmpty must beTrue
       }
     }    
     
     "find currently blacklisted events" in {
       running(FakeApplication()) {
         val reported = blacklistedEvent
-        BlacklistEvent.createOrUpdate(reported) must be equalTo(true)
-        BlacklistEvent.findBlacklistedByUri(reported.uriId).nonEmpty must be equalTo(true)
+        BlacklistEvent.createOrUpdate(reported) must beTrue
+        BlacklistEvent.findBlacklistedByUri(reported.uriId).nonEmpty must beTrue
       }
     }  
     
     "find currently blacklisted events by source" in {
       running(FakeApplication()) {
         val reported = blacklistedEvent
-        BlacklistEvent.createOrUpdate(reported) must be equalTo(true)
-        BlacklistEvent.findByUri(reported.uriId).nonEmpty must be equalTo(true)
-        BlacklistEvent.findBlacklistedByUri(reported.uriId, Some(source)).nonEmpty must be equalTo(true)
+        BlacklistEvent.createOrUpdate(reported) must beTrue
+        BlacklistEvent.findByUri(reported.uriId).nonEmpty must beTrue
+        BlacklistEvent.findBlacklistedByUri(reported.uriId, Some(source)).nonEmpty must beTrue
       }
     }     
     
     "remove a blacklist event" in {
       running(FakeApplication()) {
         val reported = blacklistedEvent
-        BlacklistEvent.createOrUpdate(reported) must be equalTo(true)
+        BlacklistEvent.createOrUpdate(reported) must beTrue
         val event = BlacklistEvent.findByUri(reported.uriId)
-        event.nonEmpty must be equalTo(true)
+        event.nonEmpty must beTrue
         event.head.delete()
-        BlacklistEvent.findByUri(reported.uriId).isEmpty must be equalTo(true)
+        BlacklistEvent.findByUri(reported.uriId).isEmpty must beTrue
       }
     }
     
@@ -79,22 +79,22 @@ class BlacklistEventSpec extends Specification {
         val newer = ReportedEvent(uri.id, source, now - 47)
         val clean = ReportedEvent(uri.id, source, now, Some(now))
         
-        BlacklistEvent.createOrUpdate(newer) must be equalTo(true)
+        BlacklistEvent.createOrUpdate(newer) must beTrue
         val newerEvent = BlacklistEvent.findByUri(uri.id)
-        newerEvent.nonEmpty must be equalTo(true)
+        newerEvent.nonEmpty must beTrue
         newerEvent.head.blacklistedAt must be equalTo(newer.blacklistedAt)
         newerEvent.head.unblacklistedAt must beNone
-        newerEvent.head.blacklisted must be equalTo(true)
+        newerEvent.head.blacklisted must beTrue
         
-        BlacklistEvent.createOrUpdate(older) must be equalTo(true)
+        BlacklistEvent.createOrUpdate(older) must beTrue
         BlacklistEvent.findByUri(uri.id).head.blacklistedAt must be equalTo(older.blacklistedAt)
         
-        BlacklistEvent.createOrUpdate(clean) must be equalTo(true)
+        BlacklistEvent.createOrUpdate(clean) must beTrue
         val cleanedEvent = BlacklistEvent.findByUri(clean.uriId).head
         cleanedEvent.blacklistedAt must be equalTo(older.blacklistedAt)
         cleanedEvent.unblacklistedAt must beSome
         cleanedEvent.unblacklistedAt.get must be equalTo(now)
-        cleanedEvent.blacklisted must be equalTo(false)
+        cleanedEvent.blacklisted must beFalse
       }
     }
     
@@ -104,18 +104,18 @@ class BlacklistEventSpec extends Specification {
         val now = System.currentTimeMillis / 1000
         val dirty = ReportedEvent(uri.id, source, now - 42)
         
-        BlacklistEvent.createOrUpdate(dirty) must be equalTo(true)
+        BlacklistEvent.createOrUpdate(dirty) must beTrue
         val blacklistEvent = BlacklistEvent.findByUri(uri.id)
-        blacklistEvent.nonEmpty must be equalTo(true)
+        blacklistEvent.nonEmpty must beTrue
         blacklistEvent.head.blacklistedAt must be equalTo(dirty.blacklistedAt)
         blacklistEvent.head.unblacklistedAt must beNone
-        blacklistEvent.head.blacklisted must be equalTo(true)
+        blacklistEvent.head.blacklisted must beTrue
         
-        BlacklistEvent.markNoLongerBlacklisted(uri.id, source, now) must be equalTo(true)
+        BlacklistEvent.markNoLongerBlacklisted(uri.id, source, now) must beTrue
         val unblacklistEvent = BlacklistEvent.findByUri(uri.id).head
         unblacklistEvent.unblacklistedAt must beSome
         unblacklistEvent.unblacklistedAt.get must be equalTo(now)
-        unblacklistEvent.blacklisted must be equalTo(false)
+        unblacklistEvent.blacklisted must beFalse
       }
     }    
     

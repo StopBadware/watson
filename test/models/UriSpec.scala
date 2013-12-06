@@ -19,14 +19,14 @@ class UriSpec extends Specification {
     "create a new Uri" in {
       running(FakeApplication()) {
         val reported = reportedUri
-      	Uri.create(reported) must be equalTo(true)
+      	Uri.create(reported) must beTrue
       }
     }
     
     "find an existing Uri" in {
       running(FakeApplication()) {
         val reported = reportedUri
-      	Uri.create(reported) must be equalTo(true)
+      	Uri.create(reported) must beTrue
       	Uri.find(reported.sha256) must beSome
       }
     }
@@ -53,28 +53,28 @@ class UriSpec extends Specification {
     "check if a Uri is blacklisted by any source" in {
       running(FakeApplication()) {
         val reported = reportedUri
-        Uri.create(reported) must be equalTo(true)
+        Uri.create(reported) must beTrue
         val found = Uri.find(reported.sha256)
         found must beSome
         val uri = found.get
         uri.blacklist(source, System.currentTimeMillis/1000)
-        uri.isBlacklisted must be equalTo(true)
-        uri.removeFromBlacklist(source, System.currentTimeMillis/1000) must be equalTo(true)
-        uri.isBlacklisted must be equalTo(false)
+        uri.isBlacklisted must beTrue
+        uri.removeFromBlacklist(source, System.currentTimeMillis/1000) must beTrue
+        uri.isBlacklisted must beFalse
       }
     }
     
     "check if a Uri is blacklisted by specific source" in {
       running(FakeApplication()) {
         val reported = reportedUri
-        Uri.create(reported) must be equalTo(true)
+        Uri.create(reported) must beTrue
         val found = Uri.find(reported.sha256)
         found must beSome
         val uri = found.get
         uri.blacklist(source, System.currentTimeMillis/1000)
-        uri.isBlacklistedBy(source) must be equalTo(true)
-        uri.removeFromBlacklist(source, System.currentTimeMillis/1000) must be equalTo(true)
-        uri.isBlacklistedBy(source) must be equalTo(false)
+        uri.isBlacklistedBy(source) must beTrue
+        uri.removeFromBlacklist(source, System.currentTimeMillis/1000) must beTrue
+        uri.isBlacklistedBy(source) must beFalse
       }
     }
     
@@ -85,7 +85,7 @@ class UriSpec extends Specification {
         created must beSome
         val uri = created.get
         BlacklistEvent.findByUri(uri.id).size must be equalTo(0)
-        uri.blacklist(source, uri.createdAt) must be equalTo(true)
+        uri.blacklist(source, uri.createdAt) must beTrue
         BlacklistEvent.findByUri(uri.id).size must be_>(0)
       }
     }
@@ -96,7 +96,7 @@ class UriSpec extends Specification {
         val created = Uri.findOrCreate(reported)
         created must beSome
         val uri = created.get
-        uri.blacklist(source, uri.createdAt) must be equalTo(true)
+        uri.blacklist(source, uri.createdAt) must beTrue
         BlacklistEvent.findByUri(uri.id, Some(source)).size must be_>(0)
         uri.removeFromBlacklist(source, System.currentTimeMillis/1000)
         BlacklistEvent.findBlacklistedByUri(uri.id, Some(source)).size must be equalTo(0)
