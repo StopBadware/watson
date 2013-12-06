@@ -16,18 +16,18 @@ class BlacklistSpec extends Specification {
         val time = +System.currentTimeMillis / 1000
 	      val json = "[{\"url\":\"www.example.com/\",\"time\":"+time+"}, {\"url\":\"example.com/\",\"time\":"+time+"}]"
 	      Blacklist.importBlacklist(json, "goog")	//TODO WTSN-11 VERIFY
-	      true must be_==(true)
+	      true must be_==(false)
       }
     }
     
     "import Google appeal results" in {
       //TODO WTSN-11
-      true must be_==(true)
+      true must be_==(false)
     }
     
     "import NSF blacklist" in {
       //TODO WTSN-11
-      true must be_==(true)
+      true must be_==(false)
     }
     
   }

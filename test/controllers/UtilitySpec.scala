@@ -18,5 +18,15 @@ class UtilitySpec extends Specification {
     }
     
   }
+  
+  "Host" should {
+    
+    "reverse the labels of a host" in {
+      val normal = "www.worldofwarcraft.com"
+      val reversed = "com.worldofwarcraft.www"
+      Host.reverse(normal) must equalTo(reversed)
+    }
+    
+  }  
 
 }

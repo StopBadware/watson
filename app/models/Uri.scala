@@ -6,7 +6,7 @@ import play.api.db._
 import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
-import controllers.Hash
+import controllers.{Hash, Host}
 
 case class Uri(
     id: Int,

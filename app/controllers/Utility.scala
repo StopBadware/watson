@@ -16,3 +16,9 @@ object Hash {
   }
   
 }
+
+object Host {
+  
+  def reverse(host: String): String = host.split("\\.").reverse.mkString(".")
+
+}
