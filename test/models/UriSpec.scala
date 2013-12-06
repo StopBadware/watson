@@ -54,10 +54,13 @@ class UriSpec extends Specification {
       running(FakeApplication()) {
         val reported = reportedUri
         Uri.create(reported) must be equalTo(true)
-        val uri = Uri.find(reported.sha256)
-        uri must beSome
-        uri.get.isBlacklisted must be equalTo(true)
-        //TODO WTSN-11
+        val found = Uri.find(reported.sha256)
+        found must beSome
+        val uri = found.get
+        uri.blacklist(source, System.currentTimeMillis/1000)
+        uri.isBlacklisted must be equalTo(true)
+        uri.removeFromBlacklist(source, System.currentTimeMillis/1000) must be equalTo(true)
+        uri.isBlacklisted must be equalTo(false)
       }
     }
     
@@ -65,10 +68,13 @@ class UriSpec extends Specification {
       running(FakeApplication()) {
         val reported = reportedUri
         Uri.create(reported) must be equalTo(true)
-        val uri = Uri.find(reported.sha256)
-        uri must beSome
-        uri.get.isBlacklistedBy("TODO") must be equalTo(true)
-        //TODO WTSN-11
+        val found = Uri.find(reported.sha256)
+        found must beSome
+        val uri = found.get
+        uri.blacklist(source, System.currentTimeMillis/1000)
+        uri.isBlacklistedBy(source) must be equalTo(true)
+        uri.removeFromBlacklist(source, System.currentTimeMillis/1000) must be equalTo(true)
+        uri.isBlacklistedBy(source) must be equalTo(false)
       }
     }
     

@@ -32,7 +32,7 @@ object BlacklistEvent {
     val events = findEventsByUri(reported.uriId, Some(reported.source), true)
     return events.size match {
       case 0 => create(reported)
-      case 1 => update(reported, events.head)
+      case 1 => update(reported, events.head)==1
       case _ => {
         Logger.error(reported.source+": "+events.size+" currently blacklisted rows for "+reported.uriId)
         false
@@ -61,8 +61,8 @@ object BlacklistEvent {
     return inserted > 0
   }
   
-  private def update(reported: ReportedEvent, event: BlacklistEvent): Boolean = DB.withConnection { implicit conn =>
-    val inserted = try {
+  private def update(reported: ReportedEvent, event: BlacklistEvent): Int = DB.withConnection { implicit conn =>
+    val updated = try {
       SQL("""UPDATE blacklist_events SET blacklisted={blacklisted}, blacklisted_at={blacklistedAt}, 
           unblacklisted_at={unblacklistedAt} WHERE id={id}""").on(
             "id" -> event.id,
@@ -79,14 +79,15 @@ object BlacklistEvent {
       case e: PSQLException => Logger.error(e.getMessage)
       0
     }
-    return inserted > 0
+    return updated
   }  
   
   def markNoLongerBlacklisted(uriId: Int, source: Source, time: Long): Boolean = DB.withConnection { implicit conn =>
     val events = findEventsByUri(uriId, Some(source), true)
     val clean = ReportedEvent(uriId, source, time, Some(time))
-    events.foreach(event=>update(clean, event))
-    return false
+    return events.foldLeft(0){ (ctr, event) =>
+      ctr + update(clean, event)
+    } == events.size
   }  
   
   def findByUri(uriId: Int, source: Option[Source]=None): List[BlacklistEvent] = DB.withConnection { implicit conn =>

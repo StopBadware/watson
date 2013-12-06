@@ -103,7 +103,6 @@ class BlacklistEventSpec extends Specification {
         val uri = validUri
         val now = System.currentTimeMillis / 1000
         val dirty = ReportedEvent(uri.id, source, now - 42)
-        val clean = ReportedEvent(uri.id, source, now, Some(now))
         
         BlacklistEvent.createOrUpdate(dirty) must be equalTo(true)
         val blacklistEvent = BlacklistEvent.findByUri(uri.id)
@@ -112,9 +111,8 @@ class BlacklistEventSpec extends Specification {
         blacklistEvent.head.unblacklistedAt must beNone
         blacklistEvent.head.blacklisted must be equalTo(true)
         
-        BlacklistEvent.createOrUpdate(clean) must be equalTo(true)
-        val unblacklistEvent = BlacklistEvent.findByUri(clean.uriId).head
-        unblacklistEvent.blacklistedAt must be equalTo(dirty.blacklistedAt)
+        BlacklistEvent.markNoLongerBlacklisted(uri.id, source, now) must be equalTo(true)
+        val unblacklistEvent = BlacklistEvent.findByUri(uri.id).head
         unblacklistEvent.unblacklistedAt must beSome
         unblacklistEvent.unblacklistedAt.get must be equalTo(now)
         unblacklistEvent.blacklisted must be equalTo(false)
