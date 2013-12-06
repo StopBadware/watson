@@ -29,7 +29,7 @@ case class BlacklistEvent(
 object BlacklistEvent {
   
   def createOrUpdate(reported: ReportedEvent): Boolean = DB.withConnection { implicit conn =>
-    val events = findByUri(reported.uriId).filter(event => event.blacklisted && event.source==reported.source)
+    val events = findEventsByUri(reported.uriId, Some(reported.source), true)
     return events.size match {
       case 0 => create(reported)
       case 1 => update(reported, events.head)
