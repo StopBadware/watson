@@ -27,13 +27,38 @@ class BlacklistEventSpec extends Specification {
       }
     }
     
-    "find a blacklist event" in {
+    "find blacklist events" in {
       running(FakeApplication()) {
         val reported = blacklistedEvent
         BlacklistEvent.createOrUpdate(reported) must be equalTo(true)
         BlacklistEvent.findByUri(reported.uriId).nonEmpty must be equalTo(true)
       }
     }
+    
+    "find blacklist events by source" in {
+      running(FakeApplication()) {
+        val reported = blacklistedEvent
+        BlacklistEvent.createOrUpdate(reported) must be equalTo(true)
+        BlacklistEvent.findByUri(reported.uriId, Some(source)).nonEmpty must be equalTo(true)
+      }
+    }    
+    
+    "find currently blacklisted events" in {
+      running(FakeApplication()) {
+        val reported = blacklistedEvent
+        BlacklistEvent.createOrUpdate(reported) must be equalTo(true)
+        BlacklistEvent.findBlacklistedByUri(reported.uriId).nonEmpty must be equalTo(true)
+      }
+    }  
+    
+    "find currently blacklisted events by source" in {
+      running(FakeApplication()) {
+        val reported = blacklistedEvent
+        BlacklistEvent.createOrUpdate(reported) must be equalTo(true)
+        BlacklistEvent.findByUri(reported.uriId).nonEmpty must be equalTo(true)
+        BlacklistEvent.findBlacklistedByUri(reported.uriId, Some(source)).nonEmpty must be equalTo(true)
+      }
+    }     
     
     "remove a blacklist event" in {
       running(FakeApplication()) {

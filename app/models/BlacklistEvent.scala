@@ -82,10 +82,27 @@ object BlacklistEvent {
     return inserted > 0
   }  
   
-  def findByUri(uriId: Int): List[BlacklistEvent] = DB.withConnection { implicit conn =>
-    val rs = SQL("SELECT * FROM blacklist_events WHERE uri_id={uriId}").on("uriId"->uriId)
-    return rs().map(mapFromRow).flatten.toList
+  def findByUri(uriId: Int, source: Option[Source]=None): List[BlacklistEvent] = DB.withConnection { implicit conn =>
+    return findEventsByUri(uriId, source)
   }
+  
+  def findBlacklistedByUri(uriId: Int, source: Option[Source]=None): List[BlacklistEvent] = DB.withConnection { implicit conn =>
+    return findEventsByUri(uriId, source, true)
+  }  
+  
+  private def findEventsByUri(
+      uriId: Int, 
+      source: Option[Source]=None,
+      currentOnly: Boolean=false): List[BlacklistEvent] = DB.withConnection { implicit conn =>
+    val base = "SELECT * FROM blacklist_events WHERE uri_id={uriId}" + 
+      (if (currentOnly) " AND blacklisted=true" else "")
+    val rs = if (source.isDefined) {
+      SQL(base+" AND source={source}::SOURCE").on("uriId"->uriId, "source"->source.get.abbr)
+    } else {
+      SQL(base).on("uriId"->uriId)
+    }
+    return rs().map(mapFromRow).flatten.toList
+  } 
   
   private def mapFromRow(row: SqlRow): Option[BlacklistEvent] = {
     return try {
