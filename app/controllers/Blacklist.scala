@@ -10,19 +10,23 @@ import models._
 
 object Blacklist extends Controller with JsonMapper {
   
-  def importBlacklist(json: String, source: String) = {
+  def importBlacklist(json: String, source: Source) = {
 	  println("start\t"+System.currentTimeMillis/1000)	//DELME WTSN-11
 	  mapJson(json).foreach { node =>
       source match {
-        case "goog" | "tts" => importDifferential(node.toList, source)
-        case "googapl" => importGoogleAppeals(node.toList)
-        case "nsf" => importNsfocus(node.toList)
+        case GOOG | TTS => importDifferential(node.toList, source)
+        case NSF => importNsfocus(node.toList)
+        case _ => Logger.error("No import blacklist action for " + source)
 	    }
 	  }
 	  println("end\t"+System.currentTimeMillis/1000)	//DELME WTSN-11    
   }
   
-  private def importDifferential(blacklist: List[JsonNode], source: String) = {
+  def importGoogleAppeals(json: String) = {
+    println("TODO WTSN-11 GOOGAPL HANDLING")	//TODO WTSN-11
+  }
+  
+  private def importDifferential(blacklist: List[JsonNode], source: Source) = {
     println("TODO WTSN-11 DIFF BLACKLIST")	//DELME WTSN-11
     blacklist.foreach { node =>
 //      val url = node.get("url").asText
@@ -37,10 +41,6 @@ object Blacklist extends Controller with JsonMapper {
 //        case e: Exception => println("Unable to create URI for '"+url+"': "+e.getMessage)
 //      }
     }
-  }
-  
-  private def importGoogleAppeals(appealResults: List[JsonNode]) = {
-    println("TODO WTSN-11 GOOGAPL HANDLING")	//TODO WTSN-11
   }
   
   private def importNsfocus(blacklist: List[JsonNode]) = {

@@ -11,11 +11,14 @@ object Rest extends Controller with JsonMapper {
 		Ok(source) //TODO WTSN-20
   }
 	
-	def importList(source: String) = Action(parse.temporaryFile) { request =>
-	  Logger.info("Received import for " + source)
-	  val sources = Set("goog", "googapl", "nsf", "tts")
-	  if (sources.contains(source.toLowerCase)) {
-	    future(Blacklist.importBlacklist(Source.fromFile(request.body.file).mkString, source))
+	def importList(abbr: String) = Action(parse.temporaryFile) { request =>
+	  Logger.info("Received import for " + abbr)
+	  val source = models.Source.withAbbr(abbr)
+	  if (source.isDefined) {
+	    future(Blacklist.importBlacklist(Source.fromFile(request.body.file).mkString, source.get))
+	    Ok
+	  } else if (abbr.equalsIgnoreCase("googapl")) {
+	    future(Blacklist.importGoogleAppeals(Source.fromFile(request.body.file).mkString))
 	    Ok
 	  } else {
 	  	NotFound
