@@ -22,6 +22,11 @@ case class BlacklistEvent(
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
     }
+  }
+  
+  def removeFromBlacklist(time: Long): Boolean = DB.withConnection { implicit conn =>
+    val clean = ReportedEvent(uriId, source, time, Some(time))
+    return BlacklistEvent.update(clean, this) > 0
   }  
   
 }
@@ -80,7 +85,7 @@ object BlacklistEvent {
       0
     }
     return updated
-  }  
+  }
   
   def markNoLongerBlacklisted(uriId: Int, source: Source, time: Long): Boolean = DB.withConnection { implicit conn =>
     val events = findEventsByUri(uriId, Some(source), true)
@@ -88,7 +93,17 @@ object BlacklistEvent {
     return events.foldLeft(0){ (ctr, event) =>
       ctr + update(clean, event)
     } == events.size
-  }  
+  }
+  
+  def blacklisted(source: Option[Source]=None): List[BlacklistEvent] = DB.withConnection { implicit conn =>
+    val base = "SELECT * FROM blacklist_events WHERE blacklisted=true"
+    val rs = if (source.isDefined) {
+    	SQL(base+" AND source={source}::SOURCE").on("source"->source.get.abbr)
+    } else {
+      SQL(base)
+    }
+    return rs().map(mapFromRow).flatten.toList
+  }
   
   def findByUri(uriId: Int, source: Option[Source]=None): List[BlacklistEvent] = DB.withConnection { implicit conn =>
     return findEventsByUri(uriId, source)

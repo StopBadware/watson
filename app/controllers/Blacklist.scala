@@ -11,7 +11,6 @@ import models._
 object Blacklist extends Controller with JsonMapper {
   
   def importBlacklist(json: String, source: Source) = {
-	  println("start\t"+System.currentTimeMillis/1000)	//DELME WTSN-11
 	  mapJson(json).foreach { node =>
       source match {
         case GOOG | TTS => importDifferential(node.toList, source)
@@ -19,7 +18,6 @@ object Blacklist extends Controller with JsonMapper {
         case _ => Logger.error("No import blacklist action for " + source)
 	    }
 	  }
-	  println("end\t"+System.currentTimeMillis/1000)	//DELME WTSN-11    
   }
   
   def importGoogleAppeals(json: String) = {
@@ -30,18 +28,21 @@ object Blacklist extends Controller with JsonMapper {
     Logger.info("Importing "+json.size+" entries for "+source)
     diffBlacklist(json).groupBy(_._2).foreach { case (time, blacklist) =>
       val uris = blacklist.map(_._1)
-      dropNoLongerBlacklisted(uris, source, time)
-      //TODO WTSN-11 add/update blacklist
-      //.foreach(_.blacklist(source, time))
+      val removed = updateNoLongerBlacklisted(uris, source, time)
+      Logger.info("Marked "+removed+" events as no longer blacklisted by "+source)
+      val addedOrUpdated = uris.foldLeft(0) { (c, u) => 
+        if (u.blacklist(source, time)) c + 1 else c
+      }
+      Logger.info("Added or updated "+addedOrUpdated+" blacklist events for "+source)
     }
   }
   
-  private def dropNoLongerBlacklisted(blacklist: List[Uri], source: Source, time: Long) = {
-    //TODO WTSN-11 get all currently blacklisted by source
-    //TODO WTSN-11 compare to blacklist
-    //TODO WTSN-11 any missing from blacklist remove with time
-    println(blacklist)	//DELME WTSN-11
-//    val current = BlacklistEvent.
+  private def updateNoLongerBlacklisted(blacklist: List[Uri], source: Source, time: Long): Int = {
+    def currentlyBlacklisted = BlacklistEvent.blacklisted(Some(source)).filter(_.blacklistedAt < time)
+    val old = currentlyBlacklisted
+    val newUriIds = blacklist.map(_.id)
+    old.filterNot(event => newUriIds.contains(event.uriId)).foreach(_.removeFromBlacklist(time))
+    return old.size - currentlyBlacklisted.size
   }
   
   private def diffBlacklist(blacklist: List[JsonNode]): List[(Uri, Long)] = {
