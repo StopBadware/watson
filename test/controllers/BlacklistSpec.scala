@@ -6,7 +6,7 @@ import org.specs2.runner._
 import play.api.test._
 import play.api.test.Helpers._
 import java.net.URI
-import models.{ReportedUri, Source, Uri}
+import models._
 
 @RunWith(classOf[JUnitRunner])
 class BlacklistSpec extends Specification {
@@ -29,6 +29,9 @@ class BlacklistSpec extends Specification {
 	      val filtered = found.filter(_.uri.equals(uri.toString))
 	      filtered.nonEmpty must beTrue
 	      filtered.filter(_.isBlacklisted).nonEmpty must beTrue
+	      filtered.filter(_.isBlacklisted).map { uri =>
+        	BlacklistEvent.findBlacklistedByUri(uri.id, Some(Source.GOOG)).nonEmpty must beTrue
+        }
       }
     }
     
@@ -46,6 +49,9 @@ class BlacklistSpec extends Specification {
 	      val filtered = foundA.filter(_.uri.equals(uri.toString))
 	      filtered.nonEmpty must beTrue
 	      filtered.filter(_.isBlacklisted).nonEmpty must beTrue
+	      filtered.filter(_.isBlacklisted).map { uri =>
+        	BlacklistEvent.findBlacklistedByUri(uri.id, Some(Source.GOOG)).nonEmpty must beTrue
+        }
 	      val timeB = System.currentTimeMillis / 1000
 	      val jsonB = "[{\"url\":\"example.com\",\"time\":"+timeB+"}]"
 	      Blacklist.importBlacklist(jsonB, Source.GOOG)
@@ -53,6 +59,9 @@ class BlacklistSpec extends Specification {
 	      foundB.nonEmpty must beTrue
         foundB.filter(_.uri.equals(uri.toString)).nonEmpty must beTrue
 	      foundB.filter(u => u.uri.equals(uri.toString) && u.isBlacklisted).isEmpty must beTrue
+	      foundB.filter(_.isBlacklisted).map { uri =>
+        	BlacklistEvent.findBlacklistedByUri(uri.id, Some(Source.GOOG)).nonEmpty must beTrue
+        }
       }
     }    
     
@@ -62,8 +71,38 @@ class BlacklistSpec extends Specification {
     }
     
     "import NSF blacklist" in {
-      //TODO WTSN-11
-      true must beFalse
+      running(FakeApplication()) {
+        val time = System.currentTimeMillis / 1000 - 47
+        val cleanTime = System.currentTimeMillis / 1000
+        val existingUrl = "example.com"
+        Uri.findOrCreate(new ReportedUri(existingUrl)) must beSome
+        val newUrl = "https://example.com/" + time
+        val uriA = new URI(newUrl)
+        val hierarchicalPartA = uriA.getRawAuthority + uriA.getRawPath
+        Uri.findByHierarchicalPart(hierarchicalPartA).isEmpty must beTrue
+	      val json = "["+
+	        	"{\"url\":\""+newUrl+"\",\"time\":"+time+",\"clean\":0},"+
+	        	"{\"url\":\""+existingUrl+"\",\"time\":"+time+",\"clean\":"+cleanTime+"}"+
+	        "]"
+	      Blacklist.importBlacklist(json, Source.NSF)
+	      val foundA = Uri.findByHierarchicalPart(hierarchicalPartA)
+	      foundA.nonEmpty must beTrue
+	      val filteredA = foundA.filter(_.uri.equals(uriA.toString))
+	      filteredA.nonEmpty must beTrue
+	      filteredA.filter(_.isBlacklisted).nonEmpty must beTrue
+	      filteredA.filter(_.isBlacklisted).map { uri =>
+        	BlacklistEvent.findBlacklistedByUri(uri.id, Some(Source.NSF)).nonEmpty must beTrue
+        }
+        val uriB = new URI("http://"+existingUrl)
+        val hierarchicalPartB = uriB.getRawAuthority + uriB.getRawPath
+	      val foundB = Uri.findByHierarchicalPart(hierarchicalPartB)
+	      foundB.nonEmpty must beTrue
+	      val filteredB = foundB.filter(_.uri.equals(uriB.toString))
+	      filteredB.nonEmpty must beTrue
+	      filteredB.filter(_.isBlacklisted).map { uri =>
+        	BlacklistEvent.findBlacklistedByUri(uri.id, Some(Source.NSF)).isEmpty must beTrue
+        }        
+      }      
     }
     
   }

@@ -30,8 +30,8 @@ object Blacklist extends Controller with JsonMapper {
       val uris = blacklist.map(_._1)
       val removed = updateNoLongerBlacklisted(uris, source, time)
       Logger.info("Marked "+removed+" events as no longer blacklisted by "+source)
-      val addedOrUpdated = uris.foldLeft(0) { (c, u) => 
-        if (u.blacklist(source, time)) c + 1 else c
+      val addedOrUpdated = uris.foldLeft(0) { (ctr, uri) => 
+        if (uri.blacklist(source, time)) ctr + 1 else ctr
       }
       Logger.info("Added or updated "+addedOrUpdated+" blacklist events for "+source)
     }
@@ -58,8 +58,22 @@ object Blacklist extends Controller with JsonMapper {
     }
   }
   
-  private def importNsfocus(blacklist: List[JsonNode]) = {
-  	println("TODO WTSN-11 NSF HANDLING")			//TODO WTSN-11
+  private def importNsfocus(json: List[JsonNode], source: Source=Source.NSF) = {
+  	Logger.info("Importing "+json.size+" entries for "+source)
+  	val addedOrUpdated = json.foldLeft(0) { (ctr, node) =>
+  		val url = node.get("url").asText
+	    val time = node.get("time").asLong
+	    val clean = node.get("clean").asLong
+	    try {
+	      val uri = Uri.findOrCreate(new ReportedUri(url)).get
+	      val cleanTime = if (clean != 0) Some(clean) else None
+	      if (uri.blacklist(source, time, cleanTime)) ctr + 1 else ctr
+	    } catch {
+	      case e: URISyntaxException => Logger.warn("URISyntaxException thrown, unable to create URI for '"+url+"': "+e.getMessage)
+	      ctr
+	    }
+  	}
+  	Logger.info("Added or updated "+addedOrUpdated+" blacklist events for "+source)
   }
 
 }
