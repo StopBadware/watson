@@ -26,7 +26,7 @@ class BlacklistSpec extends Specification {
 	      Blacklist.importBlacklist(json, Source.GOOG)
 	      val found = Uri.findByHierarchicalPart(hierarchicalPart)
 	      found.nonEmpty must beTrue
-	      val filtered = found.filter(_.uri.equals(uri))
+	      val filtered = found.filter(_.uri.equals(uri.toString))
 	      filtered.nonEmpty must beTrue
 	      filtered.filter(_.isBlacklisted).nonEmpty must beTrue
       }
@@ -36,21 +36,23 @@ class BlacklistSpec extends Specification {
       running(FakeApplication()) {
         val timeA = (System.currentTimeMillis / 1000) - 1337
         val url = "example.com/" + timeA
-        val uri = new URI(url)
+        val uri = new URI("http://"+url)
         val hierarchicalPart = uri.getRawAuthority + uri.getRawPath
         Uri.findByHierarchicalPart(hierarchicalPart).isEmpty must beTrue
 	      val jsonA = "[{\"url\":\""+url+"\",\"time\":"+timeA+"}, {\"url\":\"example.com\",\"time\":"+timeA+"}]"
 	      Blacklist.importBlacklist(jsonA, Source.GOOG)
 	      val foundA = Uri.findByHierarchicalPart(hierarchicalPart)
 	      foundA.nonEmpty must beTrue
-	      val filtered = foundA.filter(_.uri.equals(uri))
+	      val filtered = foundA.filter(_.uri.equals(uri.toString))
 	      filtered.nonEmpty must beTrue
 	      filtered.filter(_.isBlacklisted).nonEmpty must beTrue
 	      val timeB = System.currentTimeMillis / 1000
 	      val jsonB = "[{\"url\":\"example.com\",\"time\":"+timeB+"}]"
 	      Blacklist.importBlacklist(jsonB, Source.GOOG)
 	      val foundB = Uri.findByHierarchicalPart(hierarchicalPart)
-	      foundB.filter(u => u.uri.equals(uri) && !u.isBlacklisted).isEmpty must beTrue
+	      foundB.nonEmpty must beTrue
+        foundB.filter(_.uri.equals(uri.toString)).nonEmpty must beTrue
+	      foundB.filter(u => u.uri.equals(uri.toString) && u.isBlacklisted).isEmpty must beTrue
       }
     }    
     

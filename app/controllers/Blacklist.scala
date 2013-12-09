@@ -26,20 +26,34 @@ object Blacklist extends Controller with JsonMapper {
     println("TODO WTSN-11 GOOGAPL HANDLING")	//TODO WTSN-11
   }
   
-  private def importDifferential(blacklist: List[JsonNode], source: Source) = {
-    println("TODO WTSN-11 DIFF BLACKLIST")	//DELME WTSN-11
-    blacklist.foreach { node =>
-//      val url = node.get("url").asText
-//      val time = node.get("time").asLong
-//      println(url, time)	//DELME
-//      try {
-//        Uri.create(new ReportedUri(url))		//TODO WTSN-11 return Uri and call blacklist w/time and source
-//      } catch {
-////        case e: URISyntaxException => Logger.warn("URISyntaxException thrown, unable to create URI for '"+url+"': "+e.getMessage)
-////        case e: Exception => Logger.warn("Unable to create URI for '"+url+"': "+e.getMessage)
-//        case e: URISyntaxException => println("URISyntaxException thrown, unable to create URI for '"+url+"': "+e.getMessage)
-//        case e: Exception => println("Unable to create URI for '"+url+"': "+e.getMessage)
-//      }
+  private def importDifferential(json: List[JsonNode], source: Source) = {
+    Logger.info("Importing "+json.size+" entries for "+source)
+    diffBlacklist(json).groupBy(_._2).foreach { case (time, blacklist) =>
+      val uris = blacklist.map(_._1)
+      dropNoLongerBlacklisted(uris, source, time)
+      //TODO WTSN-11 add/update blacklist
+      //.foreach(_.blacklist(source, time))
+    }
+  }
+  
+  private def dropNoLongerBlacklisted(blacklist: List[Uri], source: Source, time: Long) = {
+    //TODO WTSN-11 get all currently blacklisted by source
+    //TODO WTSN-11 compare to blacklist
+    //TODO WTSN-11 any missing from blacklist remove with time
+    println(blacklist)	//DELME WTSN-11
+//    val current = BlacklistEvent.
+  }
+  
+  private def diffBlacklist(blacklist: List[JsonNode]): List[(Uri, Long)] = {
+    return blacklist.foldLeft(List.empty[(Uri, Long)]) { (list, node) =>
+	    val url = node.get("url").asText
+	    val time = node.get("time").asLong
+      try {
+        list ++ List((Uri.findOrCreate(new ReportedUri(url)).get, time))
+      } catch {
+        case e: URISyntaxException => Logger.warn("URISyntaxException thrown, unable to create URI for '"+url+"': "+e.getMessage)
+        list
+      }
     }
   }
   
