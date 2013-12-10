@@ -45,7 +45,7 @@ object BlacklistEvent {
     }
   }
   
-  private def create(reported: ReportedEvent): Boolean = DB.withConnection { implicit conn =>
+  private def create(reported: ReportedEvent): Boolean = DB.withTransaction { implicit conn =>
     val inserted = try {
       SQL("""INSERT INTO blacklist_events (uri_id, source, blacklisted, blacklisted_at, unblacklisted_at) 
           SELECT {uriId}, {source}::SOURCE, {blacklisted}, {blacklistedAt}, {unblacklistedAt} 
@@ -66,7 +66,7 @@ object BlacklistEvent {
     return inserted > 0
   }
   
-  private def update(reported: ReportedEvent, event: BlacklistEvent): Int = DB.withConnection { implicit conn =>
+  private def update(reported: ReportedEvent, event: BlacklistEvent): Int = DB.withTransaction { implicit conn =>
     val updated = try {
       SQL("""UPDATE blacklist_events SET blacklisted={blacklisted}, blacklisted_at={blacklistedAt}, 
           unblacklisted_at={unblacklistedAt} WHERE id={id}""").on(

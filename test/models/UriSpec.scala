@@ -7,6 +7,7 @@ import play.api.test._
 import play.api.test.Helpers._
 import java.net.URISyntaxException
 import scala.util.Random
+import scala.actors.Futures.future
 
 @RunWith(classOf[JUnitRunner])
 class UriSpec extends Specification {
@@ -51,6 +52,18 @@ class UriSpec extends Specification {
       	Uri.find(reported.sha256) must beSome
       }
     }
+    
+    "find or create a Uri concurrently" in {
+      running(FakeApplication()) {
+        val reported = reportedUri
+        Uri.find(reported.sha256) must beNone
+        for (i <- 1 to 50) {
+        	future(Uri.findOrCreate(reported) must beSome)
+        }
+        Thread.sleep(2000) //wait for all futures to complete
+        Uri.find(reported.sha256) must beSome
+      }
+    }    
     
     "remove a Uri" in {
       running(FakeApplication()) {

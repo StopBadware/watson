@@ -46,17 +46,33 @@ case class Uri(
 
 object Uri {
   
-  def create(reported: ReportedUri): Boolean = DB.withConnection { implicit conn =>
+  def create(reported: ReportedUri): Boolean = DB.withTransaction { implicit conn =>
     val inserted = try { 
-      SQL("""INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256) 
-    		SELECT {uri}, {reversedHost}, {hierarchicalPart}, {path}, {sha256} 
-    		WHERE NOT EXISTS (SELECT 1 FROM uris WHERE sha2_256={sha256})""").on(
+//      conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE)
+//      val notExists = {
+//        SQL("UPDATE uris SET sha2_256={sha256} WHERE sha2_256={sha256}").on("sha256"->reported.sha256).executeUpdate() 
+//      } == 0
+//      if (notExists) {
+	      SQL("""INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256) 
+	    		SELECT {uri}, {reversedHost}, {hierarchicalPart}, {path}, {sha256} 
+	    		WHERE NOT EXISTS (SELECT 1 FROM uris WHERE sha2_256={sha256})""").on(
     		    "uri"->reported.uri.toString,
     		    "reversedHost"->reported.reversedHost,
     		    "hierarchicalPart"->reported.hierarchicalPart,
     		    "path"->reported.path,
     		    "sha256"->reported.sha256
     		).executeUpdate()
+//	      SQL("""INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256) 
+//	    		VALUES ({uri}, {reversedHost}, {hierarchicalPart}, {path}, {sha256})""").on(
+//    		    "uri"->reported.uri.toString,
+//    		    "reversedHost"->reported.reversedHost,
+//    		    "hierarchicalPart"->reported.hierarchicalPart,
+//    		    "path"->reported.path,
+//    		    "sha256"->reported.sha256
+//    		).executeUpdate()   
+//      } else {
+//        0
+//      }
   	} catch {
   	  case e: PSQLException => Logger.error(e.getMessage)
   	  0
