@@ -47,18 +47,21 @@ object BlacklistEvent {
   
   private def create(reported: ReportedEvent): Boolean = DB.withTransaction { implicit conn =>
     val inserted = try {
-      SQL("""INSERT INTO blacklist_events (uri_id, source, blacklisted, blacklisted_at, unblacklisted_at) 
-          SELECT {uriId}, {source}::SOURCE, {blacklisted}, {blacklistedAt}, {unblacklistedAt} 
-          WHERE NOT EXISTS (SELECT 1 FROM blacklist_events 
-          WHERE uri_id={uriId} AND source={source}::SOURCE AND blacklisted_at={blacklistedAt})""").on(
-            "uriId" -> reported.uriId,
-            "source" -> reported.source.abbr,
-            "blacklistedAt" -> new Date(reported.blacklistedAt * 1000),
-            "unblacklistedAt" -> {
-              if (reported.unblacklistedAt.isDefined) new Date(reported.unblacklistedAt.get * 1000) else None
-            },
-            "blacklisted" -> reported.unblacklistedAt.isEmpty
-          ).executeUpdate()
+      conn.setAutoCommit(false)
+      SQL("LOCK TABLE blacklist_events IN EXCLUSIVE MODE").execute
+      val cnt = SQL("""INSERT INTO blacklist_events (uri_id, source, blacklisted, blacklisted_at, unblacklisted_at) 
+        SELECT {uriId}, {source}::SOURCE, {blacklisted}, {blacklistedAt}, {unblacklistedAt} 
+        WHERE NOT EXISTS (SELECT 1 FROM blacklist_events 
+        WHERE uri_id={uriId} AND source={source}::SOURCE AND blacklisted_at={blacklistedAt})""").on(
+          "uriId" -> reported.uriId,
+          "source" -> reported.source.abbr,
+          "blacklistedAt" -> new Date(reported.blacklistedAt * 1000),
+          "unblacklistedAt" -> {
+            if (reported.unblacklistedAt.isDefined) new Date(reported.unblacklistedAt.get * 1000) else None
+          },
+          "blacklisted" -> reported.unblacklistedAt.isEmpty).executeUpdate()
+      conn.commit()
+      cnt
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       0
@@ -69,17 +72,16 @@ object BlacklistEvent {
   private def update(reported: ReportedEvent, event: BlacklistEvent): Int = DB.withTransaction { implicit conn =>
     val updated = try {
       SQL("""UPDATE blacklist_events SET blacklisted={blacklisted}, blacklisted_at={blacklistedAt}, 
-          unblacklisted_at={unblacklistedAt} WHERE id={id}""").on(
-            "id" -> event.id,
-            "blacklistedAt" -> {
-              val blacklistedAt = Math.min(reported.blacklistedAt, event.blacklistedAt)
-              new Date(blacklistedAt * 1000)
-            },
-            "unblacklistedAt" -> {
-              if (reported.unblacklistedAt.isDefined) new Date(reported.unblacklistedAt.get * 1000) else None
-            },
-            "blacklisted" -> reported.unblacklistedAt.isEmpty
-          ).executeUpdate()
+        unblacklisted_at={unblacklistedAt} WHERE id={id}""").on(
+          "id" -> event.id,
+          "blacklistedAt" -> {
+            val blacklistedAt = Math.min(reported.blacklistedAt, event.blacklistedAt)
+            new Date(blacklistedAt * 1000)
+          },
+          "unblacklistedAt" -> {
+            if (reported.unblacklistedAt.isDefined) new Date(reported.unblacklistedAt.get * 1000) else None
+          },
+          "blacklisted" -> reported.unblacklistedAt.isEmpty).executeUpdate()
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       0
