@@ -48,7 +48,7 @@ object BlacklistEvent {
   
   private def create(reported: ReportedEvent): Boolean = DB.withTransaction { implicit conn =>
     val inserted = try {
-      val cnt = SQL("""INSERT INTO blacklist_events (uri_id, source, blacklisted, blacklisted_at, unblacklisted_at) 
+      SQL("""INSERT INTO blacklist_events (uri_id, source, blacklisted, blacklisted_at, unblacklisted_at) 
         SELECT {uriId}, {source}::SOURCE, {blacklisted}, {blacklistedAt}, {unblacklistedAt} 
         WHERE NOT EXISTS (SELECT 1 FROM blacklist_events 
         WHERE uri_id={uriId} AND source={source}::SOURCE AND blacklisted_at={blacklistedAt})""").on(
@@ -59,7 +59,6 @@ object BlacklistEvent {
             if (reported.unblacklistedAt.isDefined) new Date(reported.unblacklistedAt.get * 1000) else None
           },
           "blacklisted" -> reported.unblacklistedAt.isEmpty).executeUpdate()
-      cnt
     } catch {
       case e: PSQLException => if (PostgreSql.isNotDupeError(e.getMessage)) {
   	    Logger.error(e.getMessage)

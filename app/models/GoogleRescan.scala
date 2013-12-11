@@ -36,9 +36,7 @@ object GoogleRescan {
     requestedVia: String,
     rescannedAt: Long): Boolean = DB.withTransaction { implicit conn =>
 	    val inserted = try {
-	      conn.setAutoCommit(false)
-	      SQL("LOCK TABLE google_rescans IN EXCLUSIVE MODE").execute
-	      val cnt = SQL("""INSERT INTO google_rescans (uri_id, related_uri_id, status, requested_via, rescanned_at) 
+	      SQL("""INSERT INTO google_rescans (uri_id, related_uri_id, status, requested_via, rescanned_at) 
 	        SELECT {uriId}, {relatedUriId}, {status}, {requestedVia}, {rescannedAt} WHERE NOT EXISTS (SELECT 1 FROM 
 	        google_rescans WHERE uri_id={uriId} AND related_uri_id={relatedUriId} AND rescanned_at={rescannedAt})""").on(
 	          "uriId" -> uriId,
@@ -48,8 +46,6 @@ object GoogleRescan {
 	          "status" -> status,
 	          "requestedVia" -> requestedVia,
 	          "rescannedAt" -> new Date(rescannedAt * 1000)).executeUpdate()
-	      conn.commit()
-	      cnt
 	    } catch {
 	      case e: PSQLException => if (PostgreSql.isNotDupeError(e.getMessage)) {
 	  	    Logger.error(e.getMessage)

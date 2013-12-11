@@ -48,7 +48,7 @@ object Uri {
   
   def create(reported: ReportedUri): Boolean = DB.withTransaction { implicit conn =>
     val inserted = try {
-      val cnt = SQL("""INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256) 
+      SQL("""INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256) 
     		SELECT {uri}, {reversedHost}, {hierarchicalPart}, {path}, {sha256} 
     		WHERE NOT EXISTS (SELECT 1 FROM uris WHERE sha2_256={sha256})""").on(
   		    "uri"->reported.uri.toString,
@@ -56,7 +56,6 @@ object Uri {
   		    "hierarchicalPart"->reported.hierarchicalPart,
   		    "path"->reported.path,
   		    "sha256"->reported.sha256).executeUpdate()
-  		cnt
   	} catch {
   	  case e: PSQLException => if (PostgreSql.isNotDupeError(e.getMessage)) {
   	    Logger.error(e.getMessage)
