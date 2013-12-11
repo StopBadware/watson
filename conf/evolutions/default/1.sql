@@ -77,12 +77,12 @@ CREATE INDEX ON reviews (reviewed_by, verified_by);
 
 # --- !Downs
 
-DROP TABLE blacklist_events;
-DROP TABLE sources;
-DROP TABLE review_requests;
-DROP TABLE reviews;
-DROP TABLE users;
-DROP TABLE review_data;
-DROP TABLE uris;
+DROP TABLE blacklist_events CASCADE;
+DROP TABLE sources CASCADE;
+DROP TABLE review_requests CASCADE;
+DROP TABLE reviews CASCADE;
+DROP TABLE users CASCADE;
+DROP TABLE review_data CASCADE;
+DROP TABLE uris CASCADE;
 DROP TYPE SOURCE;
 DROP TYPE REVIEW_STATUS;
