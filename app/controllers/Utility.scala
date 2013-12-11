@@ -29,3 +29,9 @@ object Host {
   }
 
 }
+
+object PostgreSql {
+  
+  def isNotDupeError(err: String): Boolean = !err.startsWith("ERROR: duplicate key")
+  
+}

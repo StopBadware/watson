@@ -6,6 +6,7 @@ import play.api.db._
 import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
+import controllers.PostgreSql
 
 case class BlacklistEvent(
     id: Int,
@@ -47,8 +48,6 @@ object BlacklistEvent {
   
   private def create(reported: ReportedEvent): Boolean = DB.withTransaction { implicit conn =>
     val inserted = try {
-      conn.setAutoCommit(false)
-      SQL("LOCK TABLE blacklist_events IN EXCLUSIVE MODE").execute
       val cnt = SQL("""INSERT INTO blacklist_events (uri_id, source, blacklisted, blacklisted_at, unblacklisted_at) 
         SELECT {uriId}, {source}::SOURCE, {blacklisted}, {blacklistedAt}, {unblacklistedAt} 
         WHERE NOT EXISTS (SELECT 1 FROM blacklist_events 
@@ -60,10 +59,11 @@ object BlacklistEvent {
             if (reported.unblacklistedAt.isDefined) new Date(reported.unblacklistedAt.get * 1000) else None
           },
           "blacklisted" -> reported.unblacklistedAt.isEmpty).executeUpdate()
-      conn.commit()
       cnt
     } catch {
-      case e: PSQLException => Logger.error(e.getMessage)
+      case e: PSQLException => if (PostgreSql.isNotDupeError(e.getMessage)) {
+  	    Logger.error(e.getMessage)
+  	  }
       0
     }
     return inserted > 0

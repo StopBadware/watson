@@ -27,6 +27,15 @@ class UtilitySpec extends Specification {
       Host.reverse(normal) must equalTo(reversed)
     }
     
-  }  
+  }
+  
+  "PostgreSql" should {
+    
+    "check if error is duplicate warning" in {
+      PostgreSql.isNotDupeError("For the Horde!") must beTrue
+      PostgreSql.isNotDupeError("ERROR: duplicate key value violates unique constraint") must beFalse
+    }
+    
+  }
 
 }

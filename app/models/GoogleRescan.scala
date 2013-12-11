@@ -6,6 +6,7 @@ import play.api.db._
 import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
+import controllers.PostgreSql
 
 case class GoogleRescan(
     id: Int,
@@ -50,7 +51,9 @@ object GoogleRescan {
 	      conn.commit()
 	      cnt
 	    } catch {
-	      case e: PSQLException => Logger.error(e.getMessage)
+	      case e: PSQLException => if (PostgreSql.isNotDupeError(e.getMessage)) {
+	  	    Logger.error(e.getMessage)
+	  	  }
 	      0
 	    }
 	    return inserted > 0

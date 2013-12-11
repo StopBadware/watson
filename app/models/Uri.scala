@@ -6,7 +6,7 @@ import play.api.db._
 import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
-import controllers.{Hash, Host}
+import controllers._
 
 case class Uri(
     id: Int,
@@ -48,8 +48,6 @@ object Uri {
   
   def create(reported: ReportedUri): Boolean = DB.withTransaction { implicit conn =>
     val inserted = try {
-      conn.setAutoCommit(false)
-      SQL("LOCK TABLE uris IN EXCLUSIVE MODE").execute
       val cnt = SQL("""INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256) 
     		SELECT {uri}, {reversedHost}, {hierarchicalPart}, {path}, {sha256} 
     		WHERE NOT EXISTS (SELECT 1 FROM uris WHERE sha2_256={sha256})""").on(
@@ -58,10 +56,11 @@ object Uri {
   		    "hierarchicalPart"->reported.hierarchicalPart,
   		    "path"->reported.path,
   		    "sha256"->reported.sha256).executeUpdate()
-  		conn.commit()
   		cnt
   	} catch {
-  	  case e: PSQLException => Logger.error(e.getMessage)
+  	  case e: PSQLException => if (PostgreSql.isNotDupeError(e.getMessage)) {
+  	    Logger.error(e.getMessage)
+  	  }
   	  0
   	}
 		return inserted > 0
