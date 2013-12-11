@@ -132,6 +132,9 @@ class ReportedUri(uriStr: String) {
   val path = uri.getRawPath
   val query = uri.getRawQuery
   val hierarchicalPart = uri.getRawAuthority + uri.getRawPath
+  if (uri.getHost == null) {
+    Logger.debug("'"+uri.toString+"' ('"+uriStr+"') has null host")	//DELME WTSN-11
+  }
   lazy val reversedHost = Host.reverse(uri.getHost)
   lazy val sha256 = Hash.sha256(uri.toString).getOrElse("")
   
