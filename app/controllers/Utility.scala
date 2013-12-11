@@ -19,6 +19,13 @@ object Hash {
 
 object Host {
   
-  def reverse(host: String): String = host.split("\\.").reverse.mkString(".")
+  def reverse(host: String): String = {
+    try {
+      host.split("\\.").reverse.mkString(".")
+    } catch {
+      case e: NullPointerException => println("'"+host+"'\t"+e.getMessage)	//DELME WTSN-11
+      ""
+    }
+  }
 
 }
