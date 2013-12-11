@@ -145,8 +145,7 @@ object BlacklistEvent {
 		    unblacklistedAt
   		))
     } catch {
-      case e: Exception => println(e) 
-        None
+      case e: Exception => None
     }
   }
   
