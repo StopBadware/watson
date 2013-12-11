@@ -21,7 +21,13 @@ object Blacklist extends Controller with JsonMapper {
   }
   
   def importGoogleAppeals(json: String) = {
-    println("TODO WTSN-11 GOOGAPL HANDLING")	//TODO WTSN-11
+    mapJson(json).foreach { node =>
+      val rescans = node.toList
+      Logger.info("Importing "+rescans.size+" Google rescans")
+      println(rescans)	//DELME
+      val added = rescans.size
+      Logger.info("Added "+added+" Google rescans")
+    }
   }
   
   private def importDifferential(json: List[JsonNode], source: Source) = {

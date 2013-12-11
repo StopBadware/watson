@@ -66,8 +66,21 @@ class BlacklistSpec extends Specification {
     }    
     
     "import Google appeal results" in {
-      //TODO WTSN-11
-      true must beFalse
+      running(FakeApplication()) {
+	      val badUrl = "example.com/"
+	      val badLink = "http://" + badUrl + (System.currentTimeMillis / 1000)
+	      val cleanUrl = "cleanurl.com/"
+	      val json = "[{\"url\":\""+badUrl+"\",\"status\":\"bad\",\"time\":1384862400,\"source\":\"autoappeal\",\"link\":\""+badLink+"\"},"+
+	        "{\"url\":\""+cleanUrl+"\",\"status\":\"clean\",\"time\":1384905600,\"source\":\"autoappeal\"}]"
+	      Blacklist.importGoogleAppeals(json)
+	      val bad = Uri.find(new ReportedUri(badUrl).sha256)
+	      bad must beSome
+	      val link = Uri.find(new ReportedUri(badLink).sha256)
+	      link must beSome
+	      val clean = Uri.find(new ReportedUri(cleanUrl).sha256)
+	      clean must beSome
+	      true must beFalse		//TODO WTSN-11 verify rescans added
+      }
     }
     
     "import NSF blacklist" in {
