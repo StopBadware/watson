@@ -18,7 +18,7 @@ class BlacklistSpec extends Specification {
         val time = System.currentTimeMillis / 1000
         val existingUrl = "example.com"
         Uri.findOrCreate(new ReportedUri(existingUrl)) must beSome
-        val newUrl = "https://example.com/" + time
+        val newUrl = "https://example.com/" + (time*1000)
         val uri = new URI(newUrl)
         val hierarchicalPart = uri.getRawAuthority + uri.getRawPath
         Uri.findByHierarchicalPart(hierarchicalPart).isEmpty must beTrue
@@ -67,19 +67,22 @@ class BlacklistSpec extends Specification {
     
     "import Google appeal results" in {
       running(FakeApplication()) {
-	      val badUrl = "example.com/"
-	      val badLink = "http://" + badUrl + (System.currentTimeMillis / 1000)
+        val time = System.currentTimeMillis / 1000
+	      val badUrl = "example"+time+".com/"
+	      val badLink = "http://" + badUrl + time
 	      val cleanUrl = "cleanurl.com/"
-	      val json = "[{\"url\":\""+badUrl+"\",\"status\":\"bad\",\"time\":1384862400,\"source\":\"autoappeal\",\"link\":\""+badLink+"\"},"+
-	        "{\"url\":\""+cleanUrl+"\",\"status\":\"clean\",\"time\":1384905600,\"source\":\"autoappeal\"}]"
+	      val json = "[{\"url\":\""+badUrl+"\",\"status\":\"bad\",\"time\":"+time+",\"source\":\"autoappeal\",\"link\":\""+badLink+"\"},"+
+	        "{\"url\":\""+cleanUrl+"\",\"status\":\"clean\",\"time\":"+time+",\"source\":\"autoappeal\"}]"
 	      Blacklist.importGoogleAppeals(json)
 	      val bad = Uri.find(new ReportedUri(badUrl).sha256)
 	      bad must beSome
+	      GoogleRescan.findByUri(bad.get.id).nonEmpty must beTrue
 	      val link = Uri.find(new ReportedUri(badLink).sha256)
 	      link must beSome
+	      GoogleRescan.findByUri(bad.get.id).head.relatedUriId.get must equalTo(link.get.id)
 	      val clean = Uri.find(new ReportedUri(cleanUrl).sha256)
 	      clean must beSome
-	      true must beFalse		//TODO WTSN-11 verify rescans added
+	      GoogleRescan.findByUri(clean.get.id).nonEmpty must beTrue
       }
     }
     

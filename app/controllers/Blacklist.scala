@@ -21,11 +21,23 @@ object Blacklist extends Controller with JsonMapper {
   }
   
   def importGoogleAppeals(json: String) = {
-    mapJson(json).foreach { node =>
-      val rescans = node.toList
+    mapJson(json).foreach { nodes =>
+      val rescans = nodes.toList
       Logger.info("Importing "+rescans.size+" Google rescans")
-      println(rescans)	//DELME
-      val added = rescans.size
+      val added = rescans.foldLeft(0) { (ctr, node) =>
+        val url = node.get("url").asText
+        val link = if (node.has("link")) Some(node.get("link").asText) else None
+        val status = node.get("status").asText
+        val requestedVia = node.get("source").asText
+        val rescannedAt = node.get("time").asLong
+        val uriId = Uri.findOrCreate(new ReportedUri(url)).get.id
+        val relatedUriId = if (link.isDefined) {
+          Some(Uri.findOrCreate(new ReportedUri(link.get)).get.id)
+        } else {
+          None
+        }
+        if (GoogleRescan.create(uriId, relatedUriId, status, requestedVia, rescannedAt)) ctr + 1 else ctr
+      }
       Logger.info("Added "+added+" Google rescans")
     }
   }
