@@ -13,20 +13,31 @@ class BlacklistSpec extends Specification {
   
   "Blacklist" should {
     
+    "add differential blacklist to queue" in {
+      running(FakeApplication()) {
+        val time = System.currentTimeMillis / 1000
+        val urlA = "example.com"
+        val urlB = "https://example.com/" + (time*1000)
+	      val json = "[{\"url\":\""+urlB+"\",\"time\":"+time+"}, {\"url\":\""+urlA+"\",\"time\":"+time+"}]"
+	      Blacklist.importBlacklist(json, Source.GOOG)
+	      true must beFalse //TODO WTSN-39 verify import is in queue
+      }
+    }    
+    
     "add new entries from differential blacklist" in {
       running(FakeApplication()) {
         val time = System.currentTimeMillis / 1000
         val existingUrl = "example.com"
-        Uri.findOrCreate(new ReportedUri(existingUrl)) must beSome
+        val existingUri = new ReportedUri(existingUrl)
+        Uri.findOrCreate(existingUri) must beSome
         val newUrl = "https://example.com/" + (time*1000)
-        val uri = new URI(newUrl)
-        val hierarchicalPart = uri.getRawAuthority + uri.getRawPath
-        Uri.findByHierarchicalPart(hierarchicalPart).isEmpty must beTrue
-	      val json = "[{\"url\":\""+newUrl+"\",\"time\":"+time+"}, {\"url\":\""+existingUrl+"\",\"time\":"+time+"}]"
-	      Blacklist.importBlacklist(json, Source.GOOG)
-	      val found = Uri.findByHierarchicalPart(hierarchicalPart)
+        val newUri = new ReportedUri(newUrl)
+	      val uris = List(existingUri, newUri)
+	      Blacklist.importDifferential(uris, Source.GOOG, time)
+	      
+	      val found = Uri.findByHierarchicalPart(newUri.hierarchicalPart)
 	      found.nonEmpty must beTrue
-	      val filtered = found.filter(_.uri.equals(uri.toString))
+	      val filtered = found.filter(_.uri.equals(newUri.uri.toString))
 	      filtered.nonEmpty must beTrue
 	      filtered.filter(_.isBlacklisted).nonEmpty must beTrue
 	      filtered.filter(_.isBlacklisted).map { uri =>
@@ -35,35 +46,69 @@ class BlacklistSpec extends Specification {
       }
     }
     
-    "update entries that fall off differential blacklist" in {
+    "update entries that fall off differential blacklist (imported in order)" in {
       running(FakeApplication()) {
-        val timeA = (System.currentTimeMillis / 1000) - 1337
-        val url = "example.com/" + timeA
-        val uri = new URI("http://"+url)
-        val hierarchicalPart = uri.getRawAuthority + uri.getRawPath
-        Uri.findByHierarchicalPart(hierarchicalPart).isEmpty must beTrue
-	      val jsonA = "[{\"url\":\""+url+"\",\"time\":"+timeA+"}, {\"url\":\"example.com\",\"time\":"+timeA+"}]"
-	      Blacklist.importBlacklist(jsonA, Source.GOOG)
-	      val foundA = Uri.findByHierarchicalPart(hierarchicalPart)
+        val timeA = (System.currentTimeMillis / 1000) - 42
+	      val timeB = System.currentTimeMillis / 1000
+	      
+	      val uriA = new ReportedUri("example.com/" + timeA)
+        val uriB = new ReportedUri("example.com/")
+	      val urisA = List(uriA, uriB)
+	      val urisB = List(uriB)
+	      
+	      Blacklist.importDifferential(urisA, Source.GOOG, timeA)
+	      val foundA = Uri.findByHierarchicalPart(uriA.hierarchicalPart)
 	      foundA.nonEmpty must beTrue
-	      val filtered = foundA.filter(_.uri.equals(uri.toString))
+	      val filtered = foundA.filter(_.uri.equals(uriA.uri.toString))
 	      filtered.nonEmpty must beTrue
 	      filtered.filter(_.isBlacklisted).nonEmpty must beTrue
 	      filtered.filter(_.isBlacklisted).map { uri =>
         	BlacklistEvent.findBlacklistedByUri(uri.id, Some(Source.GOOG)).nonEmpty must beTrue
         }
-	      val timeB = System.currentTimeMillis / 1000
-	      val jsonB = "[{\"url\":\"example.com\",\"time\":"+timeB+"}]"
-	      Blacklist.importBlacklist(jsonB, Source.GOOG)
-	      val foundB = Uri.findByHierarchicalPart(hierarchicalPart)
+        
+        Blacklist.importDifferential(urisB, Source.GOOG, timeB)
+	      val foundB = Uri.findByHierarchicalPart(uriA.hierarchicalPart)
 	      foundB.nonEmpty must beTrue
-        foundB.filter(_.uri.equals(uri.toString)).nonEmpty must beTrue
-	      foundB.filter(u => u.uri.equals(uri.toString) && u.isBlacklisted).isEmpty must beTrue
+        foundB.filter(_.uri.equals(uriA.uri.toString)).nonEmpty must beTrue
+	      foundB.filter(u => u.uri.equals(uriA.uri.toString) && u.isBlacklisted).isEmpty must beTrue
 	      foundB.filter(_.isBlacklisted).map { uri =>
         	BlacklistEvent.findBlacklistedByUri(uri.id, Some(Source.GOOG)).nonEmpty must beTrue
         }
       }
-    }    
+    }
+    
+    "update entries that fall off differential blacklist (imported out of order)" in {
+      running(FakeApplication()) {
+        val timeA = (System.currentTimeMillis / 1000) - 1337
+	      val timeB = System.currentTimeMillis / 1000
+	      
+	      val uriA = new ReportedUri("example.com/" + timeA)
+        val uriB = new ReportedUri("example.com/")
+	      val urisA = List(uriA, uriB)
+	      val urisB = List(uriB)
+	      
+        Blacklist.importDifferential(urisB, Source.GOOG, timeB)
+	      Blacklist.importDifferential(urisA, Source.GOOG, timeA)
+	      
+	      val foundA = Uri.findByHierarchicalPart(uriA.hierarchicalPart)
+	      foundA.nonEmpty must beTrue
+	      val filtered = foundA.filter(_.uri.equals(uriA.uri.toString))
+	      filtered.nonEmpty must beTrue
+	      filtered.filter(_.isBlacklisted).nonEmpty must beTrue
+	      filtered.filter(_.isBlacklisted).map { uri =>
+        	BlacklistEvent.findBlacklistedByUri(uri.id, Some(Source.GOOG)).nonEmpty must beTrue
+        }
+	      
+	      val foundB = Uri.findByHierarchicalPart(uriA.hierarchicalPart)
+	      foundB.nonEmpty must beTrue
+        foundB.filter(_.uri.equals(uriA.uri.toString)).nonEmpty must beTrue
+	      foundB.filter(u => u.uri.equals(uriA.uri.toString) && u.isBlacklisted).isEmpty must beTrue
+	      foundB.filter(_.isBlacklisted).map { uri =>
+        	BlacklistEvent.findBlacklistedByUri(uri.id, Some(Source.GOOG)).nonEmpty must beTrue
+        }
+        
+      }
+    }      
     
     "import Google appeal results" in {
       running(FakeApplication()) {

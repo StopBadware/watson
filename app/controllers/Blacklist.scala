@@ -13,7 +13,7 @@ object Blacklist extends Controller with JsonMapper {
   def importBlacklist(json: String, source: Source) = {
 	  mapJson(json).foreach { node =>
       source match {
-        case GOOG | TTS => importDifferential(node.toList, source)
+        case GOOG | TTS => addToQueue(node.toList, source)
         case NSF => importNsfocus(node.toList)
         case _ => Logger.error("No import blacklist action for " + source)
 	    }
@@ -42,18 +42,27 @@ object Blacklist extends Controller with JsonMapper {
     }
   }
   
-  private def importDifferential(json: List[JsonNode], source: Source) = {
-    Logger.info("Importing "+json.size+" entries for "+source)
+  def importDifferential(reported: List[ReportedUri], source: Source, time: Long) = {
+    Logger.info("Importing "+reported.size+" entries for "+source)
+    val uris = reported.map(Uri.findOrCreate(_)).flatten
+    val removed = updateNoLongerBlacklisted(uris, source, time)
+    Logger.info("Marked "+removed+" events as no longer blacklisted by "+source)
+    //TODO WTSN-39 check blacklists with import time > this time
+    val addedOrUpdated = uris.foldLeft(0) { (ctr, uri) => 
+      if (uri.blacklist(source, time)) ctr + 1 else ctr
+    }
+    Logger.info("Added or updated "+addedOrUpdated+" blacklist events for "+source)
+  }  
+  
+  private def addToQueue(json: List[JsonNode], source: Source) = {
+    Logger.info("Queuing blacklist(s) for "+source)
     diffBlacklist(json).groupBy(_._2).foreach { case (time, blacklist) =>
       val uris = blacklist.map(_._1)
-      val removed = updateNoLongerBlacklisted(uris, source, time)
-      Logger.info("Marked "+removed+" events as no longer blacklisted by "+source)
-      val addedOrUpdated = uris.foldLeft(0) { (ctr, uri) => 
-        if (uri.blacklist(source, time)) ctr + 1 else ctr
-      }
-      Logger.info("Added or updated "+addedOrUpdated+" blacklist events for "+source)
+      Logger.info("Adding import with "+uris.size+" entries for "+source+" to queue")
+      //TODO WTSN-39 add to import queue (uris, source, time)
+      Logger.info("Added import with timestamp "+time+" for "+source+" to queue")
     }
-  }
+  }  
   
   private def updateNoLongerBlacklisted(blacklist: List[Uri], source: Source, time: Long): Int = {
     def currentlyBlacklisted = BlacklistEvent.blacklisted(Some(source)).filter(_.blacklistedAt < time)
@@ -63,12 +72,12 @@ object Blacklist extends Controller with JsonMapper {
     return old.size - currentlyBlacklisted.size
   }
   
-  private def diffBlacklist(blacklist: List[JsonNode]): List[(Uri, Long)] = {
-    return blacklist.foldLeft(List.empty[(Uri, Long)]) { (list, node) =>
+  private def diffBlacklist(blacklist: List[JsonNode]): List[(ReportedUri, Long)] = {
+    return blacklist.foldLeft(List.empty[(ReportedUri, Long)]) { (list, node) =>
 	    val url = node.get("url").asText
 	    val time = node.get("time").asLong
       try {
-        list ++ List((Uri.findOrCreate(new ReportedUri(url)).get, time))
+        list ++ List((new ReportedUri(url), time))
       } catch {
         case e: URISyntaxException => Logger.warn("URISyntaxException thrown, unable to create URI for '"+url+"': "+e.getMessage)
         list
