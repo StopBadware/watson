@@ -11,6 +11,8 @@ import models._
 @RunWith(classOf[JUnitRunner])
 class BlacklistSpec extends Specification {
   
+  private val source = Source.GOOG
+  
   "Blacklist" should {
     
     "add differential blacklist to queue" in {
@@ -19,7 +21,7 @@ class BlacklistSpec extends Specification {
         val urlA = "example.com"
         val urlB = "https://example.com/" + (time*1000)
 	      val json = "[{\"url\":\""+urlB+"\",\"time\":"+time+"}, {\"url\":\""+urlA+"\",\"time\":"+time+"}]"
-	      Blacklist.importBlacklist(json, Source.GOOG)
+	      Blacklist.importBlacklist(json, source)
 	      true must beFalse //TODO WTSN-39 verify import is in queue
       }
     }    
@@ -33,7 +35,7 @@ class BlacklistSpec extends Specification {
         val newUrl = "https://example.com/" + (time*1000)
         val newUri = new ReportedUri(newUrl)
 	      val uris = List(existingUri, newUri)
-	      Blacklist.importDifferential(uris, Source.GOOG, time)
+	      Blacklist.importDifferential(uris, source, time)
 	      
 	      val found = Uri.findByHierarchicalPart(newUri.hierarchicalPart)
 	      found.nonEmpty must beTrue
@@ -41,7 +43,7 @@ class BlacklistSpec extends Specification {
 	      filtered.nonEmpty must beTrue
 	      filtered.filter(_.isBlacklisted).nonEmpty must beTrue
 	      filtered.filter(_.isBlacklisted).map { uri =>
-        	BlacklistEvent.findBlacklistedByUri(uri.id, Some(Source.GOOG)).nonEmpty must beTrue
+        	BlacklistEvent.findBlacklistedByUri(uri.id, Some(source)).nonEmpty must beTrue
         }
       }
     }
@@ -56,23 +58,23 @@ class BlacklistSpec extends Specification {
 	      val urisA = List(uriA, uriB)
 	      val urisB = List(uriB)
 	      
-	      Blacklist.importDifferential(urisA, Source.GOOG, timeA)
+	      Blacklist.importDifferential(urisA, source, timeA)
 	      val foundA = Uri.findByHierarchicalPart(uriA.hierarchicalPart)
 	      foundA.nonEmpty must beTrue
 	      val filtered = foundA.filter(_.uri.equals(uriA.uri.toString))
 	      filtered.nonEmpty must beTrue
 	      filtered.filter(_.isBlacklisted).nonEmpty must beTrue
 	      filtered.filter(_.isBlacklisted).map { uri =>
-        	BlacklistEvent.findBlacklistedByUri(uri.id, Some(Source.GOOG)).nonEmpty must beTrue
+        	BlacklistEvent.findBlacklistedByUri(uri.id, Some(source)).nonEmpty must beTrue
         }
         
-        Blacklist.importDifferential(urisB, Source.GOOG, timeB)
+        Blacklist.importDifferential(urisB, source, timeB)
 	      val foundB = Uri.findByHierarchicalPart(uriA.hierarchicalPart)
 	      foundB.nonEmpty must beTrue
         foundB.filter(_.uri.equals(uriA.uri.toString)).nonEmpty must beTrue
 	      foundB.filter(u => u.uri.equals(uriA.uri.toString) && u.isBlacklisted).isEmpty must beTrue
 	      foundB.filter(_.isBlacklisted).map { uri =>
-        	BlacklistEvent.findBlacklistedByUri(uri.id, Some(Source.GOOG)).nonEmpty must beTrue
+        	BlacklistEvent.findBlacklistedByUri(uri.id, Some(source)).nonEmpty must beTrue
         }
       }
     }
@@ -87,26 +89,17 @@ class BlacklistSpec extends Specification {
 	      val urisA = List(uriA, uriB)
 	      val urisB = List(uriB)
 	      
-        Blacklist.importDifferential(urisB, Source.GOOG, timeB)
-	      Blacklist.importDifferential(urisA, Source.GOOG, timeA)
+        Blacklist.importDifferential(urisB, source, timeB)
+	      Blacklist.importDifferential(urisA, source, timeA)
 	      
-	      val foundA = Uri.findByHierarchicalPart(uriA.hierarchicalPart)
-	      foundA.nonEmpty must beTrue
-	      val filtered = foundA.filter(_.uri.equals(uriA.uri.toString))
+	      val found = Uri.findByHierarchicalPart(uriA.hierarchicalPart)
+	      found.nonEmpty must beTrue
+	      val filtered = found.filter(_.uri.equals(uriA.uri.toString))
 	      filtered.nonEmpty must beTrue
-	      filtered.filter(_.isBlacklisted).nonEmpty must beTrue
-	      filtered.filter(_.isBlacklisted).map { uri =>
-        	BlacklistEvent.findBlacklistedByUri(uri.id, Some(Source.GOOG)).nonEmpty must beTrue
+	      filtered.filter(_.isBlacklisted).isEmpty must beTrue
+	      filtered.map { uri =>
+        	BlacklistEvent.findBlacklistedByUri(uri.id, Some(source)).isEmpty must beTrue
         }
-	      
-	      val foundB = Uri.findByHierarchicalPart(uriA.hierarchicalPart)
-	      foundB.nonEmpty must beTrue
-        foundB.filter(_.uri.equals(uriA.uri.toString)).nonEmpty must beTrue
-	      foundB.filter(u => u.uri.equals(uriA.uri.toString) && u.isBlacklisted).isEmpty must beTrue
-	      foundB.filter(_.isBlacklisted).map { uri =>
-        	BlacklistEvent.findBlacklistedByUri(uri.id, Some(Source.GOOG)).nonEmpty must beTrue
-        }
-        
       }
     }      
     
