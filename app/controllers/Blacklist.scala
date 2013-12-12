@@ -13,7 +13,7 @@ object Blacklist extends Controller with JsonMapper {
   def importBlacklist(json: String, source: Source) = {
 	  mapJson(json).foreach { node =>
       source match {
-        case GOOG | TTS => addToQueue(node.toList, source)
+        case GOOG | TTS => addToQueue(node, source)
         case NSF => importNsfocus(node.toList)
         case _ => Logger.error("No import blacklist action for " + source)
 	    }
@@ -55,15 +55,21 @@ object Blacklist extends Controller with JsonMapper {
     Logger.info("Added or updated "+addedOrUpdated+" blacklist events for "+source)
   }  
   
-  private def addToQueue(json: List[JsonNode], source: Source) = {
+  def importDifferentials(json: List[JsonNode], source: Source) = {
+    //TODO WTSN-39 pull from redis
     Logger.info("Queuing blacklist(s) for "+source)
     diffBlacklist(json).groupBy(_._2).foreach { case (time, blacklist) =>
       val uris = blacklist.map(_._1)
-      Logger.info("Adding import with "+uris.size+" entries for "+source+" to queue")
-      //TODO WTSN-39 add to import queue (uris, source, time)
-      Logger.info("Added import with timestamp "+time+" for "+source+" to queue")
+      importDifferential(uris, source, time)
     }
-  }  
+  }
+  
+  private def addToQueue(json: JsonNode, source: Source) = {
+    Logger.info("Adding import for "+source+" to queue")
+    //TODO WTSN-39 add to import queue (uris, source, time)
+    Redis.addToMap("delkey", "delfield", json.toString)
+    Logger.info("Added import for "+source+" to queue")
+  }
   
   private def updateNoLongerBlacklisted(blacklist: List[Uri], source: Source, time: Long): Int = {
     def currentlyBlacklisted = BlacklistEvent.blacklisted(Some(source)).filter(_.blacklistedAt < time)
