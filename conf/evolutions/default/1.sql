@@ -23,6 +23,13 @@ CREATE TABLE sources (
   full_name VARCHAR(64) NOT NULL
 );
 
+INSERT INTO sources VALUES 
+  ('GOOG','Google'),
+  ('NSF','NSFocus'),
+  ('TTS','ThreatTrack'),
+  ('SBW','StopBadware'),
+  ('SBWCR','StopBadware Community Reports');
+
 CREATE TABLE blacklist_events (
   id SERIAL PRIMARY KEY,
   uri_id INTEGER NOT NULL REFERENCES uris (id) ON DELETE RESTRICT,
