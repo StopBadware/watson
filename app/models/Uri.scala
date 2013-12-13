@@ -46,6 +46,15 @@ case class Uri(
 
 object Uri {
   
+  def create(uriStr: String): Boolean = {
+    return try {
+      create(new ReportedUri(uriStr))
+    } catch {
+      case e: URISyntaxException => Logger.warn("Invalid Uri: '"+uriStr+"'\t"+e.getMessage)
+      false
+    }
+  }
+  
   def create(reported: ReportedUri): Boolean = DB.withTransaction { implicit conn =>
     val inserted = try {
       SQL("""INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256) 
@@ -64,6 +73,15 @@ object Uri {
   	}
 		return inserted > 0
   }
+  
+  def findOrCreate(uriStr: String): Option[Uri] = {
+    return try {
+      findOrCreate(new ReportedUri(uriStr))
+    } catch {
+      case e: URISyntaxException => Logger.warn("Invalid Uri: '"+uriStr+"'\t"+e.getMessage)
+      None
+    }
+  }  
   
   def findOrCreate(reported: ReportedUri): Option[Uri] = {
     val findAttempt = find(reported.sha256)
@@ -127,16 +145,21 @@ class ReportedUri(uriStr: String) {
     val withScheme = if (uriStr.matches(schemeCheck)) uriStr else "http://" + uriStr
     new URI(withScheme)
   }
-  val path = uri.getRawPath
-  val query = uri.getRawQuery
-  val hierarchicalPart = uri.getRawAuthority + uri.getRawPath
-  if (uri.getHost == null) {
-    Logger.debug("'"+uri.toString+"' ('"+uriStr+"') has null host")	//DELME WTSN-11
-  }
+  
+  lazy val path = uri.getRawPath
+  lazy val query = uri.getRawQuery
+  lazy val hierarchicalPart = uri.getRawAuthority + uri.getRawPath
   lazy val reversedHost = Host.reverse(uri.getHost)
   lazy val sha256 = Hash.sha256(uri.toString).getOrElse("")
   
+  override def toString: String = uri.toString
   override def hashCode: Int = uri.hashCode
-  override def toString: String = uri.toString 
+  override def equals(any: Any): Boolean = {
+    return if (any.isInstanceOf[ReportedUri]) {
+      uri.compareTo(any.asInstanceOf[ReportedUri].uri) == 0
+    } else {
+      false
+    }
+  }
 
 }

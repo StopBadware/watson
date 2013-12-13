@@ -30,16 +30,15 @@ class BlacklistSpec extends Specification {
       running(FakeApplication()) {
         val time = System.currentTimeMillis / 1000
         val existingUrl = "example.com"
-        val existingUri = new ReportedUri(existingUrl)
-        Uri.findOrCreate(existingUri) must beSome
+        Uri.findOrCreate(existingUrl) must beSome
         val newUrl = "https://example.com/" + (time*1000)
-        val newUri = new ReportedUri(newUrl)
         val uris = List(existingUrl, newUrl)
 	      Blacklist.importDifferential(uris, source, time)
 	      
+	      val newUri = new ReportedUri(newUrl)
 	      val found = Uri.findByHierarchicalPart(newUri.hierarchicalPart)
 	      found.nonEmpty must beTrue
-	      val filtered = found.filter(_.uri.equals(newUri.uri.toString))
+	      val filtered = found.filter(_.sha256.equals(newUri.sha256))
 	      filtered.nonEmpty must beTrue
 	      filtered.filter(_.isBlacklisted).nonEmpty must beTrue
 	      filtered.filter(_.isBlacklisted).map { uri =>
@@ -62,7 +61,7 @@ class BlacklistSpec extends Specification {
 	      Blacklist.importDifferential(urisA, source, timeA)
 	      val foundA = Uri.findByHierarchicalPart(uriA.hierarchicalPart)
 	      foundA.nonEmpty must beTrue
-	      val filtered = foundA.filter(_.uri.equals(uriA.uri.toString))
+	      val filtered = foundA.filter(_.sha256.equals(uriA.sha256))
 	      filtered.nonEmpty must beTrue
 	      filtered.filter(_.isBlacklisted).nonEmpty must beTrue
 	      filtered.filter(_.isBlacklisted).map { uri =>
@@ -72,8 +71,8 @@ class BlacklistSpec extends Specification {
         Blacklist.importDifferential(urisB, source, timeB)
 	      val foundB = Uri.findByHierarchicalPart(uriA.hierarchicalPart)
 	      foundB.nonEmpty must beTrue
-        foundB.filter(_.uri.equals(uriA.uri.toString)).nonEmpty must beTrue
-	      foundB.filter(u => u.uri.equals(uriA.uri.toString) && u.isBlacklisted).isEmpty must beTrue
+        foundB.filter(_.sha256.equals(uriA.sha256)).nonEmpty must beTrue
+	      foundB.filter(u => u.sha256.equals(uriA.sha256) && u.isBlacklisted).isEmpty must beTrue
 	      foundB.filter(_.isBlacklisted).map { uri =>
         	BlacklistEvent.findBlacklistedByUri(uri.id, Some(source)).nonEmpty must beTrue
         }
@@ -91,12 +90,13 @@ class BlacklistSpec extends Specification {
         val urisA = List(urlA, urlB)
 	      val urisB = List(urlB)
 	      
-        Blacklist.importDifferential(urisB, source, timeB)
-	      Blacklist.importDifferential(urisA, source, timeA)
+	      //tests run concurrently so use different source than above differential blacklist update test
+        Blacklist.importDifferential(urisB, Source.TTS, timeB)
+	      Blacklist.importDifferential(urisA, Source.TTS, timeA)
 	      
 	      val found = Uri.findByHierarchicalPart(uriA.hierarchicalPart)
 	      found.nonEmpty must beTrue
-	      val filtered = found.filter(_.uri.equals(uriA.uri.toString))
+	      val filtered = found.filter(_.sha256.equals(uriA.sha256))
 	      filtered.nonEmpty must beTrue
 	      filtered.filter(_.isBlacklisted).isEmpty must beTrue
 	      filtered.map { uri =>
@@ -131,7 +131,7 @@ class BlacklistSpec extends Specification {
         val time = System.currentTimeMillis / 1000 - 47
         val cleanTime = System.currentTimeMillis / 1000
         val existingUrl = "example.com"
-        Uri.findOrCreate(new ReportedUri(existingUrl)) must beSome
+        Uri.findOrCreate(existingUrl) must beSome
         val newUrl = "https://example.com/" + time
         val uriA = new URI(newUrl)
         val hierarchicalPartA = uriA.getRawAuthority + uriA.getRawPath

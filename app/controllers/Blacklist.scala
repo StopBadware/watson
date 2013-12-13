@@ -31,9 +31,9 @@ object Blacklist extends Controller with JsonMapper {
         val status = node.get("status").asText
         val requestedVia = node.get("source").asText
         val rescannedAt = node.get("time").asLong
-        val uriId = Uri.findOrCreate(new ReportedUri(url)).get.id
+        val uriId = Uri.findOrCreate(url).get.id
         val relatedUriId = if (link.isDefined) {
-          Some(Uri.findOrCreate(new ReportedUri(link.get)).get.id)
+          Some(Uri.findOrCreate(link.get).get.id)
         } else {
           None
         }
@@ -45,7 +45,7 @@ object Blacklist extends Controller with JsonMapper {
   
   def importDifferential(reported: List[String], source: Source, time: Long) = {
     Logger.info("Importing "+reported.size+" entries for "+source)
-    val uris = reported.map(u => Uri.findOrCreate(new ReportedUri(u))).flatten	//TODO WTSN-39 handle URI exception
+    val uris = reported.map(Uri.findOrCreate(_)).flatten
     val removed = updateNoLongerBlacklisted(uris, source, time)
     Logger.info("Marked "+removed+" events as no longer blacklisted by "+source)
     val moreRecent = BlacklistEvent.blacklisted(Some(source)).filter(_.blacklistedAt > time).map(_.id)
@@ -86,7 +86,7 @@ object Blacklist extends Controller with JsonMapper {
 	    val time = node.get("time").asLong
 	    val clean = node.get("clean").asLong
 	    try {
-	      val uri = Uri.findOrCreate(new ReportedUri(url)).get
+	      val uri = Uri.findOrCreate(url).get
 	      val cleanTime = if (clean != 0) Some(clean) else None
 	      if (uri.blacklist(source, time, cleanTime)) ctr + 1 else ctr
 	    } catch {

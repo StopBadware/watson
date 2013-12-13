@@ -12,15 +12,16 @@ import scala.actors.Futures.future
 @RunWith(classOf[JUnitRunner])
 class UriSpec extends Specification {
   
-  def reportedUri = UriSpec.reportedUri
+  def validUri = UriSpec.validUri
+  def reportedUri = new ReportedUri(validUri)
   private val source = Source.SBW
   
   "Uri" should {
     
     "create a new Uri" in {
       running(FakeApplication()) {
-        val reported = reportedUri
-      	Uri.create(reported) must beTrue
+      	Uri.create(reportedUri) must beTrue
+      	Uri.create(validUri) must beTrue
       }
     }
     
@@ -50,6 +51,11 @@ class UriSpec extends Specification {
         Uri.find(reported.sha256) must beNone
       	Uri.findOrCreate(reported) must beSome
       	Uri.find(reported.sha256) must beSome
+      	val uriStr = validUri
+      	val sha = new ReportedUri(uriStr).sha256
+        Uri.find(sha) must beNone
+      	Uri.findOrCreate(uriStr) must beSome
+      	Uri.find(sha) must beSome
       }
     }
     
@@ -147,7 +153,6 @@ class UriSpec extends Specification {
 
 object UriSpec {
   
-  val validUri = "https://example.com/some/path?q=query#fragment" + System.currentTimeMillis
-  def reportedUri: ReportedUri = new ReportedUri(validUri + Random.nextInt)
+  def validUri: String = "https://example.com/some/path?q=query#fragment" + System.currentTimeMillis + Random.nextInt
   
 }

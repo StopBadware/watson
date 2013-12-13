@@ -13,8 +13,8 @@ class GoogleRescanSpec extends Specification {
     
     "add a rescan" in {
       running(FakeApplication()) {
-        val uriA = Uri.findOrCreate(UriSpec.reportedUri).get
-        val uriB = Uri.findOrCreate(UriSpec.reportedUri).get
+        val uriA = Uri.findOrCreate(UriSpec.validUri).get
+        val uriB = Uri.findOrCreate(UriSpec.validUri).get
         GoogleRescan.create(uriA.id, None, "clean", "autoappeal", uriA.createdAt) must beTrue
         GoogleRescan.create(uriA.id, Some(uriB.id), "bad", "autoappeal", uriA.createdAt) must beTrue
       }
@@ -23,7 +23,7 @@ class GoogleRescanSpec extends Specification {
     
     "delete a rescan" in {
       running(FakeApplication()) {
-        val uri = Uri.findOrCreate(UriSpec.reportedUri).get
+        val uri = Uri.findOrCreate(UriSpec.validUri).get
       	GoogleRescan.create(uri.id, None, "clean", "autoappeal", uri.createdAt) must beTrue
       	val found = GoogleRescan.findByUri(uri.id)
       	found.nonEmpty must beTrue
