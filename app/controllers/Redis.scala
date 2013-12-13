@@ -4,6 +4,7 @@ import java.net.URI
 import play.api.Logger
 import play.api.mvc.Controller
 import com.redis._
+import models.Source
 
 object Redis extends Controller {
   
@@ -22,40 +23,20 @@ object Redis extends Controller {
     case e: Exception => Logger.error("Unable to authenticate Redis pool")
   }
   
-  def set(key: String, value: String): Boolean = {
-    return pool.withClient(client => client.set(key, value))
+  def addBlacklist(source: Source, time: Long, blacklist: List[String]): Boolean = {
+    return pool.withClient(client => client.hset(source.toString, time, blacklist))
   }
   
-  def get(key: String): Option[String] = {
-    return pool.withClient(client => client.get(key))
+  def blacklistTimes(source: Source): List[String] = {
+    return pool.withClient(client => client.hkeys(source.toString).getOrElse(List()))
   }
   
-  def addToSet(set: String, value: String): Long = {
-    return pool.withClient(client => client.sadd(set, value).getOrElse(0L))
+  def getBlacklist(source: Source, time: Long): Option[String] = {
+    return pool.withClient(client => client.hget(source.toString, time))
   }
   
-  def setContains(set: String, value: String): Boolean = {
-    return pool.withClient(client => client.sismember(set, value))
-  }
-  
-  def getSet(set: String): Set[Option[String]] = {
-    return pool.withClient(client => client.smembers(set).getOrElse(Set()))
-  }
-  
-  def addToMap(map: String, field: String, value: String): Boolean = {
-    return pool.withClient(client => client.hset(map, field, value))
-  }
-  
-  def mapKeys(map: String): List[String] = {
-    return pool.withClient(client => client.hkeys(map).getOrElse(List()))
-  }
-  
-  def getFromMap(map: String, field: String): Option[String] = {
-    return pool.withClient(client => client.hget(map, field))
-  }
-  
-  def delFromMap(map: String, field: String): Long = {
-    return pool.withClient(client => client.hdel(map, field).getOrElse(0L))
+  def purgeBlacklist(source: Source, time: Long): Long = {
+    return pool.withClient(client => client.hdel(source.toString, time).getOrElse(0L))
   }
 
 }

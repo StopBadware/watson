@@ -6,6 +6,7 @@ import play.api.Logger
 import play.api.mvc.Controller
 import play.api.libs.json._
 import com.fasterxml.jackson.databind.JsonNode
+import com.codahale.jerkson.Json
 import models._
 
 object Blacklist extends Controller with JsonMapper {
@@ -42,9 +43,9 @@ object Blacklist extends Controller with JsonMapper {
     }
   }
   
-  def importDifferential(reported: List[ReportedUri], source: Source, time: Long) = {
+  def importDifferential(reported: List[String], source: Source, time: Long) = {
     Logger.info("Importing "+reported.size+" entries for "+source)
-    val uris = reported.map(Uri.findOrCreate(_)).flatten
+    val uris = reported.map(u => Uri.findOrCreate(new ReportedUri(u))).flatten	//TODO WTSN-39 handle URI exception
     val removed = updateNoLongerBlacklisted(uris, source, time)
     Logger.info("Marked "+removed+" events as no longer blacklisted by "+source)
     val moreRecent = BlacklistEvent.blacklisted(Some(source)).filter(_.blacklistedAt > time).map(_.id)
@@ -53,22 +54,21 @@ object Blacklist extends Controller with JsonMapper {
       if (uri.blacklist(source, time, endTime)) ctr + 1 else ctr
     }
     Logger.info("Added or updated "+addedOrUpdated+" blacklist events for "+source)
-  }  
-  
-  def importDifferentials(json: List[JsonNode], source: Source) = {
-    //TODO WTSN-39 pull from redis
-    Logger.info("Queuing blacklist(s) for "+source)
-    diffBlacklist(json).groupBy(_._2).foreach { case (time, blacklist) =>
-      val uris = blacklist.map(_._1)
-      importDifferential(uris, source, time)
-    }
-  }
+  }   
   
   private def addToQueue(json: JsonNode, source: Source) = {
-    Logger.info("Adding import for "+source+" to queue")
-    //TODO WTSN-39 add to import queue (uris, source, time)
-    Redis.addToMap("delkey", "delfield", json.toString)
-    Logger.info("Added import for "+source+" to queue")
+    diffBlacklist(json).foreach { case (time, blacklist) =>
+      Logger.info("Adding import from "+time+" for "+source+" to queue")
+      Redis.addBlacklist(source, time, blacklist)
+      Logger.info("Added import with "+blacklist.size+" entries for "+source+" to queue")
+    }
+  }  
+  
+  private def diffBlacklist(blacklist: JsonNode): Map[Long, List[String]] = {
+    return Json.parse[List[BlacklistEntry]](blacklist).groupBy(_.time)
+  						.foldLeft(Map.empty[Long, List[String]]) { case (map, (time, entries)) =>
+      map ++ Map(time -> entries.map(_.url))
+    }
   }
   
   private def updateNoLongerBlacklisted(blacklist: List[Uri], source: Source, time: Long): Int = {
@@ -77,20 +77,7 @@ object Blacklist extends Controller with JsonMapper {
     val newUriIds = blacklist.map(_.id)
     old.filterNot(event => newUriIds.contains(event.uriId)).foreach(_.removeFromBlacklist(time))
     return old.size - currentlyBlacklisted.size
-  }
-  
-  private def diffBlacklist(blacklist: List[JsonNode]): List[(ReportedUri, Long)] = {
-    return blacklist.foldLeft(List.empty[(ReportedUri, Long)]) { (list, node) =>
-	    val url = node.get("url").asText
-	    val time = node.get("time").asLong
-      try {
-        list ++ List((new ReportedUri(url), time))
-      } catch {
-        case e: URISyntaxException => Logger.warn("URISyntaxException thrown, unable to create URI for '"+url+"': "+e.getMessage)
-        list
-      }
-    }
-  }
+  }  
   
   private def importNsfocus(json: List[JsonNode], source: Source=Source.NSF) = {
   	Logger.info("Importing "+json.size+" entries for "+source)
@@ -109,5 +96,7 @@ object Blacklist extends Controller with JsonMapper {
   	}
   	Logger.info("Added or updated "+addedOrUpdated+" blacklist events for "+source)
   }
+  
+  private case class BlacklistEntry(url: String, time: Long)
 
 }

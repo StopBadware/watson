@@ -34,7 +34,7 @@ class BlacklistSpec extends Specification {
         Uri.findOrCreate(existingUri) must beSome
         val newUrl = "https://example.com/" + (time*1000)
         val newUri = new ReportedUri(newUrl)
-	      val uris = List(existingUri, newUri)
+        val uris = List(existingUrl, newUrl)
 	      Blacklist.importDifferential(uris, source, time)
 	      
 	      val found = Uri.findByHierarchicalPart(newUri.hierarchicalPart)
@@ -53,10 +53,11 @@ class BlacklistSpec extends Specification {
         val timeA = (System.currentTimeMillis / 1000) - 42
 	      val timeB = System.currentTimeMillis / 1000
 	      
-	      val uriA = new ReportedUri("example.com/" + timeA)
-        val uriB = new ReportedUri("example.com/")
-	      val urisA = List(uriA, uriB)
-	      val urisB = List(uriB)
+	      val urlA = "example.com/" + System.currentTimeMillis
+	      val uriA = new ReportedUri(urlA)
+        val urlB = "example.com/"
+        val urisA = List(urlA, urlB)
+	      val urisB = List(urlB)
 	      
 	      Blacklist.importDifferential(urisA, source, timeA)
 	      val foundA = Uri.findByHierarchicalPart(uriA.hierarchicalPart)
@@ -84,10 +85,11 @@ class BlacklistSpec extends Specification {
         val timeA = (System.currentTimeMillis / 1000) - 1337
 	      val timeB = System.currentTimeMillis / 1000
 	      
-	      val uriA = new ReportedUri("example.com/" + timeA)
-        val uriB = new ReportedUri("example.com/")
-	      val urisA = List(uriA, uriB)
-	      val urisB = List(uriB)
+	      val urlA = "example.com/" + System.currentTimeMillis
+	      val uriA = new ReportedUri(urlA)
+        val urlB = "example.com/"
+        val urisA = List(urlA, urlB)
+	      val urisB = List(urlB)
 	      
         Blacklist.importDifferential(urisB, source, timeB)
 	      Blacklist.importDifferential(urisA, source, timeA)
