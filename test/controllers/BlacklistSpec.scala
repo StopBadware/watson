@@ -11,7 +11,12 @@ import models._
 @RunWith(classOf[JUnitRunner])
 class BlacklistSpec extends Specification {
   
+  sequential	//differential blacklists tests running in parallel can affect each other 
   private val source = Source.GOOG
+  private def mostRecentTime: Long = {
+    val head = BlacklistEvent.blacklisted(Some(source)).sortBy(_.blacklistedAt).headOption
+    if (head.isDefined) head.get.blacklistedAt else System.currentTimeMillis / 1000
+  } 
   
   "Blacklist" should {
     
@@ -19,10 +24,10 @@ class BlacklistSpec extends Specification {
       running(FakeApplication()) {
         val time = System.currentTimeMillis / 1000
         val urlA = "example.com"
-        val urlB = "https://example.com/" + (time*1000)
+        val urlB = "https://example.com/" + time
 	      val json = "[{\"url\":\""+urlB+"\",\"time\":"+time+"}, {\"url\":\""+urlA+"\",\"time\":"+time+"}]"
 	      Blacklist.importBlacklist(json, source)
-	      true must beFalse //TODO WTSN-39 verify import is in queue
+	      Redis.getBlacklist(source, time).isDefined must beTrue
       }
     }    
     
@@ -31,7 +36,7 @@ class BlacklistSpec extends Specification {
         val time = System.currentTimeMillis / 1000
         val existingUrl = "example.com"
         Uri.findOrCreate(existingUrl) must beSome
-        val newUrl = "https://example.com/" + (time*1000)
+        val newUrl = "https://example.com/" + (System.currentTimeMillis)
         val uris = List(existingUrl, newUrl)
 	      Blacklist.importDifferential(uris, source, time)
 	      
@@ -49,8 +54,8 @@ class BlacklistSpec extends Specification {
     
     "update entries that fall off differential blacklist (imported in order)" in {
       running(FakeApplication()) {
-        val timeA = (System.currentTimeMillis / 1000) - 42
-	      val timeB = System.currentTimeMillis / 1000
+        val timeA = mostRecentTime
+	      val timeB = timeA + 1
 	      
 	      val urlA = "example.com/" + System.currentTimeMillis
 	      val uriA = new ReportedUri(urlA)
@@ -81,8 +86,8 @@ class BlacklistSpec extends Specification {
     
     "update entries that fall off differential blacklist (imported out of order)" in {
       running(FakeApplication()) {
-        val timeA = (System.currentTimeMillis / 1000) - 1337
-	      val timeB = System.currentTimeMillis / 1000
+        val timeA = mostRecentTime
+	      val timeB = timeA + 1
 	      
 	      val urlA = "example.com/" + System.currentTimeMillis
 	      val uriA = new ReportedUri(urlA)
@@ -90,14 +95,16 @@ class BlacklistSpec extends Specification {
         val urisA = List(urlA, urlB)
 	      val urisB = List(urlB)
 	      
-	      //tests run concurrently so use different source than above differential blacklist update test
-        Blacklist.importDifferential(urisB, Source.TTS, timeB)
-	      Blacklist.importDifferential(urisA, Source.TTS, timeA)
+	      println(timeA, timeB)	//DELME WTSN-39
+        Blacklist.importDifferential(urisB, source, timeB)
+	      Blacklist.importDifferential(urisA, source, timeA)
 	      
 	      val found = Uri.findByHierarchicalPart(uriA.hierarchicalPart)
 	      found.nonEmpty must beTrue
 	      val filtered = found.filter(_.sha256.equals(uriA.sha256))
 	      filtered.nonEmpty must beTrue
+	      println(filtered)	//DELME WTSN-39
+        println(filtered.head.isBlacklisted)	//DELME WTSN-39
 	      filtered.filter(_.isBlacklisted).isEmpty must beTrue
 	      filtered.map { uri =>
         	BlacklistEvent.findBlacklistedByUri(uri.id, Some(source)).isEmpty must beTrue
@@ -128,7 +135,7 @@ class BlacklistSpec extends Specification {
     
     "import NSF blacklist" in {
       running(FakeApplication()) {
-        val time = System.currentTimeMillis / 1000 - 47
+        val time = (System.currentTimeMillis / 1000) - 47
         val cleanTime = System.currentTimeMillis / 1000
         val existingUrl = "example.com"
         Uri.findOrCreate(existingUrl) must beSome
@@ -157,7 +164,7 @@ class BlacklistSpec extends Specification {
 	      filteredB.nonEmpty must beTrue
 	      filteredB.filter(_.isBlacklisted).map { uri =>
         	BlacklistEvent.findBlacklistedByUri(uri.id, Some(Source.NSF)).isEmpty must beTrue
-        }        
+        }
       }      
     }
     
