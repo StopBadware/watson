@@ -27,8 +27,8 @@ object Redis extends Controller {
     return pool.withClient(client => client.hset(source.toString, time, blacklist))
   }
   
-  def blacklistTimes(source: Source): List[String] = {
-    return pool.withClient(client => client.hkeys(source.toString).getOrElse(List()))
+  def blacklistTimes(source: Source): List[Long] = {
+    return pool.withClient(client => client.hkeys(source.toString).getOrElse(List()).map(_.toLong))
   }
   
   def getBlacklist(source: Source, time: Long): Option[String] = {

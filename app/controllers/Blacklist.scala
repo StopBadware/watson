@@ -97,8 +97,7 @@ object Blacklist extends Controller with JsonMapper {
   	Logger.info("Added or updated "+addedOrUpdated+" blacklist events for "+source)
   }
   
-  private case class BlacklistEntry(url: String, time: Long)
-
 }
 
 case class Blacklist(source: Source, time: Long, urls: List[String])
+private case class BlacklistEntry(url: String, time: Long)

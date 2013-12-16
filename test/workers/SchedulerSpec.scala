@@ -24,7 +24,7 @@ class SchedulerSpec extends Specification {
 	      Blacklist.importBlacklist(json, source)
 	      val fromQueue = Redis.getBlacklist(source, time)
 	      fromQueue.isDefined must beTrue
-	      val queueCheck = CheckBlacklistQueue()
+	      val queueCheck = CheckQueue(source)
 	      val queued = queueCheck.blacklistQueue
 	      queued.nonEmpty must beTrue
 	      queued.map { blacklist =>
