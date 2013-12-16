@@ -33,12 +33,11 @@ class BlacklistSpec extends Specification {
     
     "add new entries from differential blacklist" in {
       running(FakeApplication()) {
-        val time = System.currentTimeMillis / 1000
         val existingUrl = "example.com"
         Uri.findOrCreate(existingUrl) must beSome
-        val newUrl = "https://example.com/" + (System.currentTimeMillis)
+        val newUrl = "https://example.com/" + System.currentTimeMillis
         val uris = List(existingUrl, newUrl)
-	      Blacklist.importDifferential(uris, source, time)
+	      Blacklist.importDifferential(uris, source, mostRecentTime)
 	      
 	      val newUri = new ReportedUri(newUrl)
 	      val found = Uri.findByHierarchicalPart(newUri.hierarchicalPart)
@@ -59,7 +58,7 @@ class BlacklistSpec extends Specification {
 	      
 	      val urlA = "example.com/" + System.currentTimeMillis
 	      val uriA = new ReportedUri(urlA)
-        val urlB = "example.com/"
+        val urlB = "www.example.com/" + System.currentTimeMillis
         val urisA = List(urlA, urlB)
 	      val urisB = List(urlB)
 	      
@@ -91,11 +90,10 @@ class BlacklistSpec extends Specification {
 	      
 	      val urlA = "example.com/" + System.currentTimeMillis
 	      val uriA = new ReportedUri(urlA)
-        val urlB = "example.com/"
+        val urlB = "www.example.com/" + System.currentTimeMillis
         val urisA = List(urlA, urlB)
 	      val urisB = List(urlB)
 	      
-	      println(timeA, timeB)	//DELME WTSN-39
         Blacklist.importDifferential(urisB, source, timeB)
 	      Blacklist.importDifferential(urisA, source, timeA)
 	      
@@ -103,8 +101,6 @@ class BlacklistSpec extends Specification {
 	      found.nonEmpty must beTrue
 	      val filtered = found.filter(_.sha256.equals(uriA.sha256))
 	      filtered.nonEmpty must beTrue
-	      println(filtered)	//DELME WTSN-39
-        println(filtered.head.isBlacklisted)	//DELME WTSN-39
 	      filtered.filter(_.isBlacklisted).isEmpty must beTrue
 	      filtered.map { uri =>
         	BlacklistEvent.findBlacklistedByUri(uri.id, Some(source)).isEmpty must beTrue

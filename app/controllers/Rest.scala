@@ -15,7 +15,7 @@ object Rest extends Controller with JsonMapper {
 	  Logger.info("Received import for " + abbr)
 	  val source = models.Source.withAbbr(abbr)
 	  if (source.isDefined) {
-	    future(Blacklist.importBlacklist(Source.fromFile(request.body.file).mkString, source.get))
+//	    future(Blacklist.importBlacklist(Source.fromFile(request.body.file).mkString, source.get))
 	    Ok
 	  } else if (abbr.equalsIgnoreCase("googapl")) {
 	    future(Blacklist.importGoogleAppeals(Source.fromFile(request.body.file).mkString))
