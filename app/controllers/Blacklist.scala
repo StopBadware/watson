@@ -100,3 +100,5 @@ object Blacklist extends Controller with JsonMapper {
   private case class BlacklistEntry(url: String, time: Long)
 
 }
+
+case class Blacklist(source: Source, time: Long, urls: List[String])

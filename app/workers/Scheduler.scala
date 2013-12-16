@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import scala.concurrent.duration._
 import java.util.concurrent.TimeUnit
 import play.api.libs.concurrent.Execution.Implicits._
-import controllers.Blacklist
+import controllers.{Blacklist, Redis}
 
 object Scheduler {
   	
@@ -14,15 +14,19 @@ object Scheduler {
     system.scheduler.schedule(Duration.Zero, interval, CheckBlacklistQueue())
   }
   
-  case class CheckBlacklistQueue() extends Runnable {
-    
-    def run() = {
-      //TODO WTSN-39 check redis queue
-      //TODO WTSN-39 call Blacklist.importDifferential
-      println("IamA worker dyno AMA!")	//DELME WTSN-39
-//      Blacklist.importDifferential(reported, source, time)
-    }
-    
-  }
+}
 
+case class CheckBlacklistQueue() extends Runnable {
+  
+  def blacklistQueue: List[Blacklist] = {
+    List()	//TODO WTSN-39 check redis queue
+  }
+  
+  def run() = {
+		val blacklists = blacklistQueue
+		blacklistQueue.foreach { blacklist =>
+		  Blacklist.importDifferential(blacklist.urls, blacklist.source, blacklist.time)
+		}
+  }
+  
 }
