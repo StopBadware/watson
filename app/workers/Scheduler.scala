@@ -1,9 +1,10 @@
 package workers
 
+import java.io.File
 import akka.actor.ActorSystem
 import scala.concurrent.duration._
 import java.util.concurrent.TimeUnit
-import play.api.Logger
+import play.api.{DefaultApplication, Logger, Mode, Play}
 import play.api.libs.concurrent.Execution.Implicits._
 import controllers.{Blacklist, Redis}
 import models.Source
@@ -11,8 +12,9 @@ import models.Source
 object Scheduler {
   	
   def main(args: Array[String]): Unit = {
+    Play.start(new DefaultApplication(new File("."), Scheduler.getClass.getClassLoader, None, Mode.Prod))
     val interval = new FiniteDuration(30, TimeUnit.SECONDS)
-    val system = ActorSystem("CheckBlacklistQueue")
+    val system = ActorSystem("ImportBlacklistQueue")
     val sourcesWithDifferential = List(Source.GOOG, Source.TTS)
     sourcesWithDifferential.foreach { source =>
     	system.scheduler.schedule(Duration.Zero, interval, BlacklistQueue(source))
