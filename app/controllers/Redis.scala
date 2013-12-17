@@ -10,19 +10,11 @@ import models.Source
 object Redis extends Controller {
   
   private val redisUrl = new URI(sys.env("REDIS_URL"))
-  private lazy val pool = new RedisClientPool(redisUrl.getHost, redisUrl.getPort)
-  
-  try {
-    redisUrl.getUserInfo match {
-      case s: String => {
-        val userInfo = if (s.startsWith(":")) s.substring(1) else s
-        pool.withClient(client => client.auth(userInfo))
-      }
-      case _ =>
-    }
-  } catch {
-    case e: Exception => Logger.error("Unable to authenticate Redis pool")
+  private lazy val redisPw = redisUrl.getUserInfo match {
+    case s: String => Some(if (s.contains(":")) s.substring(s.indexOf(":")+1) else s)
+    case _ => None
   }
+  private lazy val pool = new RedisClientPool(redisUrl.getHost, redisUrl.getPort, secret=redisPw)
   
   def addBlacklist(source: Source, time: Long, blacklist: List[String]): Boolean = {
     return pool.withClient(client => client.hset(source, time, Json.generate(blacklist)))
