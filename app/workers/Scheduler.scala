@@ -10,7 +10,7 @@ import models.Source
 object Scheduler {
   	
   def main(args: Array[String]): Unit = {
-    val interval = new FiniteDuration(3, TimeUnit.SECONDS)
+    val interval = new FiniteDuration(30, TimeUnit.SECONDS)
     val system = ActorSystem("CheckBlacklistQueue")
     val sourcesWithDifferential = List(Source.GOOG, Source.NSF)
     sourcesWithDifferential.foreach { source =>
