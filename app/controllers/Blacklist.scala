@@ -49,7 +49,7 @@ object Blacklist extends Controller with JsonMapper {
     }
   }
   
-  def importDifferential(reported: List[String], source: Source, time: Long) = {
+  def importDifferential(reported: List[String], source: Source, time: Long): Boolean = {
     Logger.info("Importing "+reported.size+" entries for "+source)
     val uris = reported.map(Uri.findOrCreate(_)).flatten
     val removed = updateNoLongerBlacklisted(uris, source, time)
@@ -60,6 +60,7 @@ object Blacklist extends Controller with JsonMapper {
       if (uri.blacklist(source, time, endTime)) ctr + 1 else ctr
     }
     Logger.info("Added or updated "+addedOrUpdated+" blacklist events for "+source)
+    return addedOrUpdated > 0
   }
   
   private def addToQueue(json: JsonNode, source: Source) = {
@@ -105,5 +106,7 @@ object Blacklist extends Controller with JsonMapper {
   
 }
 
-case class Blacklist(source: Source, time: Long, urls: List[String])
+case class Blacklist(source: Source, time: Long, urls: List[String]) {
+  override def toString: String = "source=>"+source+" time=>"+time+" size=>"+urls.size
+}
 private case class BlacklistEntry(url: String, time: Long)

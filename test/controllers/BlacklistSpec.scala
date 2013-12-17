@@ -30,7 +30,7 @@ class BlacklistSpec extends Specification {
 	      					 "{\"url\":\""+urlA+"\",\"time\":"+time+"},"+
 	      					 "{\"url\":\""+invalidUrl+"\",\"time\":"+time+"}]"
 	      Blacklist.importBlacklist(json, source)
-	      Redis.getBlacklist(source, time).isDefined must beTrue
+	      Redis.getBlacklist(source, time).nonEmpty must beTrue
       }
     }    
     

@@ -3,6 +3,7 @@ package controllers
 import java.net.URI
 import play.api.Logger
 import play.api.mvc.Controller
+import com.codahale.jerkson.Json
 import com.redis._
 import models.Source
 
@@ -24,19 +25,20 @@ object Redis extends Controller {
   }
   
   def addBlacklist(source: Source, time: Long, blacklist: List[String]): Boolean = {
-    return pool.withClient(client => client.hset(source.toString, time, blacklist))
+    return pool.withClient(client => client.hset(source, time, Json.generate(blacklist)))
+  }  
+  
+  def getBlacklist(source: Source, time: Long): List[String] = {
+    val json = pool.withClient(client => client.hget(source, time))
+    return if (json.isDefined) Json.parse[List[String]](json.get) else List()
   }
   
   def blacklistTimes(source: Source): List[Long] = {
-    return pool.withClient(client => client.hkeys(source.toString).getOrElse(List()).map(_.toLong))
+    return pool.withClient(client => client.hkeys(source).getOrElse(List()).map(_.toLong))
   }
   
-  def getBlacklist(source: Source, time: Long): Option[String] = {
-    return pool.withClient(client => client.hget(source.toString, time))
-  }
-  
-  def purgeBlacklist(source: Source, time: Long): Long = {
-    return pool.withClient(client => client.hdel(source.toString, time).getOrElse(0L))
+  def dropBlacklist(source: Source, time: Long): Long = {
+    return pool.withClient(client => client.hdel(source, time).getOrElse(0L))
   }
 
 }
