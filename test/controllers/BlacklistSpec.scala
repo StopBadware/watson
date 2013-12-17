@@ -12,6 +12,7 @@ import models._
 class BlacklistSpec extends Specification {
   
   sequential	//differential blacklists tests running in parallel can affect each other 
+  private val invalidUrl = "http://example.com/invalid\\\\path"
   private val source = Source.GOOG
   private def mostRecentTime: Long = {
     val head = BlacklistEvent.blacklisted(Some(source)).sortBy(_.blacklistedAt).headOption
@@ -25,7 +26,9 @@ class BlacklistSpec extends Specification {
         val time = System.currentTimeMillis / 1000
         val urlA = "example.com"
         val urlB = "https://example.com/" + time
-	      val json = "[{\"url\":\""+urlB+"\",\"time\":"+time+"}, {\"url\":\""+urlA+"\",\"time\":"+time+"}]"
+	      val json = "[{\"url\":\""+urlB+"\",\"time\":"+time+"},"+ 
+	      					 "{\"url\":\""+urlA+"\",\"time\":"+time+"},"+
+	      					 "{\"url\":\""+invalidUrl+"\",\"time\":"+time+"}]"
 	      Blacklist.importBlacklist(json, source)
 	      Redis.getBlacklist(source, time).isDefined must beTrue
       }
@@ -115,7 +118,8 @@ class BlacklistSpec extends Specification {
 	      val badLink = "http://" + badUrl + time
 	      val cleanUrl = "cleanurl.com/"
 	      val json = "[{\"url\":\""+badUrl+"\",\"status\":\"bad\",\"time\":"+time+",\"source\":\"autoappeal\",\"link\":\""+badLink+"\"},"+
-	        "{\"url\":\""+cleanUrl+"\",\"status\":\"clean\",\"time\":"+time+",\"source\":\"autoappeal\"}]"
+	        "{\"url\":\""+cleanUrl+"\",\"status\":\"clean\",\"time\":"+time+",\"source\":\"autoappeal\"},"+
+	        "{\"url\":\""+invalidUrl+"\",\"status\":\"bad\",\"time\":"+time+",\"source\":\"autoappeal\"}]"
 	      Blacklist.importGoogleAppeals(json)
 	      val bad = Uri.find(new ReportedUri(badUrl).sha256)
 	      bad must beSome
@@ -141,6 +145,7 @@ class BlacklistSpec extends Specification {
         Uri.findByHierarchicalPart(hierarchicalPartA).isEmpty must beTrue
 	      val json = "["+
 	        	"{\"url\":\""+newUrl+"\",\"time\":"+time+",\"clean\":0},"+
+	        	"{\"url\":\""+invalidUrl+"\",\"time\":"+time+",\"clean\":0},"+
 	        	"{\"url\":\""+existingUrl+"\",\"time\":"+time+",\"clean\":"+cleanTime+"}"+
 	        "]"
 	      Blacklist.importBlacklist(json, Source.NSF)

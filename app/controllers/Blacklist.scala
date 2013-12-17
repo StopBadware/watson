@@ -31,13 +31,19 @@ object Blacklist extends Controller with JsonMapper {
         val status = node.get("status").asText
         val requestedVia = node.get("source").asText
         val rescannedAt = node.get("time").asLong
-        val uriId = Uri.findOrCreate(url).get.id
+        val uriId = Uri.findOrCreate(url)
         val relatedUriId = if (link.isDefined) {
-          Some(Uri.findOrCreate(link.get).get.id)
+          val related = Uri.findOrCreate(link.get)
+          if (related.isDefined) Some(related.get.id) else None
         } else {
           None
         }
-        if (GoogleRescan.create(uriId, relatedUriId, status, requestedVia, rescannedAt)) ctr + 1 else ctr
+        val created = if (uriId.isDefined) {
+          GoogleRescan.create(uriId.get.id, relatedUriId, status, requestedVia, rescannedAt)
+        } else {
+          false
+        }
+        if (created) ctr + 1 else ctr
       }
       Logger.info("Added "+added+" Google rescans")
     }
@@ -86,9 +92,9 @@ object Blacklist extends Controller with JsonMapper {
 	    val time = node.get("time").asLong
 	    val clean = node.get("clean").asLong
 	    try {
-	      val uri = Uri.findOrCreate(url).get
+	      val uri = Uri.findOrCreate(url)
 	      val cleanTime = if (clean != 0) Some(clean) else None
-	      if (uri.blacklist(source, time, cleanTime)) ctr + 1 else ctr
+	      if (uri.isDefined && uri.get.blacklist(source, time, cleanTime)) ctr + 1 else ctr
 	    } catch {
 	      case e: URISyntaxException => Logger.warn("URISyntaxException thrown, unable to create URI for '"+url+"': "+e.getMessage)
 	      ctr
