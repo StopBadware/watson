@@ -25,6 +25,13 @@ class UriSpec extends Specification {
       }
     }
     
+    "create new Uri in bulk" in {
+      running(FakeApplication()) {
+        val list = List(reportedUri)
+      	Uri.create(list) must be_>(0)
+      }
+    }    
+    
     "find an existing Uri by SHA2-256" in {
       running(FakeApplication()) {
         val reported = reportedUri
@@ -69,7 +76,15 @@ class UriSpec extends Specification {
         Thread.sleep(2000) //wait for all futures to complete
         Uri.find(reported.sha256) must beSome
       }
-    }    
+    }
+    
+    "find or create in bulk" in {
+      running(FakeApplication()) {
+//        val list = List(reportedUri)
+//      	Uri.create(list) must be_>(0)
+        true must beFalse
+      }
+    }       
     
     "remove a Uri" in {
       running(FakeApplication()) {
