@@ -43,6 +43,19 @@ class UriSpec extends Specification {
       }
     }
     
+    "find Uris by SHA2-256 in bulk" in {
+      running(FakeApplication()) {
+    		val numInBulk = 10
+        val shas = (1 to numInBulk).foldLeft(List.empty[String]) { (list, _) =>
+          val rep = reportedUri
+          if (Uri.create(rep)) list :+ rep.sha256 else list
+        }
+    		shas.nonEmpty must beTrue
+    		val found = Uri.find(shas)
+    		found.size must be equalTo(shas.size)
+      }
+    }     
+    
     "find Uris by hierarchical part" in {
       running(FakeApplication()) {
         val reported = reportedUri
@@ -83,9 +96,12 @@ class UriSpec extends Specification {
     
     "find or create in bulk" in {
       running(FakeApplication()) {
-//        val list = List(reportedUri)
-//      	Uri.create(list) must be_>(0)
-        true must beFalse
+    		val numInBulk = 10
+        val uris = (1 to numInBulk).foldLeft(List.empty[String]) { (list, _) =>
+          list :+ validUri
+        }
+    		val found = Uri.findOrCreate(uris)
+    		found.size must be equalTo(uris.size)
       }
     }       
     

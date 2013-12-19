@@ -133,10 +133,9 @@ object Uri {
   	Logger.debug("Writing batch of "+reported.size+" URIs")	//DELME WTSN-39
   	val writes = create(reported)
   	Logger.debug(writes+" successful write attempts")	//DELME WTSN-39
-  	//TODO WTSN-39 return bulk find results
-  	val found = 0
-  	Logger.debug(found+" uris found")	//DELME WTSN-39
-    List()	//DELME WTSN-39
+  	val found = find(reported.map(_.sha256))
+  	Logger.debug(found.size+" uris found")	//DELME WTSN-39
+    return found //DELME WTSN-39
   }   
   
   def find(sha256: String): Option[Uri] = DB.withConnection { implicit conn =>
@@ -149,18 +148,32 @@ object Uri {
     }
   }
   
-  def find(sha256: List[String]): List[Uri] = DB.withConnection { implicit conn =>
-    return try {
-      val rs = SQL("SELECT * FROM uris WHERE sha2_256 in {sha256}").onParams(sha256).apply() 
-      //.on("sha256"->sha256).apply().headOption
-      rs.foreach(println)	//DELME WTSN-39
-//      if (rs.isDefined) mapFromRow(rs.get) else None
-      None
-      List()	//TODO WTSN-39
-    } catch {
-      case e: PSQLException => Logger.error(e.getMessage)
-      None
-      List()	//TODO WTSN-39
+  def find(sha256s: List[String]): List[Uri] = DB.withConnection { implicit conn =>
+    return sha256s.size match {
+      case 0 => List()
+      case 1 => List(find(sha256s.head)).flatten
+      case _ => try {
+	      val sql = "SELECT * FROM uris WHERE sha2_256 in (?" + (",?"*(sha256s.size-1)) + ")"
+	      val ps = conn.prepareStatement(sql)
+	      for (i <- 1 to sha256s.size) {
+	        ps.setString(i, sha256s(i-1))
+	      }
+	      val rs = ps.executeQuery
+	      Iterator.continually((rs, rs.next())).takeWhile(_._2).map { case (row, hasNext) =>
+			    Some(Uri(
+				    row.getInt("id"),
+				    row.getString("uri"),
+				    row.getString("reversed_host"),
+				    row.getString("hierarchical_part"),
+				    if (row.getString("path")==null) "" else row.getString("path"),
+				    row.getString("sha2_256"),
+				    row.getTimestamp("created_at").getTime / 1000
+		  		))	
+	      }.flatten.toList
+	    } catch {
+	      case e: PSQLException => Logger.error(e.getMessage)
+	      List()
+	    }
     }
   }  
   
