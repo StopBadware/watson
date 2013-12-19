@@ -75,59 +75,31 @@ object Uri {
   }
   
   def create(reported: List[ReportedUri]): Int = DB.withTransaction { implicit conn =>
-    val inserted = try {
-//      SQL("""INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256) 
-//    		SELECT {uri}, {reversedHost}, {hierarchicalPart}, {path}, {sha256} 
-//    		WHERE NOT EXISTS (SELECT 1 FROM uris WHERE sha2_256={sha256})""").on(
-//  		    "uri"->reported.uri.toString,
-//  		    "reversedHost"->reported.reversedHost,
-//  		    "hierarchicalPart"->reported.hierarchicalPart,
-//  		    "path"->reported.path,
-//  		    "sha256"->reported.sha256).executeUpdate()
-      val sql = SqlQuery("""INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256) 
-    		SELECT {uri}, {reversedHost}, {hierarchicalPart}, {path}, {sha256} 
-    		WHERE NOT EXISTS (SELECT 1 FROM uris WHERE sha2_256={sha256})""")
-    	reported.foreach { r =>
-    	  println(r.toString)	//DELM WTSN-39
-//        sql.addBatch(
-//          "uri"->r.uri.toString,
-//  		    "reversedHost"->r.reversedHost,
-//  		    "hierarchicalPart"->r.hierarchicalPart,
-//  		    "path"->r.path,
-//  		    "sha256"->r.sha256
-//        )
-//    	  val params: Seq[(String, ParameterValue[_])] = Seq("uri"->r.uri.toString,
-//  		    "reversedHost"->r.reversedHost,
-//  		    "hierarchicalPart"->r.hierarchicalPart,
-//  		    "path"->r.path,
-//  		    "sha256"->r.sha256)
-//        sql.addBatchList(Seq(params))
+    return try {
+      val sql = """INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256) 
+    		SELECT ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM uris WHERE sha2_256=?)"""    
+      val ps = conn.prepareStatement(sql)
+      reported.grouped(2000).foldLeft(0) { (total, group) =>
+	  		group.foreach { rep =>
+	  			ps.setString(1, rep.uri.toString)
+	  			ps.setString(2, rep.reversedHost)
+	  			ps.setString(3, rep.hierarchicalPart)
+	  			ps.setString(4, rep.path)
+	  			ps.setString(5, rep.sha256)
+	  			ps.setString(6, rep.sha256)
+	  			ps.addBatch()
+	      }
+	  		val batch = ps.executeBatch()
+	  		ps.clearBatch()
+	  		total + batch.foldLeft(0)((cnt, b) => cnt + b)
       }
-      val foo = reported(0)
-  	  val params: Seq[Seq[(String, ParameterValue[_])]] = Seq(Seq("uri"->foo.uri.toString,
-		    "reversedHost"->foo.reversedHost,
-		    "hierarchicalPart"->foo.hierarchicalPart,
-		    "path"->foo.path,
-		    "sha256"->foo.sha256))
-		  val wtf = (sql.asBatch /: params) { (s, p) =>
-        s.addBatchList(Seq(p))
-      }
-//      sql.addBatchList(Seq(params))      
-//      println(sql.sql)
-//      val bar = sql.execute()
-      val bar = wtf.execute()
-      println(bar.length)
-      0	//TODO WTSN-39
   	} catch {
   	  case e: PSQLException => if (PostgreSql.isNotDupeError(e.getMessage)) {
   	    Logger.error(e.getMessage)
   	  }
   	  0
   	}
-  	println("inserted:\t"+inserted)	//DELME WTSN-39
-//		return inserted
-		return 0
-  }  
+  }    
   
   def findOrCreate(uriStr: String): Option[Uri] = {
     return try {
@@ -176,6 +148,21 @@ object Uri {
       None
     }
   }
+  
+  def find(sha256: List[String]): List[Uri] = DB.withConnection { implicit conn =>
+    return try {
+      val rs = SQL("SELECT * FROM uris WHERE sha2_256 in {sha256}").onParams(sha256).apply() 
+      //.on("sha256"->sha256).apply().headOption
+      rs.foreach(println)	//DELME WTSN-39
+//      if (rs.isDefined) mapFromRow(rs.get) else None
+      None
+      List()	//TODO WTSN-39
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      None
+      List()	//TODO WTSN-39
+    }
+  }  
   
   def findByHierarchicalPart(hierarchicalPart: String): List[Uri] = DB.withConnection { implicit conn =>
     return try {

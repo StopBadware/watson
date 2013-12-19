@@ -27,8 +27,11 @@ class UriSpec extends Specification {
     
     "create new Uri in bulk" in {
       running(FakeApplication()) {
-        val list = List(reportedUri)
-      	Uri.create(list) must be_>(0)
+        val numInBulk = 100
+        val uris = (1 to numInBulk).foldLeft(List.empty[ReportedUri]) { (list, _) =>
+          list :+ reportedUri
+        }
+      	Uri.create(uris) must be equalTo(numInBulk)
       }
     }    
     
