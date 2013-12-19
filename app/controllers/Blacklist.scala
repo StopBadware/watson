@@ -51,7 +51,7 @@ object Blacklist extends Controller with JsonMapper {
   
   def importDifferential(reported: List[String], source: Source, time: Long): Boolean = {
     Logger.info("Importing "+reported.size+" entries for "+source)
-    val uris = reported.map(Uri.findOrCreate(_)).flatten
+    val uris = Uri.findOrCreate(reported)
     val removed = updateNoLongerBlacklisted(uris, source, time)
     Logger.info("Marked "+removed+" events as no longer blacklisted by "+source)
     val moreRecent = BlacklistEvent.blacklisted(Some(source)).filter(_.blacklistedAt > time).map(_.id)
@@ -59,15 +59,15 @@ object Blacklist extends Controller with JsonMapper {
       val endTime = if (moreRecent.isEmpty || moreRecent.contains(uri.id)) None else Some(time)
       if (uri.blacklist(source, time, endTime)) ctr + 1 else ctr
     }
-    Logger.info("Added or updated "+addedOrUpdated+" blacklist events for "+source)
+    Logger.info("Imported "+addedOrUpdated+" blacklist events for "+source)
     return addedOrUpdated > 0
   }
   
   private def addToQueue(json: JsonNode, source: Source) = {
     diffBlacklist(json).foreach { case (time, blacklist) =>
-      Logger.info("Adding import from "+time+" for "+source+" to queue")
+      Logger.info("Queueing import from "+time+" for "+source)
       Redis.addBlacklist(source, time, blacklist)
-      Logger.info("Added import with "+blacklist.size+" entries for "+source+" to queue")
+      Logger.info("Queued import with "+blacklist.size+" entries for "+source)
     }
   }  
   
