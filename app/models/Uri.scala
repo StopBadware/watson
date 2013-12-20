@@ -121,7 +121,6 @@ object Uri {
   }
   
   def findOrCreate(uris: List[String]): List[Uri] = {
-    Logger.debug("Beginning bulk find or create for "+uris.size+" URIs")	//DELME WTSN-39
     val reported = uris.map { uri =>
 	    try {
 	      Some(new ReportedUri(uri))
@@ -130,12 +129,10 @@ object Uri {
 	      None
 	    }
   	}.flatten
-  	Logger.debug("Writing batch of "+reported.size+" URIs")	//DELME WTSN-39
+  	Logger.info("Writing batch of "+reported.size+" URIs")
   	val writes = create(reported)
-  	Logger.debug(writes+" successful write attempts")	//DELME WTSN-39
-  	val found = find(reported.map(_.sha256))
-  	Logger.debug(found.size+" uris found")	//DELME WTSN-39
-    return found //DELME WTSN-39
+  	Logger.info("Wrote "+writes+" new URIs")
+  	return find(reported.map(_.sha256))
   }   
   
   def find(sha256: String): Option[Uri] = DB.withConnection { implicit conn =>
@@ -153,29 +150,31 @@ object Uri {
       case 0 => List()
       case 1 => List(find(sha256s.head)).flatten
       case _ => try {
-	      val sql = "SELECT * FROM uris WHERE sha2_256 in (?" + (",?"*(sha256s.size-1)) + ")"
-	      val ps = conn.prepareStatement(sql)
-	      for (i <- 1 to sha256s.size) {
-	        ps.setString(i, sha256s(i-1))
-	      }
-	      val rs = ps.executeQuery
-	      Iterator.continually((rs, rs.next())).takeWhile(_._2).map { case (row, hasNext) =>
-			    Some(Uri(
-				    row.getInt("id"),
-				    row.getString("uri"),
-				    row.getString("reversed_host"),
-				    row.getString("hierarchical_part"),
-				    if (row.getString("path")==null) "" else row.getString("path"),
-				    row.getString("sha2_256"),
-				    row.getTimestamp("created_at").getTime / 1000
-		  		))	
-	      }.flatten.toList
+        sha256s.grouped(2000).foldLeft(List.empty[Uri]) { case (list, group) =>
+		      val sql = "SELECT * FROM uris WHERE sha2_256 in (?" + (",?"*(group.size-1)) + ")"
+		      val ps = conn.prepareStatement(sql)
+		      for (i <- 1 to group.size) {
+		        ps.setString(i, group(i-1))
+		      }
+		      val rs = ps.executeQuery
+		      Iterator.continually((rs, rs.next())).takeWhile(_._2).map { case (row, hasNext) =>
+				    Some(Uri(
+					    row.getInt("id"),
+					    row.getString("uri"),
+					    row.getString("reversed_host"),
+					    row.getString("hierarchical_part"),
+					    if (row.getString("path")==null) "" else row.getString("path"),
+					    row.getString("sha2_256"),
+					    row.getTimestamp("created_at").getTime / 1000
+			  		))	
+		      }.flatten.toList ++ list
+        }
 	    } catch {
 	      case e: PSQLException => Logger.error(e.getMessage)
 	      List()
 	    }
     }
-  }  
+  }   
   
   def findByHierarchicalPart(hierarchicalPart: String): List[Uri] = DB.withConnection { implicit conn =>
     return try {
