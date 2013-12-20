@@ -1,6 +1,7 @@
 package controllers
 
 import java.math.BigInteger
+import java.net.URI
 import java.security.MessageDigest
 
 object Hash {
@@ -19,14 +20,19 @@ object Hash {
 
 object Host {
   
-  def reverse(host: String): String = {
-    try {
-      host.split("\\.").reverse.mkString(".")
-    } catch {
-      case e: NullPointerException => println("'"+host+"'\t"+e.getMessage)	//DELME WTSN-11
-      ""
-    }
-  }
+  def reverse(host: String): String = host.split("\\.").reverse.mkString(".")
+  
+  def reverse(uri: URI): String = {
+    val host = uri.getHost
+    return reverse(if (host == null) {
+      val str = uri.toString
+      val begin = if (str.indexOf("//") > 0) str.indexOf("//") + 2 else 0
+      val end = if (str.indexOf("/", begin) > 0) str.indexOf("/", begin) else str.length
+      str.substring(begin, end)
+    } else {
+      host
+    })
+  }  
 
 }
 

@@ -1,5 +1,6 @@
 package controllers
 
+import java.net.URI
 import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._
@@ -21,11 +22,20 @@ class UtilitySpec extends Specification {
   
   "Host" should {
     
-    "reverse the labels of a host" in {
-      val normal = "www.worldofwarcraft.com"
-      val reversed = "com.worldofwarcraft.www"
+    "reverse the labels of a valid host" in {
+      val normal = "www.example.com"
+      val reversed = "com.example.www"
       Host.reverse(normal) must equalTo(reversed)
     }
+    
+    "reverse the labels of an invalid host" in {
+      val reversed = "com.for_the_horde"
+      Host.reverse(new URI("http://for_the_horde.com/path")) must equalTo(reversed)
+      Host.reverse(new URI("http://for_the_horde.com")) must equalTo(reversed)
+      Host.reverse(new URI("http://for_the_horde.com/")) must equalTo(reversed)
+      Host.reverse(new URI("for_the_horde.com/path/")) must equalTo(reversed)
+      Host.reverse(new URI("for_the_horde.com/path")) must equalTo(reversed)
+    }    
     
   }
   

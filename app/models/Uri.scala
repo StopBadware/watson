@@ -223,7 +223,7 @@ class ReportedUri(uriStr: String) {
   lazy val path = uri.getRawPath
   lazy val query = uri.getRawQuery
   lazy val hierarchicalPart = uri.getRawAuthority + uri.getRawPath
-  lazy val reversedHost = Host.reverse(uri.getHost)
+  lazy val reversedHost = Host.reverse(uri)
   lazy val sha256 = Hash.sha256(uri.toString).getOrElse("")
   
   override def toString: String = uri.toString
