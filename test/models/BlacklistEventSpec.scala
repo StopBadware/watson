@@ -27,6 +27,17 @@ class BlacklistEventSpec extends Specification {
       }
     }
     
+    "create and/or update blacklist events in bulk" in {
+      running(FakeApplication()) {
+        val numInBulk = 10
+        val events = (1 to numInBulk).foldLeft(List.empty[ReportedEvent]) { (list, _) =>
+          list :+ blacklistedEvent
+        }
+        events.splitAt(numInBulk / 2)._1.foreach(BlacklistEvent.createOrUpdate(_))
+        BlacklistEvent.createOrUpdate(events, source) must beTrue
+      }
+    }    
+    
     "find blacklist events" in {
       running(FakeApplication()) {
         val reported = blacklistedEvent
