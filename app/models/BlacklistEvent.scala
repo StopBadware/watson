@@ -1,5 +1,6 @@
 package models
 
+import java.sql.Timestamp
 import java.util.Date
 import anorm._
 import play.api.db._
@@ -34,6 +35,8 @@ case class BlacklistEvent(
 
 object BlacklistEvent {
   
+  private val BatchSize = 2000
+  
   def createOrUpdate(reported: ReportedEvent): Boolean = DB.withConnection { implicit conn =>
     val events = findEventsByUri(reported.uriId, Some(reported.source), true)
     return events.size match {
@@ -47,7 +50,16 @@ object BlacklistEvent {
   }
   
   def createOrUpdate(reported: List[ReportedEvent], source: Source): Boolean = DB.withConnection { implicit conn =>
-    val events = findEventsByUris(reported.map(_.uriId), source, true)
+    val reportedEvents = reported.foldLeft(Map.empty[Int, ReportedEvent]) { (map, event) =>
+    	map ++ Map(event.uriId -> event)
+    }
+    val uriIds = reported.map(_.uriId)
+    val events = findEventsByUris(uriIds, source, true)
+    //TODO WTSN-40 update existing entries if needed
+    val toUpdate = events.map { event =>
+//      val reportedEvent = reportedEvents(event.uriId+"-")
+    }
+    //TODO WTSN-40 create new entries
     return false		//TODO WTSN-40
   }  
   
@@ -74,7 +86,7 @@ object BlacklistEvent {
   }
   
   private def update(reported: ReportedEvent, event: BlacklistEvent): Int = DB.withTransaction { implicit conn =>
-    val updated = try {
+    return try {
       SQL("""UPDATE blacklist_events SET blacklisted={blacklisted}, blacklisted_at={blacklistedAt}, 
         unblacklisted_at={unblacklistedAt} WHERE id={id}""").on(
           "id" -> event.id,
@@ -90,8 +102,37 @@ object BlacklistEvent {
       case e: PSQLException => Logger.error(e.getMessage)
       0
     }
-    return updated
   }
+  
+  private def update(events: List[(ReportedEvent, BlacklistEvent)]): Int = DB.withTransaction { implicit conn =>
+    return try {
+	    val sql = "UPDATE blacklist_events SET blacklisted=?, blacklisted_at=?, unblacklisted_at=? WHERE id=?"    
+	    val ps = conn.prepareStatement(sql)
+	    events.grouped(BatchSize).foldLeft(0) { (total, group) =>
+	      group.foreach { eventPair =>
+	        val reportedEvent = eventPair._1
+	        val blacklistEvent = eventPair._2
+	        val blacklistedAt = Math.min(reportedEvent.blacklistedAt, blacklistEvent.blacklistedAt)
+	        val unblacklistedAt = if (reportedEvent.unblacklistedAt.isDefined) {
+	          new Timestamp(reportedEvent.unblacklistedAt.get * 1000)
+	        } else {
+	          null
+	        }
+	        ps.setBoolean(1, reportedEvent.unblacklistedAt.isEmpty)
+	        ps.setTimestamp(2, new Timestamp(blacklistedAt * 1000))
+	        ps.setTimestamp(3, unblacklistedAt)
+	        ps.setInt(4, blacklistEvent.id)
+	        ps.addBatch()
+	      }
+	      val batch = ps.executeBatch()
+	  		ps.clearBatch()
+	  		total + batch.foldLeft(0)((cnt, b) => cnt + b)
+	    }
+    } catch {
+    	case e: PSQLException => Logger.error(e.getMessage)
+      0
+    }
+  }  
   
   def markNoLongerBlacklisted(uriId: Int, source: Source, time: Long): Boolean = DB.withConnection { implicit conn =>
     val events = findEventsByUri(uriId, Some(source), true)
@@ -137,7 +178,7 @@ object BlacklistEvent {
       uriIds: List[Int], 
       source: Source,
       currentOnly: Boolean=false): List[BlacklistEvent] = DB.withConnection { implicit conn =>
-    return uriIds.grouped(2000).foldLeft(List.empty[BlacklistEvent]) { case (list, group) =>
+    return uriIds.grouped(BatchSize).foldLeft(List.empty[BlacklistEvent]) { (list, group) =>
 	    val sql = "SELECT * FROM blacklist_events WHERE source=?::SOURCE AND "+
 	    	"uri_id in (?" + (",?"*(group.size-1)) + ")" + (if (currentOnly) " AND blacklisted=true" else "")
 	  	val ps = conn.prepareStatement(sql)
