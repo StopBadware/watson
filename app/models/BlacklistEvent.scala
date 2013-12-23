@@ -137,44 +137,30 @@ object BlacklistEvent {
       uriIds: List[Int], 
       source: Source,
       currentOnly: Boolean=false): List[BlacklistEvent] = DB.withConnection { implicit conn =>
-    uriIds.grouped(2000).foldLeft(List.empty[Uri]) { case (list, group) =>
-//	    val sql = "SELECT * FROM blacklist_events WHERE source='SBW'::SOURCE AND "+
-      val sql = "SELECT * FROM blacklist_events WHERE "+
-	    	"uri_id in (?" + (",?"*(group.size-1)) + ")" +
-	  		(if (currentOnly) " AND blacklisted=true" else "")
+    return uriIds.grouped(2000).foldLeft(List.empty[BlacklistEvent]) { case (list, group) =>
+	    val sql = "SELECT * FROM blacklist_events WHERE source=?::SOURCE AND "+
+	    	"uri_id in (?" + (",?"*(group.size-1)) + ")" + (if (currentOnly) " AND blacklisted=true" else "")
 	  	val ps = conn.prepareStatement(sql)
 	  	ps.setString(1, source.abbr)
-//	    group.foldLeft(2) { (index, id) =>
-//	      println(id)	//DELME WTSN-40
-//	      ps.setInt(index, id)
-//	      index + 1
-//	    }
       for (i <- 2 to group.size + 1) {
         ps.setInt(i, group(i-2))
       }
-      println("WTF")	//DELME WTSN-40
 	    val rs = ps.executeQuery
-	    println("WTF")	//DELME WTSN-40
-	    val foo = Iterator.continually((rs, rs.next())).takeWhile(_._2).map { case (row, hasNext) =>
-//	      val source = Source.withAbbr(row.getString("source")).get
-//	      val unblacklistedAt = if (row.getTimestamp("unblacklisted_at") == null) {
-//	        None
-//	      } else {
-//	        Some(row.getTimestamp("unblacklisted_at").getTime / 1000)
-//	      }
-	      println("HEY") //DELME WTSN-40
+	    Iterator.continually((rs, rs.next())).takeWhile(_._2).map { case (row, hasNext) =>
+	      val unblacklistedAt = if (row.getTimestamp("unblacklisted_at") == null) {
+	        None
+	      } else {
+	        Some(row.getTimestamp("unblacklisted_at").getTime / 1000)
+	      }
 	      BlacklistEvent(
 			    row.getInt("id"),
 			    row.getInt("uri_id"),
-			    source,
+			    Source.withAbbr(row.getString("source")).get,
 			    row.getBoolean("blacklisted"),
 			    row.getTimestamp("blacklisted_at").getTime / 1000,
-			    None)
-	    }.toList
-	    println(foo)	//DELM WTSN-40
-	    list
+			    unblacklistedAt)
+	    }.toList ++ list
     }
-    return List()
   }   
   
   private def mapFromRow(row: SqlRow): Option[BlacklistEvent] = {
