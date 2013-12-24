@@ -35,13 +35,13 @@ case class BlacklistEvent(
 
 object BlacklistEvent {
   
-  private val BatchSize = 2000
+  private val BatchSize = sys.env("SQLBATCH_SIZE").toInt
   
   def createOrUpdate(reported: ReportedEvent): Boolean = DB.withConnection { implicit conn =>
     val events = findEventsByUri(reported.uriId, Some(reported.source), true)
     return events.size match {
-      case 0 => create(reported)
-      case 1 => update(reported, events.head)==1
+      case 0 => create(List(reported)) == 1
+      case 1 => update(reported, events.head) == 1
       case _ => {
         Logger.error(reported.source+": "+events.size+" currently blacklisted rows for "+reported.uriId)
         false
@@ -50,17 +50,22 @@ object BlacklistEvent {
   }
   
   def createOrUpdate(reported: List[ReportedEvent], source: Source): Int = DB.withConnection { implicit conn =>
+    Logger.debug("CREATING REPORTEDEVENTS MAP...")	//DELME WTSN-40
     val reportedEvents = reported.foldLeft(Map.empty[Int, ReportedEvent]) { (map, event) =>
       map ++ Map(event.uriId -> event)
     }
+    Logger.debug("CREATING LIST OF URI IDS...")	//DELME WTSN-40
     val uriIds = reportedEvents.keys.toList
+    Logger.debug("CHECKING SIZES MATCH")	//DELME WTSN-40
     return if (uriIds.size != reported.size) {
       /* reported should not contain multiple entries for the same Uri, if that should ever change
        * this method will need refactoring to handle such cases */ 
     	Logger.error("Bulk creating/updating BlacklistEvents expects unqiue Uri ids, aborting")
     	0
     } else {
+      Logger.debug("FINDING EVENTS REQUIRING UPDATES")	//DELME WTSN-40
 	    val toUpdate = findEventsByUris(uriIds, source, true).map(event => (reportedEvents(event.uriId), event))
+	    Logger.debug("UPDATING EVENTS")	//DELME WTSN-40
 	    val updated = update(toUpdate)
 	    Logger.info("Updated "+updated+" BlacklistEvents")
 	    val created = create(reported)
@@ -68,28 +73,6 @@ object BlacklistEvent {
 	    created + updated
     }
   }  
-  
-  private def create(reported: ReportedEvent): Boolean = DB.withTransaction { implicit conn =>
-    val inserted = try {
-      SQL("""INSERT INTO blacklist_events (uri_id, source, blacklisted, blacklisted_at, unblacklisted_at) 
-        SELECT {uriId}, {source}::SOURCE, {blacklisted}, {blacklistedAt}, {unblacklistedAt} 
-        WHERE NOT EXISTS (SELECT 1 FROM blacklist_events 
-        WHERE uri_id={uriId} AND source={source}::SOURCE AND blacklisted_at={blacklistedAt})""").on(
-          "uriId" -> reported.uriId,
-          "source" -> reported.source.abbr,
-          "blacklistedAt" -> new Date(reported.blacklistedAt * 1000),
-          "unblacklistedAt" -> {
-            if (reported.unblacklistedAt.isDefined) new Date(reported.unblacklistedAt.get * 1000) else None
-          },
-          "blacklisted" -> reported.unblacklistedAt.isEmpty).executeUpdate()
-    } catch {
-      case e: PSQLException => if (PostgreSql.isNotDupeError(e.getMessage)) {
-  	    Logger.error(e.getMessage)
-  	  }
-      0
-    }
-    return inserted > 0
-  }
   
   private def create(reported: List[ReportedEvent]): Int = DB.withTransaction { implicit conn =>
     return try {
@@ -126,26 +109,7 @@ object BlacklistEvent {
   }  
   
   private def update(reported: ReportedEvent, event: BlacklistEvent): Int = DB.withTransaction { implicit conn =>
-    return try {
-      SQL("""UPDATE blacklist_events SET blacklisted={blacklisted}, blacklisted_at={blacklistedAt}, 
-        unblacklisted_at={unblacklistedAt} WHERE id={id}""").on(
-          "id" -> event.id,
-          "blacklistedAt" -> {
-            val blacklistedAt = Math.min(reported.blacklistedAt, event.blacklistedAt)
-            new Date(blacklistedAt * 1000)
-          },
-          "unblacklistedAt" -> {
-            if (event.unblacklistedAt.isEmpty && reported.unblacklistedAt.isDefined) {
-              new Date(reported.unblacklistedAt.get * 1000)
-            } else {
-              None
-            }
-          },
-          "blacklisted" -> reported.unblacklistedAt.isEmpty).executeUpdate()
-    } catch {
-      case e: PSQLException => Logger.error(e.getMessage)
-      0
-    }
+    return update(List((reported, event)))
   }
   
   private def update(events: List[(ReportedEvent, BlacklistEvent)]): Int = DB.withTransaction { implicit conn =>
@@ -157,7 +121,7 @@ object BlacklistEvent {
 	        val repEvent = eventPair._1
 	        val blEvent = eventPair._2
 	        val blacklistedAt = Math.min(repEvent.blacklistedAt, blEvent.blacklistedAt)
-	        val unblacklistedAt = if (blEvent.unblacklistedAt.isDefined) {
+	        val unblacklistedAt = if (blEvent.unblacklistedAt.isDefined && repEvent.unblacklistedAt.isEmpty) {
 	          Some(new Timestamp(blEvent.unblacklistedAt.get * 1000))
 	        } else if (repEvent.unblacklistedAt.isDefined) {
 	          Some(new Timestamp(repEvent.unblacklistedAt.get * 1000))

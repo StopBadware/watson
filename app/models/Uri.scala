@@ -46,6 +46,8 @@ case class Uri(
 
 object Uri {
   
+  private val BatchSize = sys.env("SQLBATCH_SIZE").toInt
+  
   def create(uriStr: String): Boolean = {
     return try {
       create(new ReportedUri(uriStr))
@@ -79,7 +81,7 @@ object Uri {
       val sql = """INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256) 
     		SELECT ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM uris WHERE sha2_256=?)"""    
       val ps = conn.prepareStatement(sql)
-      reported.grouped(2000).foldLeft(0) { (total, group) =>
+      reported.grouped(BatchSize).foldLeft(0) { (total, group) =>
 	  		group.foreach { rep =>
 	  			ps.setString(1, rep.uri.toString)
 	  			ps.setString(2, rep.reversedHost)
@@ -120,8 +122,28 @@ object Uri {
     }
   }
   
-  def findOrCreate(uris: List[String]): List[Uri] = {
-    val reported = uris.map { uri =>
+//  def findOrCreate(uris: List[String]): List[Uri] = {
+//    val reported = asReportedUris(uris)
+//  	val writes = create(reported)
+//  	Logger.info("Wrote "+writes+" new URIs")
+////  	return find(reported.map(_.sha256))
+//  	return reported.grouped(100000).foldLeft(List.empty[Uri]) { (map, group) =>
+//      map ++ find(group.map(_.sha256))
+//    }
+//  }
+  
+  def findOrCreate(reported: List[ReportedUri]): List[Uri] = {
+    //TODO WTSN-40 OOM
+  	val writes = create(reported)
+  	Logger.info("Wrote "+writes+" new URIs")
+  	return find(reported.map(_.sha256))
+//  	return reported.grouped(100000).foldLeft(List.empty[Uri]) { (map, group) =>
+//      map ++ find(group.map(_.sha256))
+//    }
+  }  
+  
+  def asReportedUris(uris: List[String]): List[ReportedUri] = {
+    return uris.map { uri =>
 	    try {
 	      Some(new ReportedUri(uri))
 	    } catch {
@@ -129,11 +151,7 @@ object Uri {
 	      None
 	    }
   	}.flatten
-  	Logger.info("Writing batch of "+reported.size+" URIs")
-  	val writes = create(reported)
-  	Logger.info("Wrote "+writes+" new URIs")
-  	return find(reported.map(_.sha256))
-  }   
+  }
   
   def find(sha256: String): Option[Uri] = DB.withConnection { implicit conn =>
     return try {
@@ -150,7 +168,7 @@ object Uri {
       case 0 => List()
       case 1 => List(find(sha256s.head)).flatten
       case _ => try {
-        sha256s.grouped(2000).foldLeft(List.empty[Uri]) { case (list, group) =>
+        sha256s.grouped(BatchSize).foldLeft(List.empty[Uri]) { case (list, group) =>
 		      val sql = "SELECT * FROM uris WHERE sha2_256 in (?" + (",?"*(group.size-1)) + ")"
 		      val ps = conn.prepareStatement(sql)
 		      for (i <- 1 to group.size) {
@@ -216,7 +234,7 @@ class ReportedUri(uriStr: String) {
   val uri: URI = {
     val schemeCheck = "^[a-zA-Z]+[a-zA-Z0-9+.\\-]+://.*"
     val withScheme = if (uriStr.matches(schemeCheck)) uriStr else "http://" + uriStr
-    new URI(withScheme)
+    new URI(withScheme.trim)
   }
   
   lazy val path = uri.getRawPath

@@ -51,19 +51,16 @@ object Blacklist extends Controller with JsonMapper {
   
   def importDifferential(reported: List[String], source: Source, time: Long): Boolean = {
     Logger.info("Importing "+reported.size+" entries for "+source)
-    val uris = Uri.findOrCreate(reported)
+//    val reportedUris = Uri.asReportedUris(reported)	//DELME WTSN-40
+    val uris = Uri.findOrCreate(Uri.asReportedUris(reported))
+    //TODO WTSN-40 OOM when finding (maybe return only uri ids?)
+//    val uris = Uri.asReportedUris(reported).grouped(25000).foldLeft(List.empty[Uri]) { (list, group) =>
+//      list ++ Uri.findOrCreate(group)
+//    }
     Logger.info("Updating existing blacklist entries for "+source)
     val removed = updateNoLongerBlacklisted(uris, source, time)
     Logger.info("Marked "+removed+" URIs as no longer blacklisted by "+source)
-//    Logger.debug("FINDING MORE RECENTS")	//DELME WTSN-40
-//    val moreRecent = BlacklistEvent.blacklisted(Some(source)).filter(_.blacklistedAt > time).map(_.id)
-//    Logger.debug("FOUND "+moreRecent.size+"\t...CREATING REPORTEVENTS")	//DELME WTSN-40
-//    val reportedEvents = uris.map { uri => 
-//      val endTime = if (moreRecent.isEmpty || moreRecent.contains(uri.id)) None else Some(time)
-//      ReportedEvent(uri.id, source, time, endTime)
-//    }
     val reportedEvents = uris.map(uri => ReportedEvent(uri.id, source, time))
-    Logger.debug("reportedEvents.size: "+reportedEvents.size+"\t...ADDING OR UPDATING EVENTS")	//DELME WTSN-40
     val addedOrUpdated = BlacklistEvent.createOrUpdate(reportedEvents, source)
     Logger.info("Imported "+addedOrUpdated+" blacklist events for "+source)
     return addedOrUpdated > 0
