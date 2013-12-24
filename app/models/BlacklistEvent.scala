@@ -63,9 +63,9 @@ object BlacklistEvent {
 	    val toUpdate = findEventsByUris(uriIds, source, true).map(event => (reportedEvents(event.uriId), event))
 	    val updated = update(toUpdate)
 	    Logger.info("Updated "+updated+" BlacklistEvents")
-	    val created = 0	//TODO WTSN-40 create new entries
+	    val created = create(reported)
 	    Logger.info("Created "+created+" BlacklistEvents")
-	    false //TODO WTSN-40
+	    (created + updated) > 0 || reported.isEmpty
     }
   }  
   
@@ -90,6 +90,40 @@ object BlacklistEvent {
     }
     return inserted > 0
   }
+  
+  private def create(reported: List[ReportedEvent]): Int = DB.withTransaction { implicit conn =>
+    return try {
+    	val sql = """INSERT INTO blacklist_events (uri_id, source, blacklisted, blacklisted_at, unblacklisted_at)  
+    		SELECT ?, ?::SOURCE, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM blacklist_events 
+    	  WHERE uri_id=? AND source=?::SOURCE AND blacklisted_at=?)"""
+   	  val ps = conn.prepareStatement(sql)
+   	  reported.grouped(BatchSize).foldLeft(0) { (total, group) =>
+   	    group.foreach { reported =>
+   	      val blacklistedAt = new Timestamp(reported.blacklistedAt * 1000)
+   	      val unblacklistedAt = if (reported.unblacklistedAt.isDefined) {
+	          new Timestamp(reported.unblacklistedAt.get * 1000)
+	        } else {
+	          null
+	        }
+   	      ps.setInt(1, reported.uriId)
+   	      ps.setString(2, reported.source.abbr)
+   	      ps.setBoolean(3, reported.unblacklistedAt.isEmpty)
+   	      ps.setTimestamp(4, blacklistedAt)
+   	      ps.setTimestamp(5, unblacklistedAt)
+   	      ps.setInt(6, reported.uriId)
+   	      ps.setString(7, reported.source.abbr)
+   	      ps.setTimestamp(8, blacklistedAt)
+   	      ps.addBatch()
+   	    }
+   	    val batch = ps.executeBatch()
+	  		ps.clearBatch()
+	  		total + batch.foldLeft(0)((cnt, b) => cnt + b)
+   		}
+    } catch {
+    	case e: PSQLException => Logger.error(e.getMessage)
+      0
+    }
+  }  
   
   private def update(reported: ReportedEvent, event: BlacklistEvent): Int = DB.withTransaction { implicit conn =>
     return try {
