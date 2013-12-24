@@ -163,7 +163,7 @@ object Uri {
 					    row.getString("uri"),
 					    row.getString("reversed_host"),
 					    row.getString("hierarchical_part"),
-					    if (row.getString("path")==null) "" else row.getString("path"),
+					    Option(row.getString("path")).getOrElse(""),
 					    row.getString("sha2_256"),
 					    row.getTimestamp("created_at").getTime / 1000
 			  		))	

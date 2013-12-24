@@ -23,14 +23,14 @@ object Host {
   def reverse(host: String): String = host.split("\\.").reverse.mkString(".")
   
   def reverse(uri: URI): String = {
-    val host = uri.getHost
-    return reverse(if (host == null) {
+    val host = Option(uri.getHost)
+    return reverse(if (host.isEmpty) {
       val str = uri.toString
       val begin = if (str.indexOf("//") > 0) str.indexOf("//") + 2 else 0
       val end = if (str.indexOf("/", begin) > 0) str.indexOf("/", begin) else str.length
       str.substring(begin, end)
     } else {
-      host
+      host.get
     })
   }  
 

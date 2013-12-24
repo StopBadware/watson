@@ -135,7 +135,11 @@ object BlacklistEvent {
             new Date(blacklistedAt * 1000)
           },
           "unblacklistedAt" -> {
-            if (reported.unblacklistedAt.isDefined) new Date(reported.unblacklistedAt.get * 1000) else None
+            if (event.unblacklistedAt.isEmpty && reported.unblacklistedAt.isDefined) {
+              new Date(reported.unblacklistedAt.get * 1000)
+            } else {
+              None
+            }
           },
           "blacklisted" -> reported.unblacklistedAt.isEmpty).executeUpdate()
     } catch {
@@ -150,18 +154,20 @@ object BlacklistEvent {
 	    val ps = conn.prepareStatement(sql)
 	    events.grouped(BatchSize).foldLeft(0) { (total, group) =>
 	      group.foreach { eventPair =>
-	        val reportedEvent = eventPair._1
-	        val blacklistEvent = eventPair._2
-	        val blacklistedAt = Math.min(reportedEvent.blacklistedAt, blacklistEvent.blacklistedAt)
-	        val unblacklistedAt = if (reportedEvent.unblacklistedAt.isDefined) {
-	          new Timestamp(reportedEvent.unblacklistedAt.get * 1000)
+	        val repEvent = eventPair._1
+	        val blEvent = eventPair._2
+	        val blacklistedAt = Math.min(repEvent.blacklistedAt, blEvent.blacklistedAt)
+	        val unblacklistedAt = if (blEvent.unblacklistedAt.isDefined) {
+	          Some(new Timestamp(blEvent.unblacklistedAt.get * 1000))
+	        } else if (repEvent.unblacklistedAt.isDefined) {
+	          Some(new Timestamp(repEvent.unblacklistedAt.get * 1000))
 	        } else {
-	          null
+	          None
 	        }
-	        ps.setBoolean(1, reportedEvent.unblacklistedAt.isEmpty)
+	        ps.setBoolean(1, unblacklistedAt.isEmpty)
 	        ps.setTimestamp(2, new Timestamp(blacklistedAt * 1000))
-	        ps.setTimestamp(3, unblacklistedAt)
-	        ps.setInt(4, blacklistEvent.id)
+	        ps.setTimestamp(3, unblacklistedAt.getOrElse(null))
+	        ps.setInt(4, blEvent.id)
 	        ps.addBatch()
 	      }
 	      val batch = ps.executeBatch()
@@ -228,11 +234,8 @@ object BlacklistEvent {
       }
 	    val rs = ps.executeQuery
 	    Iterator.continually((rs, rs.next())).takeWhile(_._2).map { case (row, hasNext) =>
-	      val unblacklistedAt = if (row.getTimestamp("unblacklisted_at") == null) {
-	        None
-	      } else {
-	        Some(row.getTimestamp("unblacklisted_at").getTime / 1000)
-	      }
+	      val unblacklistStamp = Option(row.getTimestamp("unblacklisted_at"))
+	      val unblacklistedAt = if (unblacklistStamp.isDefined) Some(unblacklistStamp.get.getTime / 1000) else None
 	      BlacklistEvent(
 			    row.getInt("id"),
 			    row.getInt("uri_id"),

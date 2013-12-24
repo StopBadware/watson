@@ -55,11 +55,15 @@ object Blacklist extends Controller with JsonMapper {
     Logger.info("Updating existing blacklist entries for "+source)
     val removed = updateNoLongerBlacklisted(uris, source, time)
     Logger.info("Marked "+removed+" URIs as no longer blacklisted by "+source)
-    val moreRecent = BlacklistEvent.blacklisted(Some(source)).filter(_.blacklistedAt > time).map(_.id)
-    val reportedEvents = uris.map { uri => 
-      val endTime = if (moreRecent.isEmpty || moreRecent.contains(uri.id)) None else Some(time)
-      ReportedEvent(uri.id, source, time, endTime)
-    }
+//    Logger.debug("FINDING MORE RECENTS")	//DELME WTSN-40
+//    val moreRecent = BlacklistEvent.blacklisted(Some(source)).filter(_.blacklistedAt > time).map(_.id)
+//    Logger.debug("FOUND "+moreRecent.size+"\t...CREATING REPORTEVENTS")	//DELME WTSN-40
+//    val reportedEvents = uris.map { uri => 
+//      val endTime = if (moreRecent.isEmpty || moreRecent.contains(uri.id)) None else Some(time)
+//      ReportedEvent(uri.id, source, time, endTime)
+//    }
+    val reportedEvents = uris.map(uri => ReportedEvent(uri.id, source, time))
+    Logger.debug("reportedEvents.size: "+reportedEvents.size+"\t...ADDING OR UPDATING EVENTS")	//DELME WTSN-40
     val addedOrUpdated = BlacklistEvent.createOrUpdate(reportedEvents, source)
     Logger.info("Imported "+addedOrUpdated+" blacklist events for "+source)
     return addedOrUpdated > 0
