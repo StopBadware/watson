@@ -51,16 +51,22 @@ object BlacklistEvent {
   
   def createOrUpdate(reported: List[ReportedEvent], source: Source): Boolean = DB.withConnection { implicit conn =>
     val reportedEvents = reported.foldLeft(Map.empty[Int, ReportedEvent]) { (map, event) =>
-    	map ++ Map(event.uriId -> event)
+      map ++ Map(event.uriId -> event)
     }
-    val uriIds = reported.map(_.uriId)
-    val events = findEventsByUris(uriIds, source, true)
-    //TODO WTSN-40 update existing entries if needed
-    val toUpdate = events.map { event =>
-//      val reportedEvent = reportedEvents(event.uriId+"-")
+    val uriIds = reportedEvents.keys.toList
+    return if (uriIds.size != reported.size) {
+      /* reported should not contain multiple entries for the same Uri, if that should ever change
+       * this method will need refactoring to handle such cases */ 
+    	Logger.error("Bulk creating/updating BlacklistEvents expects unqiue Uri ids, aborting")
+    	false
+    } else {
+	    val toUpdate = findEventsByUris(uriIds, source, true).map(event => (reportedEvents(event.uriId), event))
+	    val updated = update(toUpdate)
+	    Logger.info("Updated "+updated+" BlacklistEvents")
+	    val created = 0	//TODO WTSN-40 create new entries
+	    Logger.info("Created "+created+" BlacklistEvents")
+	    false //TODO WTSN-40
     }
-    //TODO WTSN-40 create new entries
-    return false		//TODO WTSN-40
   }  
   
   private def create(reported: ReportedEvent): Boolean = DB.withTransaction { implicit conn =>
