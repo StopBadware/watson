@@ -34,7 +34,7 @@ class BlacklistEventSpec extends Specification {
           list :+ blacklistedEvent
         }
         events.splitAt(numInBulk / 2)._1.foreach(BlacklistEvent.createOrUpdate(_))
-        BlacklistEvent.createOrUpdate(events, source) must beTrue
+        BlacklistEvent.createOrUpdate(events, source) must be equalTo(events.size)
       }
     }    
     

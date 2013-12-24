@@ -49,7 +49,7 @@ object BlacklistEvent {
     }
   }
   
-  def createOrUpdate(reported: List[ReportedEvent], source: Source): Boolean = DB.withConnection { implicit conn =>
+  def createOrUpdate(reported: List[ReportedEvent], source: Source): Int = DB.withConnection { implicit conn =>
     val reportedEvents = reported.foldLeft(Map.empty[Int, ReportedEvent]) { (map, event) =>
       map ++ Map(event.uriId -> event)
     }
@@ -58,14 +58,14 @@ object BlacklistEvent {
       /* reported should not contain multiple entries for the same Uri, if that should ever change
        * this method will need refactoring to handle such cases */ 
     	Logger.error("Bulk creating/updating BlacklistEvents expects unqiue Uri ids, aborting")
-    	false
+    	0
     } else {
 	    val toUpdate = findEventsByUris(uriIds, source, true).map(event => (reportedEvents(event.uriId), event))
 	    val updated = update(toUpdate)
 	    Logger.info("Updated "+updated+" BlacklistEvents")
 	    val created = create(reported)
 	    Logger.info("Created "+created+" BlacklistEvents")
-	    (created + updated) > 0 || reported.isEmpty
+	    created + updated
     }
   }  
   

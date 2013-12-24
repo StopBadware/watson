@@ -56,10 +56,11 @@ object Blacklist extends Controller with JsonMapper {
     val removed = updateNoLongerBlacklisted(uris, source, time)
     Logger.info("Marked "+removed+" URIs as no longer blacklisted by "+source)
     val moreRecent = BlacklistEvent.blacklisted(Some(source)).filter(_.blacklistedAt > time).map(_.id)
-    val addedOrUpdated = uris.foldLeft(0) { (ctr, uri) =>
+    val reportedEvents = uris.map { uri => 
       val endTime = if (moreRecent.isEmpty || moreRecent.contains(uri.id)) None else Some(time)
-      if (uri.blacklist(source, time, endTime)) ctr + 1 else ctr
+      ReportedEvent(uri.id, source, time, endTime)
     }
+    val addedOrUpdated = BlacklistEvent.createOrUpdate(reportedEvents, source)
     Logger.info("Imported "+addedOrUpdated+" blacklist events for "+source)
     return addedOrUpdated > 0
   }
