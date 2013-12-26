@@ -42,7 +42,7 @@ class BlacklistSpec extends Specification {
 	      val newUri = new ReportedUri(newUrl)
 	      val found = Uri.findByHierarchicalPart(newUri.hierarchicalPart)
 	      found.nonEmpty must beTrue
-	      val filtered = found.filter(_.sha256.equals(newUri.sha256))
+	      val filtered = found.filter(_.sha256.equalsIgnoreCase(newUri.sha256))
 	      filtered.nonEmpty must beTrue
 	      filtered.filter(_.isBlacklisted).nonEmpty must beTrue
 	      filtered.filter(_.isBlacklisted).map { uri =>
@@ -54,7 +54,7 @@ class BlacklistSpec extends Specification {
     "update entries that fall off differential blacklist (imported in order)" in {
       running(FakeApplication()) {
         val timeA = mostRecentTime
-	      val timeB = timeA + 1
+	      val timeB = timeA + 10
 	      
 	      val urlA = "example.com/" + System.currentTimeMillis
 	      val uriA = new ReportedUri(urlA)
@@ -65,7 +65,7 @@ class BlacklistSpec extends Specification {
 	      Blacklist.importDifferential(urisA, source, timeA)
 	      val foundA = Uri.findByHierarchicalPart(uriA.hierarchicalPart)
 	      foundA.nonEmpty must beTrue
-	      val filtered = foundA.filter(_.sha256.equals(uriA.sha256))
+	      val filtered = foundA.filter(_.sha256.equalsIgnoreCase(uriA.sha256))
 	      filtered.nonEmpty must beTrue
 	      filtered.filter(_.isBlacklisted).nonEmpty must beTrue
 	      filtered.filter(_.isBlacklisted).map { uri =>
@@ -75,8 +75,8 @@ class BlacklistSpec extends Specification {
         Blacklist.importDifferential(urisB, source, timeB)
 	      val foundB = Uri.findByHierarchicalPart(uriA.hierarchicalPart)
 	      foundB.nonEmpty must beTrue
-        foundB.filter(_.sha256.equals(uriA.sha256)).nonEmpty must beTrue
-	      foundB.filter(u => u.sha256.equals(uriA.sha256) && u.isBlacklisted).isEmpty must beTrue
+        foundB.filter(_.sha256.equalsIgnoreCase(uriA.sha256)).nonEmpty must beTrue
+	      foundB.filter(u => u.sha256.equalsIgnoreCase(uriA.sha256) && u.isBlacklisted).isEmpty must beTrue
 	      foundB.filter(_.isBlacklisted).map { uri =>
         	BlacklistEvent.findBlacklistedByUri(uri.id, Some(source)).nonEmpty must beTrue
         }
@@ -86,11 +86,11 @@ class BlacklistSpec extends Specification {
     "update entries that fall off differential blacklist (imported out of order)" in {
       running(FakeApplication()) {
         val timeA = mostRecentTime
-	      val timeB = timeA + 1
+	      val timeB = timeA + 10
 	      
-	      val urlA = "example.com/" + System.currentTimeMillis
+	      val urlA = "foo.com/" + System.currentTimeMillis
 	      val uriA = new ReportedUri(urlA)
-        val urlB = "www.example.com/" + System.currentTimeMillis
+        val urlB = "www.bar.com/" + System.currentTimeMillis
         val urisA = List(urlA, urlB)
 	      val urisB = List(urlB)
 	      
@@ -99,7 +99,7 @@ class BlacklistSpec extends Specification {
 	      
 	      val found = Uri.findByHierarchicalPart(uriA.hierarchicalPart)
 	      found.nonEmpty must beTrue
-	      val filtered = found.filter(_.sha256.equals(uriA.sha256))
+	      val filtered = found.filter(_.sha256.equalsIgnoreCase(uriA.sha256))
 	      filtered.nonEmpty must beTrue
 	      filtered.filter(_.isBlacklisted).isEmpty must beTrue
 	      filtered.map { uri =>
@@ -148,7 +148,7 @@ class BlacklistSpec extends Specification {
 	      Blacklist.importBlacklist(json, Source.NSF)
 	      val foundA = Uri.findByHierarchicalPart(hierarchicalPartA)
 	      foundA.nonEmpty must beTrue
-	      val filteredA = foundA.filter(_.uri.equals(uriA.toString))
+	      val filteredA = foundA.filter(_.uri.equalsIgnoreCase(uriA.toString))
 	      filteredA.nonEmpty must beTrue
 	      filteredA.filter(_.isBlacklisted).nonEmpty must beTrue
 	      filteredA.filter(_.isBlacklisted).map { uri =>
@@ -158,7 +158,7 @@ class BlacklistSpec extends Specification {
         val hierarchicalPartB = uriB.getRawAuthority + uriB.getRawPath
 	      val foundB = Uri.findByHierarchicalPart(hierarchicalPartB)
 	      foundB.nonEmpty must beTrue
-	      val filteredB = foundB.filter(_.uri.equals(uriB.toString))
+	      val filteredB = foundB.filter(_.uri.equalsIgnoreCase(uriB.toString))
 	      filteredB.nonEmpty must beTrue
 	      filteredB.filter(_.isBlacklisted).map { uri =>
         	BlacklistEvent.findBlacklistedByUri(uri.id, Some(Source.NSF)).isEmpty must beTrue
