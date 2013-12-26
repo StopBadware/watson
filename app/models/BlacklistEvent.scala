@@ -50,28 +50,15 @@ object BlacklistEvent {
   }
   
   def createOrUpdate(reported: List[ReportedEvent], source: Source): Int = DB.withConnection { implicit conn =>
-    Logger.debug("CREATING REPORTEDEVENTS MAP...")	//DELME WTSN-40
     val reportedEvents = reported.foldLeft(Map.empty[Int, ReportedEvent]) { (map, event) =>
       map ++ Map(event.uriId -> event)
     }
-    Logger.debug("CREATING LIST OF URI IDS...")	//DELME WTSN-40
-    val uriIds = reportedEvents.keys.toList
-    Logger.debug("CHECKING SIZES MATCH")	//DELME WTSN-40
-    return if (uriIds.size != reported.size) {
-      /* reported should not contain multiple entries for the same Uri, if that should ever change
-       * this method will need refactoring to handle such cases */ 
-    	Logger.error("Bulk creating/updating BlacklistEvents expects unqiue Uri ids, aborting")
-    	0
-    } else {
-      Logger.debug("FINDING EVENTS REQUIRING UPDATES")	//DELME WTSN-40
-	    val toUpdate = findEventsByUris(uriIds, source, true).map(event => (reportedEvents(event.uriId), event))
-	    Logger.debug("UPDATING EVENTS")	//DELME WTSN-40
-	    val updated = update(toUpdate)
-	    Logger.info("Updated "+updated+" BlacklistEvents")
-	    val created = create(reported)
-	    Logger.info("Created "+created+" BlacklistEvents")
-	    created + updated
-    }
+    val toUpdate = findEventsByUris(reportedEvents.keys.toList, source, true).map(event => (reportedEvents(event.uriId), event))
+    val updated = update(toUpdate)
+    Logger.info("Updated "+updated+" BlacklistEvents")
+    val created = create(reported)
+    Logger.info("Created "+created+" BlacklistEvents")
+    return (created + updated)
   }  
   
   private def create(reported: List[ReportedEvent]): Int = DB.withTransaction { implicit conn =>

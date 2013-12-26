@@ -122,24 +122,12 @@ object Uri {
     }
   }
   
-//  def findOrCreate(uris: List[String]): List[Uri] = {
-//    val reported = asReportedUris(uris)
-//  	val writes = create(reported)
-//  	Logger.info("Wrote "+writes+" new URIs")
-////  	return find(reported.map(_.sha256))
-//  	return reported.grouped(100000).foldLeft(List.empty[Uri]) { (map, group) =>
-//      map ++ find(group.map(_.sha256))
-//    }
-//  }
-  
-  def findOrCreate(reported: List[ReportedUri]): List[Uri] = {
-    //TODO WTSN-40 OOM
+  def findOrCreateIds(reported: List[ReportedUri]): List[Int] = {
   	val writes = create(reported)
   	Logger.info("Wrote "+writes+" new URIs")
-  	return find(reported.map(_.sha256))
-//  	return reported.grouped(100000).foldLeft(List.empty[Uri]) { (map, group) =>
-//      map ++ find(group.map(_.sha256))
-//    }
+  	return reported.grouped(100000).foldLeft(List.empty[Int]) { (ids, group) =>
+      ids ++ find(group.map(_.sha256)).map(_.id)
+    }
   }  
   
   def asReportedUris(uris: List[String]): List[ReportedUri] = {

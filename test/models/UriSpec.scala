@@ -100,7 +100,7 @@ class UriSpec extends Specification {
         val uris = (1 to numInBulk).foldLeft(List.empty[String]) { (list, _) =>
           list :+ validUri
         }
-    		val found = Uri.findOrCreate(uris)
+    		val found = Uri.findOrCreateIds(Uri.asReportedUris(uris))
     		found.size must be equalTo(uris.size)
       }
     }       
