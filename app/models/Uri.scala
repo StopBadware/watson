@@ -1,6 +1,7 @@
 package models
 
 import java.net.{URI, URISyntaxException}
+import scala.util.Try
 import anorm._
 import play.api.db._
 import play.api.Play.current
@@ -46,7 +47,7 @@ case class Uri(
 
 object Uri {
   
-  private val BatchSize = sys.env("SQLBATCH_SIZE").toInt
+  private val BatchSize = Try(sys.env("SQLBATCH_SIZE").toInt).getOrElse(5000)
   
   def create(uriStr: String): Boolean = {
     return try {

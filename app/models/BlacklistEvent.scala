@@ -1,6 +1,7 @@
 package models
 
-import java.sql.Timestamp
+import java.sql.{BatchUpdateException, Timestamp}
+import scala.util.Try
 import java.util.Date
 import anorm._
 import play.api.db._
@@ -35,7 +36,7 @@ case class BlacklistEvent(
 
 object BlacklistEvent {
   
-  private val BatchSize = sys.env("SQLBATCH_SIZE").toInt
+  private val BatchSize = Try(sys.env("SQLBATCH_SIZE").toInt).getOrElse(5000)
   
   def createOrUpdate(reported: ReportedEvent): Boolean = DB.withConnection { implicit conn =>
     val events = findEventsByUri(reported.uriId, Some(reported.source), true)
@@ -126,8 +127,15 @@ object BlacklistEvent {
 	  		total + batch.foldLeft(0)((cnt, b) => cnt + b)
 	    }
     } catch {
-    	case e: PSQLException => Logger.error(e.getMessage)
-      0
+    	case e: PSQLException => {
+    	  Logger.error(e.getMessage)
+    	  0
+    	}
+    	case e: BatchUpdateException => {
+    	  Logger.error(e.getMessage)
+    	  Logger.error(e.getNextException.getMessage)
+    	  0
+    	}
     }
   }  
   
