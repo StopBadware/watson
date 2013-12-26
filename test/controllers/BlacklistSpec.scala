@@ -24,7 +24,7 @@ class BlacklistSpec extends Specification {
     "add differential blacklist to queue" in {
       running(FakeApplication()) {
         val time = System.currentTimeMillis / 1000
-        val urlA = "example.com"
+        val urlA = "example"+time+".com"
         val urlB = "https://example.com/" + time
 	      val json = "[{\"url\":\""+urlB+"\",\"time\":"+time+"},"+ 
 	      					 "{\"url\":\""+urlA+"\",\"time\":"+time+"},"+
@@ -36,7 +36,7 @@ class BlacklistSpec extends Specification {
     
     "add new entries from differential blacklist" in {
       running(FakeApplication()) {
-        val existingUrl = "example.com"
+        val existingUrl = "example"+System.currentTimeMillis+".com"
         Uri.findOrCreate(existingUrl) must beSome
         val newUrl = "https://example.com/" + System.currentTimeMillis
         val uris = List(existingUrl, newUrl)
@@ -137,7 +137,7 @@ class BlacklistSpec extends Specification {
       running(FakeApplication()) {
         val time = (System.currentTimeMillis / 1000) - 47
         val cleanTime = System.currentTimeMillis / 1000
-        val existingUrl = "example.com"
+        val existingUrl = "example"+time+".com"
         Uri.findOrCreate(existingUrl) must beSome
         val newUrl = "https://example.com/" + time
         val uriA = new URI(newUrl)
