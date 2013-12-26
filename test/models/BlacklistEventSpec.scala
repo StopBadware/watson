@@ -128,8 +128,15 @@ class BlacklistEventSpec extends Specification {
         unblacklistEvent.unblacklistedAt.get must be equalTo(now)
         unblacklistEvent.blacklisted must beFalse
       }
-    }    
+    }
     
+    "finds the most recent time for a source" in {
+      running(FakeApplication()) {
+        val event = blacklistedEvent
+        BlacklistEvent.createOrUpdate(event) must beTrue
+        BlacklistEvent.timeOfLast(source) must be equalTo(event.blacklistedAt)
+      }
+    }    
     
   }
 

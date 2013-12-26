@@ -14,10 +14,7 @@ class BlacklistSpec extends Specification {
   sequential	//differential blacklists tests running in parallel can affect each other 
   private val invalidUrl = "http://example.com/invalid\\\\path"
   private val source = Source.GOOG
-  private def mostRecentTime: Long = {
-    val head = BlacklistEvent.blacklisted(Some(source)).sortBy(_.blacklistedAt).headOption
-    if (head.isDefined) head.get.blacklistedAt else System.currentTimeMillis / 1000
-  } 
+  private def mostRecentTime = BlacklistEvent.timeOfLast(source) 
   
   "Blacklist" should {
     

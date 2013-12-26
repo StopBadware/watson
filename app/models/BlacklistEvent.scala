@@ -38,6 +38,12 @@ object BlacklistEvent {
   
   private val BatchSize = Try(sys.env("SQLBATCH_SIZE").toInt).getOrElse(5000)
   
+  def timeOfLast(source: Source): Long = DB.withConnection { implicit conn =>
+    val sql = SQL("""SELECT blacklisted_at FROM blacklist_events WHERE blacklisted=true AND 
+        source={source}::SOURCE ORDER BY blacklisted_at desc LIMIT 1""").on("source" -> source.abbr)
+    return (sql().map(_[Date]("blacklisted_at").getTime / 1000).headOption).getOrElse(0)
+  }
+  
   def createOrUpdate(reported: ReportedEvent): Boolean = DB.withConnection { implicit conn =>
     val events = findEventsByUri(reported.uriId, Some(reported.source), true)
     return events.size match {
@@ -60,6 +66,32 @@ object BlacklistEvent {
     val created = create(reported)
     Logger.info("Created "+created+" BlacklistEvents")
     return (created + updated)
+  }  
+  
+  def markNoLongerBlacklisted(uriId: Int, source: Source, time: Long): Boolean = DB.withConnection { implicit conn =>
+    val events = findEventsByUri(uriId, Some(source), true)
+    val clean = ReportedEvent(uriId, source, time, Some(time))
+    return events.foldLeft(0){ (ctr, event) =>
+      ctr + update(clean, event)
+    } == events.size
+  }
+  
+  def blacklisted(source: Option[Source]=None): List[BlacklistEvent] = DB.withConnection { implicit conn =>
+    val base = "SELECT * FROM blacklist_events WHERE blacklisted=true"
+    val rs = if (source.isDefined) {
+    	SQL(base+" AND source={source}::SOURCE").on("source"->source.get.abbr)
+    } else {
+      SQL(base)
+    }
+    return rs().map(mapFromRow).flatten.toList
+  }
+  
+  def findByUri(uriId: Int, source: Option[Source]=None): List[BlacklistEvent] = DB.withConnection { implicit conn =>
+    return findEventsByUri(uriId, source)
+  }
+  
+  def findBlacklistedByUri(uriId: Int, source: Option[Source]=None): List[BlacklistEvent] = DB.withConnection { implicit conn =>
+    return findEventsByUri(uriId, source, true)
   }  
   
   private def create(reported: List[ReportedEvent]): Int = DB.withTransaction { implicit conn =>
@@ -137,33 +169,7 @@ object BlacklistEvent {
     	  0
     	}
     }
-  }  
-  
-  def markNoLongerBlacklisted(uriId: Int, source: Source, time: Long): Boolean = DB.withConnection { implicit conn =>
-    val events = findEventsByUri(uriId, Some(source), true)
-    val clean = ReportedEvent(uriId, source, time, Some(time))
-    return events.foldLeft(0){ (ctr, event) =>
-      ctr + update(clean, event)
-    } == events.size
-  }
-  
-  def blacklisted(source: Option[Source]=None): List[BlacklistEvent] = DB.withConnection { implicit conn =>
-    val base = "SELECT * FROM blacklist_events WHERE blacklisted=true"
-    val rs = if (source.isDefined) {
-    	SQL(base+" AND source={source}::SOURCE").on("source"->source.get.abbr)
-    } else {
-      SQL(base)
-    }
-    return rs().map(mapFromRow).flatten.toList
-  }
-  
-  def findByUri(uriId: Int, source: Option[Source]=None): List[BlacklistEvent] = DB.withConnection { implicit conn =>
-    return findEventsByUri(uriId, source)
-  }
-  
-  def findBlacklistedByUri(uriId: Int, source: Option[Source]=None): List[BlacklistEvent] = DB.withConnection { implicit conn =>
-    return findEventsByUri(uriId, source, true)
-  }  
+  }    
   
   private def findEventsByUri(
       uriId: Int, 
