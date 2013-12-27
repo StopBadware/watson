@@ -1,13 +1,14 @@
 # Routes
-# This file defines all application routes (Higher priority routes first)
-# ~~~~
+# ~~~~~~
 
-# Home page
-GET     /                           	controllers.Application.index
+# VIEWS
+GET     /                           		controllers.Application.index
 
-# REST endpoints
-GET     /rest/timeoflast/:source   		controllers.Rest.timeoflast(source)
-POST    /rest/add/blacklist/:source		controllers.Rest.importList(source)
+# AJAX ROUTES
 
-# Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               	controllers.Assets.at(path="/public", file)
+# REST ENDPOINTS
+GET     /blacklists/timeoflast/:source   	controllers.Rest.timeoflast(source)
+POST    /blacklists/add/:source				controllers.Rest.importList(source)
+
+# MISC RESOURCES
+GET     /assets/*file               		controllers.Assets.at(path="/public", file)
