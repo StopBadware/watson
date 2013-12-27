@@ -159,15 +159,14 @@ object BlacklistEvent {
 	  		total + batch.foldLeft(0)((cnt, b) => cnt + b)
 	    }
     } catch {
-    	case e: PSQLException => {
-    	  Logger.error(e.getMessage)
-    	  0
+      case t: Throwable => t match {
+	    	case e: PSQLException => Logger.error(e.getMessage)
+	    	case e: BatchUpdateException => {
+	    	  Logger.error(e.getMessage)
+	    	  Logger.error(e.getNextException.getMessage)
+	    	}
     	}
-    	case e: BatchUpdateException => {
-    	  Logger.error(e.getMessage)
-    	  Logger.error(e.getNextException.getMessage)
-    	  0
-    	}
+      0
     }
   }    
   
