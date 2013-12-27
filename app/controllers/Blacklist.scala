@@ -78,10 +78,10 @@ object Blacklist extends Controller with JsonMapper {
   }
   
   private def updateNoLongerBlacklisted(blacklistIds: List[Int], source: Source, time: Long): Int = {
-    def currentlyBlacklisted = BlacklistEvent.blacklisted(Some(source)).filter(_.blacklistedAt < time)
-    val old = currentlyBlacklisted
-    old.filterNot(event => blacklistIds.contains(event.uriId)).foreach(_.removeFromBlacklist(time))
-    return old.size - currentlyBlacklisted.size
+    return BlacklistEvent.blacklisted(Some(source)).filter(_.blacklistedAt < time)
+    	.filterNot(event => blacklistIds.contains(event.uriId)).foldLeft(0) { (removed, event) =>
+      if (event.removeFromBlacklist(time)) removed + 1 else removed
+    }
   }   
   
   private def importNsfocus(json: List[JsonNode], source: Source=Source.NSF) = {
