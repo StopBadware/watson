@@ -4,11 +4,17 @@ import scala.io.Source
 import scala.actors.Futures.future
 import play.api._
 import play.api.mvc._
+import models.BlacklistEvent
 
 object Rest extends Controller with JsonMapper {
   
-	def timeoflast(source: String) = Action { request =>
-		Ok(source) //TODO WTSN-20
+	def timeoflast(abbr: String) = Action { request =>
+		val source = models.Source.withAbbr(abbr)
+		if (source.isDefined) {
+			Ok(BlacklistEvent.timeOfLast(source.get).toString)
+		} else {
+		  NotFound
+		}
   }
 	
 	def importList(abbr: String) = Action(parse.temporaryFile) { request =>
