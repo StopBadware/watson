@@ -77,13 +77,6 @@ object Blacklist extends Controller with JsonMapper {
     }
   }
   
-//  private def updateNoLongerBlacklisted(blacklist: List[Uri], source: Source, time: Long): Int = {
-//    def currentlyBlacklisted = BlacklistEvent.blacklisted(Some(source)).filter(_.blacklistedAt < time)
-//    val old = currentlyBlacklisted
-//    val newUriIds = blacklist.map(_.id)
-//    old.filterNot(event => newUriIds.contains(event.uriId)).foreach(_.removeFromBlacklist(time))
-//    return old.size - currentlyBlacklisted.size
-//  } 
   private def updateNoLongerBlacklisted(blacklistIds: List[Int], source: Source, time: Long): Int = {
     def currentlyBlacklisted = BlacklistEvent.blacklisted(Some(source)).filter(_.blacklistedAt < time)
     val old = currentlyBlacklisted
