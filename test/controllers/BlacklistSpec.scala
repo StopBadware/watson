@@ -6,6 +6,7 @@ import org.specs2.runner._
 import play.api.test._
 import play.api.test.Helpers._
 import java.net.URI
+import scala.util.Random
 import models._
 
 @RunWith(classOf[JUnitRunner])
@@ -14,7 +15,16 @@ class BlacklistSpec extends Specification {
   sequential	//differential blacklists tests running in parallel can affect each other 
   private val invalidUrl = "http://example.com/invalid\\\\path"
   private val source = Source.GOOG
-  private def mostRecentTime = BlacklistEvent.timeOfLast(source) 
+  
+  private def mostRecentTime: Long = BlacklistEvent.timeOfLast(source)
+  private def validUrl: String = "example" + Random.nextInt + ".com/" + (System.currentTimeMillis / 1000) 
+  private def blacklist: Blacklist = {
+    val urls = (1 to 5).foldLeft(List.empty[String]) { (list, _) =>
+      list :+ validUrl
+    }
+    Blacklist(source, System.currentTimeMillis / 1000, urls)
+  }
+  private def find(url: String): Uri = Uri.find(new ReportedUri(url).sha256).get
   
   "Blacklist" should {
     
@@ -33,19 +43,14 @@ class BlacklistSpec extends Specification {
     
     "add new entries from differential blacklist" in {
       running(FakeApplication()) {
-        val existingUrl = "example"+System.currentTimeMillis+".com"
+        val bl = blacklist
+        val existingUrl = bl.urls.head
         Uri.findOrCreate(existingUrl) must beSome
-        val newUrl = "https://example.com/" + System.currentTimeMillis
-        val uris = List(existingUrl, newUrl)
-	      Blacklist.importDifferential(uris, source, mostRecentTime)
+	      Blacklist.importDifferential(bl.urls, source, mostRecentTime)
 	      
-	      val newUri = new ReportedUri(newUrl)
-	      val found = Uri.findByHierarchicalPart(newUri.hierarchicalPart)
-	      found.nonEmpty must beTrue
-	      val filtered = found.filter(_.sha256.equalsIgnoreCase(newUri.sha256))
-	      filtered.nonEmpty must beTrue
-	      filtered.filter(_.isBlacklisted).nonEmpty must beTrue
-	      filtered.filter(_.isBlacklisted).map { uri =>
+	      bl.urls.map { url =>
+        	val uri = find(url)
+        	uri.isBlacklisted must beTrue
         	BlacklistEvent.findBlacklistedByUri(uri.id, Some(source)).nonEmpty must beTrue
         }
       }
@@ -56,13 +61,20 @@ class BlacklistSpec extends Specification {
         val timeA = mostRecentTime
 	      val timeB = timeA + 10
 	      
-	      val urlA = "example.com/" + System.currentTimeMillis
-	      val uriA = new ReportedUri(urlA)
-        val urlB = "www.example.com/" + System.currentTimeMillis
-        val urisA = List(urlA, urlB)
-	      val urisB = List(urlB)
+//	      val urlA = "example.com/" + System.currentTimeMillis
+//	      val uriA = new ReportedUri(urlA)
+//        val urlB = "www.example.com/" + System.currentTimeMillis
+//        val urisA = List(urlA, urlB)
+//	      val urisB = List(urlB)
 	      
-	      Blacklist.importDifferential(urisA, source, timeA)
+	      val blEarlier = blacklist
+	      val blLater = blacklist
+	      
+	      Blacklist.importDifferential(blEarlier.urls, source, timeA)
+	      blEarlier.urls.map { url =>
+          val found = find(url)
+          val filtered = found.filter(_.sha256.equalsIgnoreCase(found.sha256))
+        }
 	      val foundA = Uri.findByHierarchicalPart(uriA.hierarchicalPart)
 	      foundA.nonEmpty must beTrue
 	      val filtered = foundA.filter(_.sha256.equalsIgnoreCase(uriA.sha256))
