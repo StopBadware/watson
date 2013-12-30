@@ -55,9 +55,14 @@ object Blacklist extends Controller with JsonMapper {
     Logger.info("Updating existing blacklist entries for "+source)
     val removed = updateNoLongerBlacklisted(uris, source, time)
     Logger.info("Marked "+removed+" URIs as no longer blacklisted by "+source)
-    //TODO WTSN-41
-    val endTime = if (BlacklistEvent.timeOfLast(source) > time) Some(time) else None
-    val reportedEvents = uris.map(id => ReportedEvent(id, source, time, endTime))
+    val blacklisted = BlacklistEvent.blacklisted(Some(source)).foldLeft(Map.empty[Int, BlacklistEvent]) { (map, event) =>
+      map + (event.uriId -> event)
+    }
+    val timeOfLast = BlacklistEvent.timeOfLast(source)
+    val reportedEvents = uris.map { id => 
+      val endTime = if (blacklisted.contains(id) || time >= timeOfLast) None else Some(time)
+      ReportedEvent(id, source, time, endTime)
+    }
     val addedOrUpdated = BlacklistEvent.createOrUpdate(reportedEvents, source)
     Logger.info("Imported "+addedOrUpdated+" blacklist events for "+source)
     return addedOrUpdated > 0
@@ -74,7 +79,7 @@ object Blacklist extends Controller with JsonMapper {
   private def diffBlacklist(blacklist: JsonNode): Map[Long, List[String]] = {
     return Json.parse[List[BlacklistEntry]](blacklist).groupBy(_.time)
 			.foldLeft(Map.empty[Long, List[String]]) { case (map, (time, entries)) =>
-      	map ++ Map(time -> entries.map(_.url))
+      	map + (time -> entries.map(_.url))
     }
   }
   
