@@ -27,6 +27,22 @@ class BlacklistEventSpec extends Specification {
       }
     }
     
+    "update a blacklist event" in {
+      running(FakeApplication()) {
+        val now = System.currentTimeMillis / 1000
+        val uriId = validUri.id
+        val initialEvent = ReportedEvent(uriId, source, now)
+        BlacklistEvent.createOrUpdate(initialEvent) must beTrue
+        BlacklistEvent.findBlacklistedByUri(uriId, Some(source)).size must be equalTo(1)
+        val updatedTime = now - 10
+        val updatedEvent = ReportedEvent(uriId, source, updatedTime)
+        BlacklistEvent.createOrUpdate(updatedEvent) must beTrue
+        val events = BlacklistEvent.findBlacklistedByUri(uriId, Some(source))
+        events.size must be equalTo(1)
+        events.head.blacklistedAt must be equalTo(updatedTime)
+      }
+    }    
+    
     "create and/or update blacklist events in bulk" in {
       running(FakeApplication()) {
         val numInBulk = 10
