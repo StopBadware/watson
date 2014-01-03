@@ -2,6 +2,7 @@ package controllers
 
 import scala.io.Source
 import scala.actors.Futures.future
+import scala.util.Try
 import play.api._
 import play.api.mvc._
 import models.BlacklistEvent
@@ -11,7 +12,9 @@ object Rest extends Controller with JsonMapper {
 	def timeoflast(abbr: String) = Action { request =>
 		val source = models.Source.withAbbr(abbr)
 		if (source.isDefined) {
-			Ok(BlacklistEvent.timeOfLast(source.get).toString)
+		  val blTimeOfLast = BlacklistEvent.timeOfLast(source.get)
+		  val redisTimeOfLast = Try(Redis.blacklistTimes(source.get).max).getOrElse(0L)
+			Ok(Math.max(blTimeOfLast, redisTimeOfLast).toString)
 		} else {
 		  NotFound
 		}
