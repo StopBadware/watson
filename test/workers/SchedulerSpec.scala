@@ -5,7 +5,7 @@ import org.junit.runner._
 import org.specs2.runner._
 import play.api.test._
 import play.api.test.Helpers._
-import controllers.{Blacklist, Hash, Redis}
+import controllers.{Blacklist, BlacklistSpec, Hash, Redis}
 import models.{BlacklistEvent, Source, Uri}
 
 @RunWith(classOf[JUnitRunner])
@@ -20,8 +20,7 @@ class SchedulerSpec extends Specification {
         val time = System.currentTimeMillis / 1000
         val urlA = "example.com"
         val urlB = "http://www.example.com/" + time
-	      val json = "[{\"url\":\""+urlB+"\",\"time\":"+time+"}, {\"url\":\""+urlA+"\",\"time\":"+time+"}]"
-	      Blacklist.importBlacklist(json, source)
+	      Blacklist.importBlacklist(BlacklistSpec.json(time, List(urlA, urlB)), source)
 	      val fromQueue = Redis.getBlacklist(source, time)
 	      fromQueue.nonEmpty must beTrue
 	      val queueCheck = BlacklistQueue(source)
@@ -42,8 +41,7 @@ class SchedulerSpec extends Specification {
         val time = System.currentTimeMillis / 1000
         val urlA = "example.com"
         val urlB = "http://www.example"+time+".com/"
-	      val json = "[{\"url\":\""+urlB+"\",\"time\":"+time+"}, {\"url\":\""+urlA+"\",\"time\":"+time+"}]"
-	      Blacklist.importBlacklist(json, source)
+	      Blacklist.importBlacklist(BlacklistSpec.json(time, List(urlA, urlB)), source)
 	      val fromQueue = Redis.getBlacklist(source, time)
 	      fromQueue.nonEmpty must beTrue
 	      val queueCheck = BlacklistQueue(source)

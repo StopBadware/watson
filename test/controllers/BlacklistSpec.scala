@@ -7,6 +7,7 @@ import play.api.test._
 import play.api.test.Helpers._
 import java.net.URI
 import scala.util.Random
+import com.codahale.jerkson.Json
 import models._
 
 @RunWith(classOf[JUnitRunner])
@@ -33,7 +34,6 @@ class BlacklistSpec extends Specification {
     BlacklistEvent.findBlacklistedByUri(find(url).id, Some(source)).nonEmpty
   }
   
-  
   "Blacklist" should {
     
     "add differential blacklist to queue" in {
@@ -41,10 +41,7 @@ class BlacklistSpec extends Specification {
         val time = System.currentTimeMillis / 1000
         val urlA = "example"+time+".com"
         val urlB = "https://example.com/" + time
-	      val json = "[{\"url\":\""+urlB+"\",\"time\":"+time+"},"+ 
-	      					 "{\"url\":\""+urlA+"\",\"time\":"+time+"},"+
-	      					 "{\"url\":\""+invalidUrl+"\",\"time\":"+time+"}]"
-	      Blacklist.importBlacklist(json, source)
+	      Blacklist.importBlacklist(BlacklistSpec.json(time, List(urlA, urlB, invalidUrl)), source)
 	      Redis.getBlacklist(source, time).nonEmpty must beTrue
       }
     }    
@@ -102,10 +99,10 @@ class BlacklistSpec extends Specification {
 	      val badUrl = validUrl
 	      val badLink = "http://" + badUrl + time
 	      val cleanUrl = validUrl
-	      val json = "[{\"url\":\""+badUrl+"\",\"status\":\"bad\",\"time\":"+time+",\"source\":\"autoappeal\",\"link\":\""+badLink+"\"},"+
+	      val appealsJson = "[{\"url\":\""+badUrl+"\",\"status\":\"bad\",\"time\":"+time+",\"source\":\"autoappeal\",\"link\":\""+badLink+"\"},"+
 	        "{\"url\":\""+cleanUrl+"\",\"status\":\"clean\",\"time\":"+time+",\"source\":\"autoappeal\"},"+
 	        "{\"url\":\""+invalidUrl+"\",\"status\":\"bad\",\"time\":"+time+",\"source\":\"autoappeal\"}]"
-	      Blacklist.importGoogleAppeals(json)
+	      Blacklist.importGoogleAppeals(appealsJson)
 	      val bad = find(badUrl)
 	      GoogleRescan.findByUri(bad.id).nonEmpty must beTrue
 	      GoogleRescan.findByUri(bad.id).head.relatedUriId.get must equalTo(find(badLink).id)
@@ -120,12 +117,12 @@ class BlacklistSpec extends Specification {
         val existingUrl = validUrl
         Uri.findOrCreate(existingUrl) must beSome
         val newUrl = validUrl
-	      val json = "["+
+	      val nsfJson = "["+
 	        	"{\"url\":\""+newUrl+"\",\"time\":"+time+",\"clean\":0},"+
 	        	"{\"url\":\""+invalidUrl+"\",\"time\":"+time+",\"clean\":0},"+
 	        	"{\"url\":\""+existingUrl+"\",\"time\":"+time+",\"clean\":"+cleanTime+"}"+
 	        "]"
-	      Blacklist.importBlacklist(json, Source.NSF)
+	      Blacklist.importBlacklist(nsfJson, Source.NSF)
 	      BlacklistEvent.findBlacklistedByUri(find(newUrl).id, Some(Source.NSF)).nonEmpty must beTrue
 	      BlacklistEvent.findByUri(find(existingUrl).id, Some(Source.NSF)).nonEmpty must beTrue
 	      BlacklistEvent.findBlacklistedByUri(find(existingUrl).id, Some(Source.NSF)).isEmpty must beTrue
@@ -134,4 +131,8 @@ class BlacklistSpec extends Specification {
     
   }
 
+}
+
+object BlacklistSpec {
+  def json(time: Long, urls: List[String]): String = Json.generate(Map("time"->time, "blacklist"->urls))
 }

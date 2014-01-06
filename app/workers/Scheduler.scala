@@ -32,7 +32,7 @@ case class BlacklistQueue(source: Source) extends Runnable {
   }
   
   def importQueue() = {
-		blacklists.foreach { blacklist =>
+		blacklists.sortBy(_.time).foreach { blacklist =>
 		  val success = Blacklist.importDifferential(blacklist.urls, blacklist.source, blacklist.time)
 		  if (success || blacklist.urls.isEmpty) {
 		    Redis.dropBlacklist(blacklist.source, blacklist.time)

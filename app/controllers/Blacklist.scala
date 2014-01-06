@@ -69,19 +69,12 @@ object Blacklist extends Controller with JsonMapper {
   }
   
   private def addToQueue(json: JsonNode, source: Source) = {
-    diffBlacklist(json).foreach { case (time, blacklist) =>
-      Logger.info("Queueing import from "+time+" for "+source)
-      Redis.addBlacklist(source, time, blacklist)
-      Logger.info("Queued import with "+blacklist.size+" entries for "+source)
-    }
+    val time = json.get("time").asLong
+    val blacklist = Json.parse[List[String]](json.get("blacklist"))
+    Logger.info("Queueing import from "+time+" for "+source)
+    Redis.addBlacklist(source, time, blacklist)
+    Logger.info("Queued import with "+blacklist.size+" entries for "+source)
   }  
-  
-  private def diffBlacklist(blacklist: JsonNode): Map[Long, List[String]] = {
-    return Json.parse[List[BlacklistEntry]](blacklist).groupBy(_.time)
-			.foldLeft(Map.empty[Long, List[String]]) { case (map, (time, entries)) =>
-      	map + (time -> entries.map(_.url))
-    }
-  }
   
   private def updateNoLongerBlacklisted(blacklistIds: List[Int], source: Source, time: Long): Int = {
     return BlacklistEvent.blacklisted(Some(source)).filter(_.blacklistedAt < time)
