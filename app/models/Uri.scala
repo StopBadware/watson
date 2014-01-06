@@ -78,21 +78,52 @@ object Uri {
 		return inserted > 0
   }
   
-  def create(reported: List[ReportedUri]): Int = DB.withTransaction { implicit conn =>
+//  def create(reported: List[ReportedUri]): Int = DB.withTransaction { implicit conn =>
+//    println(Runtime.getRuntime.freeMemory)	//DELME WTSN-42
+//    return try {
+//      val sql = """INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256) 
+//    		SELECT ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM uris WHERE sha2_256=?)"""    
+//      val ps = conn.prepareStatement(sql)
+//      reported.grouped(BatchSize).foldLeft(0) { (total, group) =>
+//	  		group.foreach { rep =>
+//	  		  val uri = rep.uri
+//	  			ps.setString(1, uri.toString)
+//	  			ps.setString(2, Host.reverse(uri))
+//	  			ps.setString(3, rep.hierarchicalPart)
+//	  			ps.setString(4, uri.getRawPath)
+//	  			ps.setString(5, rep.sha256)
+//	  			ps.setString(6, rep.sha256)
+//	  			ps.addBatch()
+//	      }
+//	  		val batch = ps.executeBatch()
+//	  		ps.clearBatch()
+//	  		total + batch.foldLeft(0)((cnt, b) => cnt + b)
+//      }
+//  	} catch {
+//  	  case e: PSQLException => if (PostgreSql.isNotDupeError(e.getMessage)) {
+//  	    Logger.error(e.getMessage)
+//  	  }
+//  	  0
+//  	}
+//  }   //DELME WTSN-42
+  
+  def create(reported: List[String]): Int = DB.withTransaction { implicit conn =>
+    println(Runtime.getRuntime.freeMemory)	//DELME WTSN-42
     return try {
       val sql = """INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256) 
     		SELECT ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM uris WHERE sha2_256=?)"""    
       val ps = conn.prepareStatement(sql)
       reported.grouped(BatchSize).foldLeft(0) { (total, group) =>
 	  		group.foreach { rep =>
-	  		  val uri = rep.uri
-	  			ps.setString(1, uri.toString)
-	  			ps.setString(2, Host.reverse(uri))
-	  			ps.setString(3, rep.hierarchicalPart)
-	  			ps.setString(4, uri.getRawPath)
-	  			ps.setString(5, rep.sha256)
-	  			ps.setString(6, rep.sha256)
-	  			ps.addBatch()
+	  		  Try(new ReportedUri(rep)).foreach { repUri =>
+		  			ps.setString(1, repUri.uri.toString)
+		  			ps.setString(2, Host.reverse(repUri.uri))
+		  			ps.setString(3, repUri.hierarchicalPart)
+		  			ps.setString(4, repUri.uri.getRawPath)
+		  			ps.setString(5, repUri.sha256)
+		  			ps.setString(6, repUri.sha256)
+		  			ps.addBatch()
+	  		  }
 	      }
 	  		val batch = ps.executeBatch()
 	  		ps.clearBatch()
@@ -104,7 +135,7 @@ object Uri {
   	  }
   	  0
   	}
-  }    
+  }   
   
   def findOrCreate(uriStr: String): Option[Uri] = {
     return try {
@@ -125,13 +156,25 @@ object Uri {
     }
   }
   
-  def findOrCreateIds(reported: List[ReportedUri]): List[Int] = {
+//  def findOrCreateIds(reported: List[ReportedUri]): List[Int] = {
+//    println(Runtime.getRuntime.freeMemory)	//DELME WTSN-42
+//  	val writes = create(reported)
+//  	println(Runtime.getRuntime.freeMemory)	//DELME WTSN-42
+//  	Logger.info("Wrote "+writes+" new URIs")
+//  	return reported.grouped(10000).foldLeft(List.empty[Int]) { (ids, group) =>
+//      ids ++ find(group.map(_.sha256)).map(_.id)
+//    }
+//  }  
+  
+   def findOrCreateIds(reported: List[String]): List[Int] = {
+    println(Runtime.getRuntime.freeMemory)	//DELME WTSN-42
   	val writes = create(reported)
+  	println(Runtime.getRuntime.freeMemory)	//DELME WTSN-42
   	Logger.info("Wrote "+writes+" new URIs")
   	return reported.grouped(10000).foldLeft(List.empty[Int]) { (ids, group) =>
-      ids ++ find(group.map(_.sha256)).map(_.id)
+      ids ++ find(group.map(u => ReportedUri.sha256(u))).map(_.id)
     }
-  }  
+  } 
   
   def asReportedUris(uris: List[String]): List[ReportedUri] = {
     return uris.map { uri =>
@@ -222,13 +265,11 @@ object Uri {
 @throws[URISyntaxException]
 class ReportedUri(uriStr: String) {
   
-  val uri: URI = new URI(withScheme.trim)
-  
-  private def withScheme: String = if (uriStr.matches(ReportedUri.schemeCheck)) uriStr else "http://" + uriStr
+  val uri: URI = new URI(ReportedUri.valid(uriStr))
   
   /* Using methods instead of vals to keep memory footprint minimal when importing large (million+) blacklists [WTSN-42] */
   def hierarchicalPart: String = uri.getRawAuthority + uri.getRawPath
-  def sha256 = Hash.sha256(uri.toString).getOrElse("")
+  def sha256: String = Hash.sha256(uri.toString).getOrElse("")
   
   override def toString: String = uri.toString
   override def hashCode: Int = uri.hashCode
@@ -242,6 +283,8 @@ class ReportedUri(uriStr: String) {
 
 }
 
-private object ReportedUri {
-  val schemeCheck = "^[a-zA-Z]+[a-zA-Z0-9+.\\-]+://.*"
+object ReportedUri {
+  private val schemeCheck = "^[a-zA-Z]+[a-zA-Z0-9+.\\-]+://.*"
+  private def valid(url: String): String = if (url.matches(ReportedUri.schemeCheck)) url.trim else "http://" + url.trim
+  def sha256(url: String): String = Hash.sha256(valid(url)).getOrElse("")
 }

@@ -51,35 +51,46 @@ object Blacklist extends Controller with JsonMapper {
   
   def importDifferential(reported: List[String], source: Source, time: Long): Boolean = {
     Logger.info("Importing "+reported.size+" entries for "+source)
-    val uris = Uri.findOrCreateIds(Uri.asReportedUris(reported))
+    println(Runtime.getRuntime.freeMemory, Runtime.getRuntime.totalMemory())	//DELME WTSN-42
+//    val uris = Uri.findOrCreateIds(Uri.asReportedUris(reported))
+    val uris = Uri.findOrCreateIds(reported)
     Logger.info("Updating existing blacklist entries for "+source)
+    println(Runtime.getRuntime.freeMemory, Runtime.getRuntime.totalMemory())	//DELME WTSN-42
     val removed = updateNoLongerBlacklisted(uris, source, time)
     Logger.info("Marked "+removed+" URIs as no longer blacklisted by "+source)
-    val blacklisted = BlacklistEvent.blacklisted(Some(source)).foldLeft(Map.empty[Int, BlacklistEvent]) { (map, event) =>
-      map + (event.uriId -> event)
+    println(Runtime.getRuntime.freeMemory, Runtime.getRuntime.totalMemory())	//DELME WTSN-42
+    val blacklisted = BlacklistEvent.blacklisted(System.currentTimeMillis / 1000, Some(source))
+    	.foldLeft(Map.empty[Int, BlacklistEvent]) { (map, event) =>
+      	map + (event.uriId -> event)
     }
+    println(Runtime.getRuntime.freeMemory, Runtime.getRuntime.totalMemory())	//DELME WTSN-42
     val timeOfLast = BlacklistEvent.timeOfLast(source)
     val reportedEvents = uris.map { id => 
       val endTime = if (blacklisted.contains(id) || time >= timeOfLast) None else Some(time)
       ReportedEvent(id, source, time, endTime)
     }
+    println(Runtime.getRuntime.freeMemory, Runtime.getRuntime.totalMemory())	//DELME WTSN-42
     val addedOrUpdated = BlacklistEvent.createOrUpdate(reportedEvents, source)
     Logger.info("Imported "+addedOrUpdated+" blacklist events for "+source)
+    println(Runtime.getRuntime.freeMemory, Runtime.getRuntime.totalMemory())	//DELME WTSN-42
     return addedOrUpdated > 0
   }
   
   private def addToQueue(json: JsonNode, source: Source) = {
     val time = json.get("time").asLong
+    println(Runtime.getRuntime.freeMemory)	//DELME WTSN-42
     val blacklist = Json.parse[List[String]](json.get("blacklist"))
+    println(Runtime.getRuntime.freeMemory)	//DELME WTSN-42
     Logger.info("Queueing import from "+time+" for "+source)
     Redis.addBlacklist(source, time, blacklist)
     Logger.info("Queued import with "+blacklist.size+" entries for "+source)
+    println(Runtime.getRuntime.freeMemory)	//DELME WTSN-42
   }  
   
   private def updateNoLongerBlacklisted(blacklistIds: List[Int], source: Source, time: Long): Int = {
-    return BlacklistEvent.blacklisted(Some(source)).filter(_.blacklistedAt < time)
-    	.filterNot(event => blacklistIds.contains(event.uriId)).foldLeft(0) { (removed, event) =>
-      if (event.removeFromBlacklist(time)) removed + 1 else removed
+    return BlacklistEvent.blacklisted(time, Some(source)).filterNot(event => blacklistIds.contains(event.uriId))
+    	.foldLeft(0) { (removed, event) =>
+      	if (event.removeFromBlacklist(time)) removed + 1 else removed
     }
   }   
   

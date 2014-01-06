@@ -15,6 +15,7 @@ object Scheduler {
     Play.start(new DefaultApplication(new File("."), Scheduler.getClass.getClassLoader, None, Mode.Prod))
     val interval = new FiniteDuration(30, TimeUnit.SECONDS)
     val system = ActorSystem("ImportBlacklistQueue")
+    //TODO WTSN-42 cannot multiple sources in parrallel
     val sourcesWithDifferential = List(Source.GOOG, Source.TTS)
     sourcesWithDifferential.foreach { source =>
     	system.scheduler.schedule(Duration.Zero, interval, BlacklistQueue(source))
@@ -33,6 +34,7 @@ case class BlacklistQueue(source: Source) extends Runnable {
   
   def importQueue() = {
 		blacklists.sortBy(_.time).foreach { blacklist =>
+		  println(Runtime.getRuntime.freeMemory)	//DELME WTSN-42
 		  val success = Blacklist.importDifferential(blacklist.urls, blacklist.source, blacklist.time)
 		  if (success || blacklist.urls.isEmpty) {
 		    Redis.dropBlacklist(blacklist.source, blacklist.time)

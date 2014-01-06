@@ -57,10 +57,13 @@ object BlacklistEvent {
   }
   
   def createOrUpdate(reported: List[ReportedEvent], source: Source): Int = DB.withConnection { implicit conn =>
+    println("FINDING REPORTED EVENTS", Runtime.getRuntime.freeMemory)	//DELME WTSN-42
     val reportedEvents = reported.foldLeft(Map.empty[Int, ReportedEvent]) { (map, event) =>
       map ++ Map(event.uriId -> event)
     }
+    println("FINDING TOUPDATE", Runtime.getRuntime.freeMemory)	//DELME WTSN-42
     val toUpdate = findEventsByUris(reportedEvents.keys.toList, source, true).map(event => (reportedEvents(event.uriId), event))
+    println("UPDATING", Runtime.getRuntime.freeMemory)	//DELME WTSN-42
     val updated = update(toUpdate)
     Logger.info("Updated "+updated+" BlacklistEvents")
     val created = create(reported)
@@ -76,12 +79,12 @@ object BlacklistEvent {
     } == events.size
   }
   
-  def blacklisted(source: Option[Source]=None): List[BlacklistEvent] = DB.withConnection { implicit conn =>
-    val base = "SELECT * FROM blacklist_events WHERE blacklisted=true"
+  def blacklisted(before: Long, source: Option[Source]=None): List[BlacklistEvent] = DB.withConnection { implicit conn =>
+    val base = "SELECT * FROM blacklist_events WHERE blacklisted=true AND blacklisted_at<to_timestamp({before})"
     val rs = if (source.isDefined) {
-    	SQL(base+" AND source={source}::SOURCE").on("source"->source.get.abbr)
+    	SQL(base+" AND source={source}::SOURCE").on("before"->before, "source"->source.get.abbr)
     } else {
-      SQL(base)
+      SQL(base).on("before"->before)
     }
     return rs().map(mapFromRow).flatten.toList
   }
@@ -188,7 +191,7 @@ object BlacklistEvent {
       uriIds: List[Int], 
       source: Source,
       currentOnly: Boolean=false): List[BlacklistEvent] = DB.withConnection { implicit conn =>
-    return uriIds.grouped(BatchSize).foldLeft(List.empty[BlacklistEvent]) { (list, group) =>
+    return uriIds.grouped(500).foldLeft(List.empty[BlacklistEvent]) { (list, group) =>
 	    val sql = "SELECT * FROM blacklist_events WHERE source=?::SOURCE AND "+
 	    	"uri_id in (?" + (",?"*(group.size-1)) + ")" + (if (currentOnly) " AND blacklisted=true" else "")
 	  	val ps = conn.prepareStatement(sql)
