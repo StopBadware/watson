@@ -60,13 +60,14 @@ object Uri {
   
   def create(reported: ReportedUri): Boolean = DB.withTransaction { implicit conn =>
     val inserted = try {
+      val uri = reported.uri
       SQL("""INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256) 
     		SELECT {uri}, {reversedHost}, {hierarchicalPart}, {path}, {sha256} 
     		WHERE NOT EXISTS (SELECT 1 FROM uris WHERE sha2_256={sha256})""").on(
-  		    "uri"->reported.uri.toString,
-  		    "reversedHost"->reported.reversedHost,
+  		    "uri"->uri.toString,
+  		    "reversedHost"->Host.reverse(uri),
   		    "hierarchicalPart"->reported.hierarchicalPart,
-  		    "path"->reported.path,
+  		    "path"->uri.getRawPath,
   		    "sha256"->reported.sha256).executeUpdate()
   	} catch {
   	  case e: PSQLException => if (PostgreSql.isNotDupeError(e.getMessage)) {
@@ -84,10 +85,11 @@ object Uri {
       val ps = conn.prepareStatement(sql)
       reported.grouped(BatchSize).foldLeft(0) { (total, group) =>
 	  		group.foreach { rep =>
-	  			ps.setString(1, rep.uri.toString)
-	  			ps.setString(2, rep.reversedHost)
+	  		  val uri = rep.uri
+	  			ps.setString(1, uri.toString)
+	  			ps.setString(2, Host.reverse(uri))
 	  			ps.setString(3, rep.hierarchicalPart)
-	  			ps.setString(4, rep.path)
+	  			ps.setString(4, uri.getRawPath)
 	  			ps.setString(5, rep.sha256)
 	  			ps.setString(6, rep.sha256)
 	  			ps.addBatch()
@@ -126,7 +128,7 @@ object Uri {
   def findOrCreateIds(reported: List[ReportedUri]): List[Int] = {
   	val writes = create(reported)
   	Logger.info("Wrote "+writes+" new URIs")
-  	return reported.grouped(100000).foldLeft(List.empty[Int]) { (ids, group) =>
+  	return reported.grouped(10000).foldLeft(List.empty[Int]) { (ids, group) =>
       ids ++ find(group.map(_.sha256)).map(_.id)
     }
   }  
@@ -220,17 +222,13 @@ object Uri {
 @throws[URISyntaxException]
 class ReportedUri(uriStr: String) {
   
-  val uri: URI = {
-    val schemeCheck = "^[a-zA-Z]+[a-zA-Z0-9+.\\-]+://.*"
-    val withScheme = if (uriStr.matches(schemeCheck)) uriStr else "http://" + uriStr
-    new URI(withScheme.trim)
-  }
+  val uri: URI = new URI(withScheme.trim)
   
-  lazy val path = uri.getRawPath
-  lazy val query = uri.getRawQuery
-  lazy val hierarchicalPart = uri.getRawAuthority + uri.getRawPath
-  lazy val reversedHost = Host.reverse(uri)
-  lazy val sha256 = Hash.sha256(uri.toString).getOrElse("")
+  private def withScheme: String = if (uriStr.matches(ReportedUri.schemeCheck)) uriStr else "http://" + uriStr
+  
+  /* Using methods instead of vals to keep memory footprint minimal when importing large (million+) blacklists [WTSN-42] */
+  def hierarchicalPart: String = uri.getRawAuthority + uri.getRawPath
+  def sha256 = Hash.sha256(uri.toString).getOrElse("")
   
   override def toString: String = uri.toString
   override def hashCode: Int = uri.hashCode
@@ -242,4 +240,8 @@ class ReportedUri(uriStr: String) {
     }
   }
 
+}
+
+private object ReportedUri {
+  val schemeCheck = "^[a-zA-Z]+[a-zA-Z0-9+.\\-]+://.*"
 }
