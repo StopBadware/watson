@@ -13,7 +13,7 @@ object Scheduler {
   	
   def main(args: Array[String]): Unit = {
     Play.start(new DefaultApplication(new File("."), Scheduler.getClass.getClassLoader, None, Mode.Prod))
-    val interval = new FiniteDuration(30, TimeUnit.SECONDS)
+    val interval = new FiniteDuration(60, TimeUnit.SECONDS)
     val system = ActorSystem("ImportBlacklistQueue")
     system.scheduler.schedule(Duration.Zero, interval, BlacklistQueue())
   }
@@ -39,7 +39,7 @@ case class BlacklistQueue() extends Runnable {
 		  } else {
 		    Logger.error("Importing non-empty blacklist ("+blacklist+") from queue failed")
 		  }
-		}    
+		}
   }
   
   def run() = importQueue()
