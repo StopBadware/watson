@@ -23,7 +23,7 @@ class SchedulerSpec extends Specification {
 	      Blacklist.importBlacklist(BlacklistSpec.json(time, List(urlA, urlB)), source)
 	      val fromQueue = Redis.getBlacklist(source, time)
 	      fromQueue.nonEmpty must beTrue
-	      val queueCheck = BlacklistQueue(source)
+	      val queueCheck = BlacklistQueue()
 	      val blacklists = queueCheck.blacklists
 	      blacklists.nonEmpty must beTrue
 	      blacklists.map(_.source).contains(source) must beTrue
@@ -44,7 +44,7 @@ class SchedulerSpec extends Specification {
 	      Blacklist.importBlacklist(BlacklistSpec.json(time, List(urlA, urlB)), source)
 	      val fromQueue = Redis.getBlacklist(source, time)
 	      fromQueue.nonEmpty must beTrue
-	      val queueCheck = BlacklistQueue(source)
+	      val queueCheck = BlacklistQueue()
 	      queueCheck.blacklists.nonEmpty must beTrue
 	      queueCheck.importQueue()
 	      val uri = Uri.find(Hash.sha256(urlB).get)
