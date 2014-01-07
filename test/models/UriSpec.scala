@@ -28,8 +28,8 @@ class UriSpec extends Specification {
     "create new Uri in bulk" in {
       running(FakeApplication()) {
         val numInBulk = 100
-        val uris = (1 to numInBulk).foldLeft(List.empty[ReportedUri]) { (list, _) =>
-          list :+ reportedUri
+        val uris = (1 to numInBulk).foldLeft(List.empty[String]) { (list, _) =>
+          list :+ validUri
         }
       	Uri.create(uris) must be equalTo(numInBulk)
       }
@@ -100,7 +100,7 @@ class UriSpec extends Specification {
         val uris = (1 to numInBulk).foldLeft(List.empty[String]) { (list, _) =>
           list :+ validUri
         }
-    		val found = Uri.findOrCreateIds(Uri.asReportedUris(uris))
+    		val found = Uri.findOrCreateIds(uris)
     		found.size must be equalTo(uris.size)
       }
     }       
