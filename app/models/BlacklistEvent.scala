@@ -191,28 +191,35 @@ object BlacklistEvent {
       uriIds: List[Int], 
       source: Source,
       currentOnly: Boolean=false): List[BlacklistEvent] = DB.withConnection { implicit conn =>
-    return uriIds.grouped(500).foldLeft(List.empty[BlacklistEvent]) { (list, group) =>
-	    val sql = "SELECT * FROM blacklist_events WHERE source=?::SOURCE AND "+
-	    	"uri_id in (?" + (",?"*(group.size-1)) + ")" + (if (currentOnly) " AND blacklisted=true" else "")
-	  	val ps = conn.prepareStatement(sql)
-	  	ps.setString(1, source.abbr)
-      for (i <- 2 to group.size + 1) {
-        ps.setInt(i, group(i-2))
-      }
-	    val rs = ps.executeQuery
-	    Iterator.continually((rs, rs.next())).takeWhile(_._2).map { case (row, hasNext) =>
-	      val unblacklistStamp = Option(row.getTimestamp("unblacklisted_at"))
+    return try {
+	    SQL("CREATE TEMP TABLE temp_import (uri_id INTEGER PRIMARY KEY)").execute()
+	    uriIds.grouped(BatchSize).foreach { group =>
+		    val sql = "INSERT INTO temp_import VALUES (?)" + (",(?)"*(group.size-1))
+		  	val ps = conn.prepareStatement(sql)
+	      for (i <- 1 to group.size) {
+	        ps.setInt(i, group(i-1))
+	      }
+		    ps.executeUpdate()
+	    }
+	    val qry = SQL("""SELECT blacklist_events.* FROM temp_import LEFT JOIN blacklist_events ON 
+	      temp_import.uri_id=blacklist_events.uri_id WHERE blacklist_events.source={source}::SOURCE"""+
+	      (if (currentOnly) " AND blacklisted=true" else "")).on("source"->source.abbr)()
+	    qry.map { row =>
+	      val unblacklistStamp = row[Option[Date]]("unblacklisted_at")
 	      val unblacklistedAt = if (unblacklistStamp.isDefined) Some(unblacklistStamp.get.getTime / 1000) else None
 	      BlacklistEvent(
-			    row.getInt("id"),
-			    row.getInt("uri_id"),
-			    Source.withAbbr(row.getString("source")).get,
-			    row.getBoolean("blacklisted"),
-			    row.getTimestamp("blacklisted_at").getTime / 1000,
+			    row[Int]("id"),
+			    row[Int]("uri_id"),
+			    row[Source]("source"),
+			    row[Boolean]("blacklisted"),
+			    row[Date]("blacklisted_at").getTime / 1000,
 			    unblacklistedAt)
-	    }.toList ++ list
+	    }.toList
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      List()
     }
-  }   
+  }    
   
   private def mapFromRow(row: SqlRow): Option[BlacklistEvent] = {
     return try {
