@@ -51,39 +51,27 @@ object Blacklist extends Controller with JsonMapper {
   
   def importDifferential(reported: List[String], source: Source, time: Long): Boolean = {
     Logger.info("Importing "+reported.size+" entries for "+source)
-    println(Runtime.getRuntime.freeMemory, Runtime.getRuntime.totalMemory())	//DELME WTSN-42
     val uris = Uri.findOrCreateIds(reported)
     Logger.info("Updating existing blacklist entries for "+source)
-    println(Runtime.getRuntime.freeMemory, Runtime.getRuntime.totalMemory())	//DELME WTSN-42
     val removed = BlacklistEvent.updateNoLongerBlacklisted(uris.toSet, source, time)
     Logger.info("Marked "+removed+" URIs as no longer blacklisted by "+source)
-    println(Runtime.getRuntime.freeMemory, Runtime.getRuntime.totalMemory())	//DELME WTSN-42
-    println("FINDING BLACKLIST EVENTS")	//TODO WTSN-42 EXCEEDING GC OVERHEAD LIMIT
-    val blacklisted = BlacklistEvent.blacklistedUriIds(System.currentTimeMillis / 1000, Some(source))
-    println(Runtime.getRuntime.freeMemory, Runtime.getRuntime.totalMemory())	//DELME WTSN-42
+    val blacklisted = BlacklistEvent.blacklistedUriIdsEventIds(System.currentTimeMillis / 1000, Some(source))
     val timeOfLast = BlacklistEvent.timeOfLast(source)
-    println("CREATING REPORTED EVENTS") //DELME WTSN-42
     val reportedEvents = uris.map { id => 
       val endTime = if (blacklisted.contains(id) || time >= timeOfLast) None else Some(time)
       ReportedEvent(id, source, time, endTime)
     }
-    println(Runtime.getRuntime.freeMemory, Runtime.getRuntime.totalMemory())	//DELME WTSN-42
-    println("ADDING OR UPDATING EVENTS") //DELME WTSN-42
     val addedOrUpdated = BlacklistEvent.createOrUpdate(reportedEvents, source)
     Logger.info("Imported "+addedOrUpdated+" blacklist events for "+source)
-    println(Runtime.getRuntime.freeMemory, Runtime.getRuntime.totalMemory())	//DELME WTSN-42
     return addedOrUpdated > 0
   }
   
   private def addToQueue(json: JsonNode, source: Source) = {
     val time = json.get("time").asLong
-    println(Runtime.getRuntime.freeMemory)	//DELME WTSN-42
     val blacklist = Json.parse[List[String]](json.get("blacklist"))
-    println(Runtime.getRuntime.freeMemory)	//DELME WTSN-42
     Logger.info("Queueing import from "+time+" for "+source)
     Redis.addBlacklist(source, time, blacklist)
     Logger.info("Queued import with "+blacklist.size+" entries for "+source)
-    println(Runtime.getRuntime.freeMemory)	//DELME WTSN-42
   }  
   
   private def importNsfocus(json: List[JsonNode], source: Source=Source.NSF) = {

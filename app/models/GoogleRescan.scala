@@ -1,6 +1,7 @@
 package models
 
 import java.util.Date
+import java.sql.Timestamp
 import anorm._
 import play.api.db._
 import play.api.Play.current
@@ -45,7 +46,7 @@ object GoogleRescan {
 	          },
 	          "status" -> status,
 	          "requestedVia" -> requestedVia,
-	          "rescannedAt" -> new Date(rescannedAt * 1000)).executeUpdate()
+	          "rescannedAt" -> new Timestamp(rescannedAt * 1000)).executeUpdate()
 	    } catch {
 	      case e: PSQLException => if (PostgreSql.isNotDupeError(e.getMessage)) {
 	  	    Logger.error(e.getMessage)

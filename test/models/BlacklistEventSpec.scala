@@ -10,6 +10,7 @@ import play.api.test.Helpers._
 class BlacklistEventSpec extends Specification {
   
   private val source = Source.SBW
+  private val numInBulk = 20
   private def validUri: Uri = Uri.findOrCreate(UriSpec.validUri).get
   private def blacklistedEvent: ReportedEvent = {
     ReportedEvent(validUri.id, source, System.currentTimeMillis/1000)
@@ -45,7 +46,6 @@ class BlacklistEventSpec extends Specification {
     
     "create and/or update blacklist events in bulk" in {
       running(FakeApplication()) {
-        val numInBulk = 10
         val events = (1 to numInBulk).foldLeft(List.empty[ReportedEvent]) { (list, _) =>
           list :+ blacklistedEvent
         }
@@ -143,6 +143,37 @@ class BlacklistEventSpec extends Specification {
         unblacklistEvent.unblacklistedAt must beSome
         unblacklistEvent.unblacklistedAt.get must be equalTo(now)
         unblacklistEvent.blacklisted must beFalse
+      }
+    }
+    
+    "update no longer blacklisted from new blacklist" in {
+      running(FakeApplication()) {
+        val timeA = System.currentTimeMillis / 1000
+        val blacklistA = (1 to numInBulk).foldLeft(List.empty[ReportedEvent]) { (list, _) =>
+          list :+ ReportedEvent(validUri.id, source, timeA, None)
+        }
+        val timeB = timeA + 10
+        val blacklistB = (1 to numInBulk).foldLeft(List.empty[ReportedEvent]) { (list, _) =>
+          list :+ ReportedEvent(validUri.id, source, timeB, None)
+        }
+        BlacklistEvent.createOrUpdate(blacklistA, source) must be equalTo(blacklistA.size)
+        val updated = BlacklistEvent.updateNoLongerBlacklisted(blacklistB.map(_.uriId).toSet, source, timeB)
+        updated must be_>=(blacklistA.size)
+        blacklistA.map { event => 
+          BlacklistEvent.findBlacklistedByUri(event.uriId, Some(event.source)).isEmpty must beTrue
+        }
+      }
+    }
+    
+    "find currently blacklisted Uri IDs" in {
+      running(FakeApplication()) {
+        val time = System.currentTimeMillis / 1000
+        val blacklist = (1 to numInBulk).foldLeft(List.empty[ReportedEvent]) { (list, _) =>
+          list :+ ReportedEvent(validUri.id, source, time, None)
+        }
+        BlacklistEvent.createOrUpdate(blacklist, source) must be equalTo(blacklist.size)
+        val uriIds = BlacklistEvent.blacklistedUriIdsEventIds(time+1, Some(source)).keySet
+        blacklist.map(event => uriIds.contains(event.uriId) must beTrue)
       }
     }
     

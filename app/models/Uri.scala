@@ -1,6 +1,7 @@
 package models
 
 import java.net.{URI, URISyntaxException}
+import java.util.Date
 import scala.util.Try
 import anorm._
 import play.api.db._
@@ -78,37 +79,7 @@ object Uri {
 		return inserted > 0
   }
   
-//  def create(reported: List[ReportedUri]): Int = DB.withTransaction { implicit conn =>
-//    println(Runtime.getRuntime.freeMemory)	//DELME WTSN-42
-//    return try {
-//      val sql = """INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256) 
-//    		SELECT ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM uris WHERE sha2_256=?)"""    
-//      val ps = conn.prepareStatement(sql)
-//      reported.grouped(BatchSize).foldLeft(0) { (total, group) =>
-//	  		group.foreach { rep =>
-//	  		  val uri = rep.uri
-//	  			ps.setString(1, uri.toString)
-//	  			ps.setString(2, Host.reverse(uri))
-//	  			ps.setString(3, rep.hierarchicalPart)
-//	  			ps.setString(4, uri.getRawPath)
-//	  			ps.setString(5, rep.sha256)
-//	  			ps.setString(6, rep.sha256)
-//	  			ps.addBatch()
-//	      }
-//	  		val batch = ps.executeBatch()
-//	  		ps.clearBatch()
-//	  		total + batch.foldLeft(0)((cnt, b) => cnt + b)
-//      }
-//  	} catch {
-//  	  case e: PSQLException => if (PostgreSql.isNotDupeError(e.getMessage)) {
-//  	    Logger.error(e.getMessage)
-//  	  }
-//  	  0
-//  	}
-//  }   //DELME WTSN-42
-  
   def create(reported: List[String]): Int = DB.withTransaction { implicit conn =>
-    println(Runtime.getRuntime.freeMemory)	//DELME WTSN-42
     return try {
       val sql = """INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256) 
     		SELECT ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM uris WHERE sha2_256=?)"""    
@@ -156,20 +127,8 @@ object Uri {
     }
   }
   
-//  def findOrCreateIds(reported: List[ReportedUri]): List[Int] = {
-//    println(Runtime.getRuntime.freeMemory)	//DELME WTSN-42
-//  	val writes = create(reported)
-//  	println(Runtime.getRuntime.freeMemory)	//DELME WTSN-42
-//  	Logger.info("Wrote "+writes+" new URIs")
-//  	return reported.grouped(10000).foldLeft(List.empty[Int]) { (ids, group) =>
-//      ids ++ find(group.map(_.sha256)).map(_.id)
-//    }
-//  }  
-  
    def findOrCreateIds(reported: List[String]): List[Int] = {
-    println(Runtime.getRuntime.freeMemory)	//DELME WTSN-42
   	val writes = create(reported)
-  	println(Runtime.getRuntime.freeMemory)	//DELME WTSN-42
   	Logger.info("Wrote "+writes+" new URIs")
   	return reported.grouped(10000).foldLeft(List.empty[Int]) { (ids, group) =>
       ids ++ find(group.map(u => ReportedUri.sha256(u))).map(_.id)
@@ -247,7 +206,7 @@ object Uri {
 		    row[String]("hierarchical_part"),
 		    row[Option[String]]("path").getOrElse(""),
 		    row[String]("sha2_256"),
-		    row[java.util.Date]("created_at").getTime / 1000    
+		    row[Date]("created_at").getTime / 1000    
   		))
     } catch {
       case e: Exception => None

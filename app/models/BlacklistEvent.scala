@@ -27,7 +27,7 @@ case class BlacklistEvent(
     }
   }
   
-  def removeFromBlacklist(time: Long): Boolean = DB.withConnection { implicit conn =>
+  def removeFromBlacklist(time: Long): Boolean = {
     val clean = ReportedEvent(uriId, source, time, Some(time))
     return BlacklistEvent.update(clean, this) > 0
   }  
@@ -44,7 +44,7 @@ object BlacklistEvent {
     return (sql().map(_[Date]("blacklisted_at").getTime / 1000).headOption).getOrElse(0)
   }
   
-  def createOrUpdate(reported: ReportedEvent): Boolean = DB.withConnection { implicit conn =>
+  def createOrUpdate(reported: ReportedEvent): Boolean = {
     val events = findEventsByUri(reported.uriId, Some(reported.source), true)
     return events.size match {
       case 0 => create(List(reported)) == 1
@@ -68,7 +68,7 @@ object BlacklistEvent {
     return (created + updated)
   }  
   
-  def markNoLongerBlacklisted(uriId: Int, source: Source, time: Long): Boolean = DB.withConnection { implicit conn =>
+  def markNoLongerBlacklisted(uriId: Int, source: Source, time: Long): Boolean = {
     val events = findEventsByUri(uriId, Some(source), true)
     val clean = ReportedEvent(uriId, source, time, Some(time))
     return events.foldLeft(0){ (ctr, event) =>
@@ -77,45 +77,42 @@ object BlacklistEvent {
   }
   
   def updateNoLongerBlacklisted(newUris: Set[Int], source: Source, time: Long): Int = DB.withConnection { implicit conn =>
-    val toBeUnblacklisted = blacklistedUriIds(time, Some(source)).filterNot(newUris.contains(_)).toList
-    val table = "temp_unblacklist_" + (System.currentTimeMillis / 1000)
+    val toUnblacklist = blacklistedUriIdsEventIds(time, Some(source)).filterKeys(!newUris.contains(_))
+    Logger.info("Found "+toUnblacklist.size+" events to unblacklist")
     return try {
-      SQL("CREATE TEMP TABLE "+table+" (uri_id INTEGER PRIMARY KEY)").execute()
-	    toBeUnblacklisted.grouped(BatchSize).foreach { group =>
-		    val sql = "INSERT INTO "+table+" VALUES (?)" + (",(?)"*(group.size-1))
-		  	val ps = conn.prepareStatement(sql)
-	      for (i <- 1 to group.size) {
-	        ps.setInt(i, group(i-1))
-	      }
-		    ps.executeUpdate()
-	    }
-      SQL("""UPDATE blacklist_events AS a SET blacklisted=false, unblacklisted_at=NOW() FROM temp_unblacklist 
-          LEFT JOIN blacklist_events AS b ON temp_unblacklist.uri_id=b.uri_id WHERE b.source={source}::SOURCE 
-          AND b.blacklisted=true{source}::SOURCE""").on("source"->source.abbr).executeUpdate()
+      val unblAt = new Timestamp(time*1000)
+    	val sql = "UPDATE blacklist_events SET blacklisted=false, unblacklisted_at=? WHERE id=?"    
+	    val ps = conn.prepareStatement(sql)
+	    toUnblacklist.grouped(BatchSize).foldLeft(0) { (total, group) =>
+        group.foreach { case (_, id) =>
+          ps.setTimestamp(1, unblAt)
+          ps.setInt(2, id)
+          ps.addBatch()
+        }
+        val batch = ps.executeBatch()
+        ps.clearBatch()
+        total + batch.foldLeft(0)((cnt, b) => cnt + b)
+      }
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       0
     }
   }
   
-  def blacklistedUriIds(before: Long, source: Option[Source]=None): Set[Int] = DB.withConnection { implicit conn =>
-    Logger.debug("QUERYING BLACKLIST EVENTS "+Runtime.getRuntime.freeMemory) //DELME WTSN-42
-    val base = "SELECT uri_id FROM blacklist_events WHERE blacklisted=true AND blacklisted_at<to_timestamp({before})"
+  def blacklistedUriIdsEventIds(before: Long, source: Option[Source]=None): Map[Int, Int] = DB.withConnection { implicit conn =>
+    val base = "SELECT id, uri_id FROM blacklist_events WHERE blacklisted=true AND blacklisted_at<to_timestamp({before})"
     val rs = if (source.isDefined) {
     	SQL(base+" AND source={source}::SOURCE").on("before"->before, "source"->source.get.abbr)
     } else {
       SQL(base).on("before"->before)
     }
-    Logger.debug("MAPPING BLACKLIST EVENTS "+Runtime.getRuntime.freeMemory) //DELME WTSN-42
-    return rs().map(_[Int]("uri_id")).toSet
+    return rs().map(row => (row[Int]("uri_id"), row[Int]("id"))).toMap
     
   }  
   
-  def findByUri(uriId: Int, source: Option[Source]=None): List[BlacklistEvent] = DB.withConnection { implicit conn =>
-    return findEventsByUri(uriId, source)
-  }
+  def findByUri(uriId: Int, source: Option[Source]=None): List[BlacklistEvent] = findEventsByUri(uriId, source)
   
-  def findBlacklistedByUri(uriId: Int, source: Option[Source]=None): List[BlacklistEvent] = DB.withConnection { implicit conn =>
+  def findBlacklistedByUri(uriId: Int, source: Option[Source]=None): List[BlacklistEvent] = {
     return findEventsByUri(uriId, source, true)
   }  
   
@@ -153,9 +150,7 @@ object BlacklistEvent {
     }
   }  
   
-  private def update(reported: ReportedEvent, event: BlacklistEvent): Int = DB.withTransaction { implicit conn =>
-    return update(List((reported, event)))
-  }
+  private def update(reported: ReportedEvent, event: BlacklistEvent): Int = update(List((reported, event)))
   
   private def update(events: List[(ReportedEvent, BlacklistEvent)]): Int = DB.withTransaction { implicit conn =>
     return try {
@@ -213,18 +208,18 @@ object BlacklistEvent {
       uriIds: List[Int], 
       source: Source,
       currentOnly: Boolean=false): List[BlacklistEvent] = DB.withConnection { implicit conn =>
-    val table = "temp_import_" + (System.currentTimeMillis / 1000)
     return try {
-	    SQL("CREATE TEMP TABLE "+table+" (uri_id INTEGER PRIMARY KEY)").execute()
+      SQL("DROP TABLE IF EXISTS temp_unblacklist").execute()
+	    SQL("CREATE TEMP TABLE temp_import (uri_id INTEGER PRIMARY KEY)").execute()
 	    uriIds.grouped(BatchSize).foreach { group =>
-		    val sql = "INSERT INTO "+table+" VALUES (?)" + (",(?)"*(group.size-1))
+		    val sql = "INSERT INTO temp_import VALUES (?)" + (",(?)"*(group.size-1))
 		  	val ps = conn.prepareStatement(sql)
 	      for (i <- 1 to group.size) {
 	        ps.setInt(i, group(i-1))
 	      }
 		    ps.executeUpdate()
 	    }
-	    val qry = SQL("SELECT blacklist_events.* FROM "+table+" AS t LEFT JOIN blacklist_events ON "+ 
+	    val qry = SQL("SELECT blacklist_events.* FROM temp_import AS t LEFT JOIN blacklist_events ON "+ 
 	      "t.uri_id=blacklist_events.uri_id WHERE blacklist_events.source={source}::SOURCE"+
 	      (if (currentOnly) " AND blacklisted=true" else "")).on("source"->source.abbr)()
 	    qry.map { row =>
