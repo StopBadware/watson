@@ -60,7 +60,9 @@ object BlacklistEvent {
     val reportedEvents = reported.foldLeft(Map.empty[Int, ReportedEvent]) { (map, event) =>
       map ++ Map(event.uriId -> event)
     }
+    Logger.debug("FINDING EVENTS BY URIS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
     val toUpdate = findEventsByUris(reportedEvents.keys.toList, source, true).map(event => (reportedEvents(event.uriId), event))
+    Logger.debug("UPDATING EVENTS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
     val updated = update(toUpdate)
     Logger.info("Updated "+updated+" BlacklistEvents")
     val created = create(reported)
@@ -157,6 +159,7 @@ object BlacklistEvent {
 	    val sql = "UPDATE blacklist_events SET blacklisted=?, blacklisted_at=?, unblacklisted_at=? WHERE id=?"    
 	    val ps = conn.prepareStatement(sql)
 	    events.grouped(BatchSize).foldLeft(0) { (total, group) =>
+	      Logger.debug("UPDATED "+total+" EVENTS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
 	      group.foreach { eventPair =>
 	        val repEvent = eventPair._1
 	        val blEvent = eventPair._2
@@ -209,7 +212,8 @@ object BlacklistEvent {
       source: Source,
       currentOnly: Boolean=false): List[BlacklistEvent] = DB.withConnection { implicit conn =>
     return try {
-      SQL("DROP TABLE IF EXISTS temp_unblacklist").execute()
+      Logger.debug("CREATING TEMP TABLE\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
+      SQL("DROP TABLE IF EXISTS temp_import").execute()
 	    SQL("CREATE TEMP TABLE temp_import (uri_id INTEGER PRIMARY KEY)").execute()
 	    uriIds.grouped(BatchSize).foreach { group =>
 		    val sql = "INSERT INTO temp_import VALUES (?)" + (",(?)"*(group.size-1))
@@ -219,6 +223,7 @@ object BlacklistEvent {
 	      }
 		    ps.executeUpdate()
 	    }
+      Logger.debug("TEMP TABLE POPULATED\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
 	    val qry = SQL("SELECT blacklist_events.* FROM temp_import AS t LEFT JOIN blacklist_events ON "+ 
 	      "t.uri_id=blacklist_events.uri_id WHERE blacklist_events.source={source}::SOURCE"+
 	      (if (currentOnly) " AND blacklisted=true" else "")).on("source"->source.abbr)()
