@@ -93,7 +93,7 @@ class BlacklistEventSpec extends Specification {
         BlacklistEvent.createOrUpdate(reported) must beTrue
         val event = BlacklistEvent.findByUri(reported.uriId)
         event.nonEmpty must beTrue
-        event.head.delete()
+        event.head.delete() must beTrue
         BlacklistEvent.findByUri(reported.uriId).isEmpty must beTrue
       }
     }

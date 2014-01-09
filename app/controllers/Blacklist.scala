@@ -52,7 +52,7 @@ object Blacklist extends Controller with JsonMapper {
   def importDifferential(reported: List[String], source: Source, time: Long): Boolean = {
     Logger.info("Importing "+reported.size+" entries for "+source)
     val uris = Uri.findOrCreateIds(reported)
-    Logger.info("Updating existing blacklist entries for "+source)
+    Logger.info("Checking no longer blacklisted entries for "+source)
     val removed = BlacklistEvent.updateNoLongerBlacklisted(uris.toSet, source, time)
     Logger.info("Marked "+removed+" URIs as no longer blacklisted by "+source)
     val blacklisted = BlacklistEvent.blacklistedUriIdsEventIds(System.currentTimeMillis / 1000, Some(source))
