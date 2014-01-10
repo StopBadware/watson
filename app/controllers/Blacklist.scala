@@ -50,13 +50,14 @@ object Blacklist extends Controller with JsonMapper {
   }
   
   def importDifferential(reported: List[String], source: Source, time: Long): Boolean = {
-    Logger.info("Importing "+reported.size+" entries for "+source)
+    Logger.info("Importing "+reported.size+" entries for "+source+" ("+time+")")
     Logger.debug("FINDING OR CREATING URIS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
     val uris = Uri.findOrCreateIds(reported)
     Logger.debug("MAPPING URIS->EVENTS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
     val urisEventsBefore = BlacklistEvent.blacklistedUriIdsEventIds(source, Some(time))
-    Logger.debug("UNBLACKLISTING EVENTS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
+    Logger.debug("FINDING EVENTS TO UNBLACKLIST\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
     val toRemove = urisEventsBefore.filterNot(ids => uris.contains(ids._1)).values.toSet
+    Logger.debug("UNBLACKLISTING EVENTS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
     val removed = BlacklistEvent.unBlacklist(toRemove, time)
     Logger.info("Marked "+removed+" URIs as no longer blacklisted by "+source)
     Logger.debug("UPDATING EXISTING EVENTS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
