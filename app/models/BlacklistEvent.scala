@@ -149,12 +149,13 @@ object BlacklistEvent {
   }  
   
   def unBlacklist(eventIds: Set[Int], unblacklistedAt: Long): Int = DB.withTransaction { implicit conn =>
+    val unblTime = new Timestamp(unblacklistedAt * 1000)
     return try {
 	    val sql = "UPDATE blacklist_events SET blacklisted=false, unblacklisted_at=? WHERE id=?"    
 	    val ps = conn.prepareStatement(sql)
 	    eventIds.grouped(BatchSize).foldLeft(0) { (total, group) =>
 	      group.foreach { id =>
-	        ps.setTimestamp(1, new Timestamp(unblacklistedAt * 1000))
+	        ps.setTimestamp(1, unblTime)
 	        ps.setInt(2, id)
 	        ps.addBatch()
 	      }
