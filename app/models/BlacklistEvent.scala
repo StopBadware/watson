@@ -57,12 +57,12 @@ object BlacklistEvent {
     }
   }
   
-  def blacklistedUriIdsEventIds(before: Long, source: Option[Source]=None): Map[Int, Int] = DB.withConnection { implicit conn =>
-    val base = "SELECT id, uri_id FROM blacklist_events WHERE blacklisted=true AND blacklisted_at<to_timestamp({before})"
-    val rs = if (source.isDefined) {
-    	SQL(base+" AND source={source}::SOURCE").on("before"->before, "source"->source.get.abbr)
+  def blacklistedUriIdsEventIds(source: Source, before: Option[Long]=None): Map[Int, Int] = DB.withConnection { implicit conn =>
+    val base = "SELECT id, uri_id FROM blacklist_events WHERE blacklisted=true AND source={source}::SOURCE"
+    val rs = if (before.isDefined) {
+    	SQL(base+" AND blacklisted_at<to_timestamp({before})").on("before"->before.get, "source"->source.abbr)
     } else {
-      SQL(base).on("before"->before)
+      SQL(base).on("source"->source.abbr)
     }
     return rs().map(row => (row[Int]("uri_id"), row[Int]("id"))).toMap
     
@@ -110,14 +110,14 @@ object BlacklistEvent {
   }
   
   def update(eventIds: Set[Int], blacklistedAt: Long, unblacklistedAt: Option[Long]=None): Int = DB.withTransaction { implicit conn =>
+  	val blTime = new Timestamp(blacklistedAt * 1000)
+  	val unblTime = if (unblacklistedAt.isDefined) Some(new Timestamp(unblacklistedAt.get * 1000)) else None
     return try {
 	    val sql = """UPDATE blacklist_events SET blacklisted=?, blacklisted_at=?, unblacklisted_at=? WHERE id=? 
 	      AND blacklisted_at>=?"""    
 	    val ps = conn.prepareStatement(sql)
 	    eventIds.grouped(BatchSize).foldLeft(0) { (total, group) =>
 	      group.foreach { id =>
-	        val blTime = new Timestamp(blacklistedAt * 1000)
-	        val unblTime = if (unblacklistedAt.isDefined) Some(new Timestamp(unblacklistedAt.get * 1000)) else None
 	        ps.setBoolean(1, unblacklistedAt.isEmpty)
 	        ps.setTimestamp(2, blTime)
 	        ps.setTimestamp(3, unblTime.getOrElse(null))

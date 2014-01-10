@@ -54,22 +54,23 @@ object Blacklist extends Controller with JsonMapper {
     Logger.debug("FINDING OR CREATING URIS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
     val uris = Uri.findOrCreateIds(reported)
     Logger.debug("MAPPING URIS->EVENTS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
-    val urisEvents = BlacklistEvent.blacklistedUriIdsEventIds(time, Some(source))
+    val urisEventsBefore = BlacklistEvent.blacklistedUriIdsEventIds(source, Some(time))
     Logger.debug("UNBLACKLISTING EVENTS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
-    val toRemove = urisEvents.filterNot(ids => uris.contains(ids._1))
-    val removed = BlacklistEvent.unBlacklist(toRemove.values.toSet, time)
+    val toRemove = urisEventsBefore.filterNot(ids => uris.contains(ids._1)).values.toSet
+    val removed = BlacklistEvent.unBlacklist(toRemove, time)
     Logger.info("Marked "+removed+" URIs as no longer blacklisted by "+source)
     Logger.debug("UPDATING EXISTING EVENTS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
     val timeOfLast = BlacklistEvent.timeOfLast(source)
+    val urisEvents = BlacklistEvent.blacklistedUriIdsEventIds(source)
     val updated = if (time < timeOfLast) {
-      val toUpdate = urisEvents.filter(ids => uris.contains(ids._1))
-      val updCount = BlacklistEvent.update(toUpdate.values.toSet, time)
+      val toUpdate = urisEvents.filter(ids => uris.contains(ids._1)).values.toSet
+      val updCount = BlacklistEvent.update(toUpdate, time)
     	Logger.info("Updated "+updCount+" existing blacklist events for "+source)
     	updCount 
     } else {
       0
     }
-    Logger.debug("ADDING NEW EVENTS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
+    Logger.debug("ADDING NEW EVENTS\t"+Runtime.getRuntime.freeMemory)			//DELME WTSN-46
     val endTime = if (time >= timeOfLast) None else Some(time)
     val toCreate = uris.filterNot(urisEvents.contains(_))
     val created = BlacklistEvent.create(toCreate, source, time, endTime)

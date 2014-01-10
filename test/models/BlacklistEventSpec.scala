@@ -67,7 +67,7 @@ class BlacklistEventSpec extends Specification {
         val newBlTime = blEvents.foldLeft(time) { (min, event) =>
           if (event.blacklistedAt < min) event.blacklistedAt else min
         } - 10
-        BlacklistEvent.update(uris.toSet, newBlTime)
+        BlacklistEvent.update(blEvents.map(_.id).toSet, newBlTime) must equalTo(uris.size)
         blEvents.map { event =>
           BlacklistEvent.findByUri(event.uriId, Some(source)).head.blacklistedAt must not equalTo(event.blacklistedAt)
           BlacklistEvent.findByUri(event.uriId, Some(source)).head.blacklistedAt must equalTo(newBlTime)
@@ -187,7 +187,7 @@ class BlacklistEventSpec extends Specification {
           list :+ ReportedEvent(validUri.id, source, time, None)
         }
         blacklist.foreach(BlacklistEvent.createOrUpdate(_))
-        val uriIds = BlacklistEvent.blacklistedUriIdsEventIds(time+1, Some(source)).keySet
+        val uriIds = BlacklistEvent.blacklistedUriIdsEventIds(source, Some(time+1)).keySet
         blacklist.map(event => uriIds.contains(event.uriId) must beTrue)
       }
     }

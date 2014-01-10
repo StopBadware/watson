@@ -81,8 +81,9 @@ class BlacklistSpec extends Specification {
 	      val falloffUrl = validUrl
 	      
 	      Blacklist.importDifferential(bl.urls, source, timeB)
-        bl.urls.map(isBlacklisted(_) must beTrue)
+        bl.urls.forall(isBlacklisted) must beTrue
         
+        println("**********************")	//DELME WTSN-46
 	      Blacklist.importDifferential(bl.urls :+ falloffUrl, source, timeA)
 	      bl.urls.map { url =>
           isBlacklisted(url) must beTrue
