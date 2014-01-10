@@ -29,7 +29,7 @@ class SchedulerSpec extends Specification {
 	      blacklists.map(_.source).contains(source) must beTrue
 	      blacklists.map(_.time).contains(time) must beTrue
 	      blacklists.filter(bl => bl.source==source && bl.time==time).map { blacklist =>
-          blacklist.urls.size must be equalTo(2)
+          blacklist.urls.size must equalTo(2)
           blacklist.urls.contains(urlA) must beTrue
           blacklist.urls.contains(urlB) must beTrue
         }

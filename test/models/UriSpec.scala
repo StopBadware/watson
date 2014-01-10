@@ -31,7 +31,7 @@ class UriSpec extends Specification {
         val uris = (1 to numInBulk).foldLeft(List.empty[String]) { (list, _) =>
           list :+ validUri
         }
-      	Uri.create(uris) must be equalTo(numInBulk)
+      	Uri.create(uris) must equalTo(numInBulk)
       }
     }    
     
@@ -52,7 +52,7 @@ class UriSpec extends Specification {
         }
     		shas.nonEmpty must beTrue
     		val found = Uri.find(shas)
-    		found.size must be equalTo(shas.size)
+    		found.size must equalTo(shas.size)
       }
     }     
     
@@ -101,7 +101,7 @@ class UriSpec extends Specification {
           list :+ validUri
         }
     		val found = Uri.findOrCreateIds(uris)
-    		found.size must be equalTo(uris.size)
+    		found.size must equalTo(uris.size)
       }
     }       
     
@@ -149,7 +149,7 @@ class UriSpec extends Specification {
         val created = Uri.findOrCreate(reported)
         created must beSome
         val uri = created.get
-        BlacklistEvent.findByUri(uri.id).size must be equalTo(0)
+        BlacklistEvent.findByUri(uri.id).size must equalTo(0)
         uri.blacklist(source, uri.createdAt) must beTrue
         BlacklistEvent.findByUri(uri.id).size must be_>(0)
       }
@@ -164,7 +164,7 @@ class UriSpec extends Specification {
         uri.blacklist(source, uri.createdAt) must beTrue
         BlacklistEvent.findByUri(uri.id, Some(source)).size must be_>(0)
         uri.removeFromBlacklist(source, System.currentTimeMillis/1000)
-        BlacklistEvent.findBlacklistedByUri(uri.id, Some(source)).size must be equalTo(0)
+        BlacklistEvent.findBlacklistedByUri(uri.id, Some(source)).size must equalTo(0)
       }
     }    
     

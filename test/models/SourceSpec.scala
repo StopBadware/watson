@@ -19,15 +19,15 @@ class SourceSpec extends Specification {
       Source.withAbbr(sbw.toLowerCase) must beSome
       val source = Source.withAbbr(sbw)
       source must beSome
-      source.get must not be equalTo(Source.SBWCR)
-      source.get must be equalTo(Source.SBW)
-      Source.SBW must not be equalTo(Source.SBWCR)
-      Source.SBW must be equalTo(Source.SBW)
+      source.get must not equalTo(Source.SBWCR)
+      source.get must equalTo(Source.SBW)
+      Source.SBW must not equalTo(Source.SBWCR)
+      Source.SBW must equalTo(Source.SBW)
     }
     
     "get short name of source" in {
-      Source.SBW.toString must be equalTo(sbw)
-      Source.SBW.abbr must be equalTo(sbw)
+      Source.SBW.toString must equalTo(sbw)
+      Source.SBW.abbr must equalTo(sbw)
     }  
     
     "get full name of source" in {
