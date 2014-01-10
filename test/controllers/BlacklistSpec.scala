@@ -86,7 +86,7 @@ class BlacklistSpec extends Specification {
 	      Blacklist.importDifferential(bl.urls :+ falloffUrl, source, timeA)
 	      bl.urls.map { url =>
           isBlacklisted(url) must beTrue
-          BlacklistEvent.findByUri(find(url).id, Some(source)).map(_.blacklistedAt must be equalTo(timeA))
+          BlacklistEvent.findByUri(find(url).id, Some(source)).map(_.blacklistedAt must equalTo(timeA))
         }
         isBlacklisted(falloffUrl) must beFalse
         

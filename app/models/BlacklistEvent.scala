@@ -28,11 +28,7 @@ case class BlacklistEvent(
     }
   }
   
-  def removeFromBlacklist(time: Long): Boolean = {
-    val clean = ReportedEvent(uriId, source, time, Some(time))
-    return BlacklistEvent.update(clean, this) > 0
-  }  
-  
+  def removeFromBlacklist(time: Long): Boolean = BlacklistEvent.update(id, blacklistedAt, Some(time)) > 0
 }
 
 object BlacklistEvent {
@@ -48,64 +44,17 @@ object BlacklistEvent {
   def createOrUpdate(reported: ReportedEvent): Boolean = {
     val events = findEventsByUri(reported.uriId, Some(reported.source), true)
     return events.size match {
-      case 0 => create(List(reported)) == 1
-      case 1 => update(reported, events.head) == 1
+      case 0 => create(List(reported.uriId), reported.source, reported.blacklistedAt, reported.unblacklistedAt) == 1
+      case 1 => {
+        val event = events.head
+        val blTime = Math.min(event.blacklistedAt, reported.blacklistedAt)
+        update(event.id, blTime, reported.unblacklistedAt) == 1
+      }
       case _ => {
         Logger.error(reported.source+": "+events.size+" currently blacklisted rows for "+reported.uriId)
         false
       }
     }
-  }
-  
-  def createOrUpdate(reported: List[ReportedEvent], source: Source): Int = DB.withConnection { implicit conn =>
-    val reportedEvents = reported.foldLeft(Map.empty[Int, ReportedEvent]) { (map, event) =>
-      map ++ Map(event.uriId -> event)
-    }
-    Logger.debug("FINDING EVENTS BY URIS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
-    val toUpdate = findEventsByUris(reportedEvents.keys.toList, source, true).map { event =>
-    	event.id -> updatedTimes(reportedEvents(event.uriId), event)
-    }.toMap
-    Logger.debug("UPDATING EVENTS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
-    //TODO WTSN-46 creating duplicate events (see uri_id 15858675)
-    val updated = update(toUpdate)
-    Logger.info("Updated "+updated+" BlacklistEvents")
-    val created = create(reported)
-    Logger.info("Created "+created+" BlacklistEvents")
-    return (created + updated)
-  }  
-  
-  def markNoLongerBlacklisted(uriId: Int, source: Source, time: Long): Boolean = {
-    val events = findEventsByUri(uriId, Some(source), true)
-    val clean = ReportedEvent(uriId, source, time, Some(time))
-    return events.foldLeft(0){ (ctr, event) =>
-      ctr + update(clean, event)
-    } == events.size
-  }
-  
-  def updateNoLongerBlacklisted(newUris: Set[Int], source: Source, time: Long): Int = DB.withConnection { implicit conn =>
-    Logger.debug("FINDING NO LONGER BLACKLISTED EVENTS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
-    return try {
-    	val sql = "UPDATE blacklist_events SET blacklisted=false, unblacklisted_at=? WHERE id=?"    
-	    val ps = conn.prepareStatement(sql)
-	    val unblAt = new Timestamp(time * 1000)
-	    diffIds(blacklistedUriIdsEventIds(time, Some(source)), newUris).grouped(BatchSize).foldLeft(0) { (total, group) =>
-	      group.foreach { id =>
-          ps.setTimestamp(1, unblAt)
-          ps.setInt(2, id)
-          ps.addBatch()
-        }
-        val batch = ps.executeBatch()
-        ps.clearBatch()
-        total + batch.foldLeft(0)((cnt, b) => cnt + b)
-      }
-    } catch {
-      case e: PSQLException => Logger.error(e.getMessage)
-      0
-    }
-  }
-  
-  private def diffIds(urisEvents: Map[Int, Int], keysToRemove: Set[Int]): Set[Int] = {
-    return urisEvents.keySet.diff(keysToRemove).map(urisEvents(_))
   }
   
   def blacklistedUriIdsEventIds(before: Long, source: Option[Source]=None): Map[Int, Int] = DB.withConnection { implicit conn =>
@@ -125,28 +74,25 @@ object BlacklistEvent {
     return findEventsByUri(uriId, source, true)
   }  
   
-  private def create(reported: List[ReportedEvent]): Int = DB.withTransaction { implicit conn =>
+  def create(uriIds: List[Int], source: Source, blacklistedAt: Long, unblacklistedAt: Option[Long]): Int = DB.withTransaction { implicit conn =>
+    val blTime = new Timestamp(blacklistedAt * 1000)
+    val unblTime = if (unblacklistedAt.isDefined) new Timestamp(unblacklistedAt.get * 1000) else null
     return try {
-    	val sql = """INSERT INTO blacklist_events (uri_id, source, blacklisted, blacklisted_at, unblacklisted_at)  
+      val sql = """INSERT INTO blacklist_events (uri_id, source, blacklisted, blacklisted_at, unblacklisted_at)  
     		SELECT ?, ?::SOURCE, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM blacklist_events 
-    	  WHERE uri_id=? AND source=?::SOURCE AND blacklisted_at=?)"""
+    	  WHERE uri_id=? AND source=?::SOURCE AND (blacklisted_at=? OR (blacklisted=true AND ?=true)))"""
    	  val ps = conn.prepareStatement(sql)
-   	  reported.grouped(BatchSize).foldLeft(0) { (total, group) =>
-   	    group.foreach { reported =>
-   	      val blacklistedAt = new Timestamp(reported.blacklistedAt * 1000)
-   	      val unblacklistedAt = if (reported.unblacklistedAt.isDefined) {
-	          new Timestamp(reported.unblacklistedAt.get * 1000)
-	        } else {
-	          null
-	        }
-   	      ps.setInt(1, reported.uriId)
-   	      ps.setString(2, reported.source.abbr)
-   	      ps.setBoolean(3, reported.unblacklistedAt.isEmpty)
-   	      ps.setTimestamp(4, blacklistedAt)
-   	      ps.setTimestamp(5, unblacklistedAt)
-   	      ps.setInt(6, reported.uriId)
-   	      ps.setString(7, reported.source.abbr)
-   	      ps.setTimestamp(8, blacklistedAt)
+   	  uriIds.grouped(BatchSize).foldLeft(0) { (total, group) =>
+   	    group.foreach { id =>
+   	      ps.setInt(1, id)
+   	      ps.setString(2, source.abbr)
+   	      ps.setBoolean(3, unblacklistedAt.isEmpty)
+   	      ps.setTimestamp(4, blTime)
+   	      ps.setTimestamp(5, unblTime)
+   	      ps.setInt(6, id)
+   	      ps.setString(7, source.abbr)
+   	      ps.setTimestamp(8, blTime)
+   	      ps.setBoolean(9, unblacklistedAt.isEmpty)
    	      ps.addBatch()
    	    }
    	    val batch = ps.executeBatch()
@@ -159,34 +105,24 @@ object BlacklistEvent {
     }
   }
   
-  private def updatedTimes(reported: ReportedEvent, event: BlacklistEvent): (Long, Option[Long]) = {
-    val blacklistedAt = Math.min(event.blacklistedAt, reported.blacklistedAt)
-    val unblacklistedAt = if (event.unblacklistedAt.isDefined && reported.unblacklistedAt.isEmpty) {
-      Some(event.unblacklistedAt.get)
-    } else if (reported.unblacklistedAt.isDefined) {
-      Some(reported.unblacklistedAt.get)
-    } else {
-      None
-    }
-    return (blacklistedAt, unblacklistedAt)
-  }  
-  
-  private def update(reported: ReportedEvent, event: BlacklistEvent): Int = {
-    update(Map(event.id->updatedTimes(reported, event)))
+  def update(eventId: Int, blacklistedAt: Long, unblacklistedAt: Option[Long]): Int = {
+    return update(Set(eventId), blacklistedAt, unblacklistedAt)
   }
   
-  private def update(events: Map[Int, (Long, Option[Long])]): Int = DB.withTransaction { implicit conn =>
+  def update(eventIds: Set[Int], blacklistedAt: Long, unblacklistedAt: Option[Long]=None): Int = DB.withTransaction { implicit conn =>
     return try {
-	    val sql = "UPDATE blacklist_events SET blacklisted=?, blacklisted_at=?, unblacklisted_at=? WHERE id=?"    
+	    val sql = """UPDATE blacklist_events SET blacklisted=?, blacklisted_at=?, unblacklisted_at=? WHERE id=? 
+	      AND blacklisted_at>=?"""    
 	    val ps = conn.prepareStatement(sql)
-	    events.grouped(BatchSize).foldLeft(0) { (total, group) =>
-	      Logger.debug("UPDATED "+total+" EVENTS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
-	      group.foreach { case (id, (blTime, unblTime)) =>
-	        val unblacklistedAt = if (unblTime.isDefined) Some(new Timestamp(unblTime.get * 1000)) else None
+	    eventIds.grouped(BatchSize).foldLeft(0) { (total, group) =>
+	      group.foreach { id =>
+	        val blTime = new Timestamp(blacklistedAt * 1000)
+	        val unblTime = if (unblacklistedAt.isDefined) Some(new Timestamp(unblacklistedAt.get * 1000)) else None
 	        ps.setBoolean(1, unblacklistedAt.isEmpty)
-	        ps.setTimestamp(2, new Timestamp(blTime * 1000))
-	        ps.setTimestamp(3, unblacklistedAt.getOrElse(null))
+	        ps.setTimestamp(2, blTime)
+	        ps.setTimestamp(3, unblTime.getOrElse(null))
 	        ps.setInt(4, id)
+	        ps.setTimestamp(5, blTime)
 	        ps.addBatch()
 	      }
 	      val batch = ps.executeBatch()
@@ -203,7 +139,40 @@ object BlacklistEvent {
     	}
       0
     }
-  }    
+  }
+  
+  def unBlacklist(uriId: Int, source: Source, time: Long): Boolean = {
+    val events = findEventsByUri(uriId, Some(source), true)
+    return findEventsByUri(uriId, Some(source), true).foldLeft(0){ (ctr, event) =>
+      ctr + update(event.id, event.blacklistedAt, Some(time))
+    } == events.size
+  }  
+  
+  def unBlacklist(eventIds: Set[Int], unblacklistedAt: Long): Int = DB.withTransaction { implicit conn =>
+    return try {
+	    val sql = "UPDATE blacklist_events SET blacklisted=false, unblacklisted_at=? WHERE id=?"    
+	    val ps = conn.prepareStatement(sql)
+	    eventIds.grouped(BatchSize).foldLeft(0) { (total, group) =>
+	      group.foreach { id =>
+	        ps.setTimestamp(1, new Timestamp(unblacklistedAt * 1000))
+	        ps.setInt(2, id)
+	        ps.addBatch()
+	      }
+	      val batch = ps.executeBatch()
+	  		ps.clearBatch()
+	  		total + batch.foldLeft(0)((cnt, b) => cnt + b)
+	    }
+    } catch {
+      case t: Throwable => t match {
+	    	case e: PSQLException => Logger.error(e.getMessage)
+	    	case e: BatchUpdateException => {
+	    	  Logger.error(e.getMessage)
+	    	  Logger.error(e.getNextException.getMessage)
+	    	}
+    	}
+      0
+    }
+  }     
   
   private def findEventsByUri(
       uriId: Int, 

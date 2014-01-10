@@ -51,20 +51,32 @@ object Blacklist extends Controller with JsonMapper {
   
   def importDifferential(reported: List[String], source: Source, time: Long): Boolean = {
     Logger.info("Importing "+reported.size+" entries for "+source)
+    Logger.debug("FINDING OR CREATING URIS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
     val uris = Uri.findOrCreateIds(reported)
-    Logger.info("Checking no longer blacklisted entries for "+source)
-    val removed = BlacklistEvent.updateNoLongerBlacklisted(uris.toSet, source, time)
+    Logger.debug("MAPPING URIS->EVENTS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
+    val urisEvents = BlacklistEvent.blacklistedUriIdsEventIds(time, Some(source))
+    Logger.debug("UNBLACKLISTING EVENTS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
+    val toRemove = urisEvents.filterNot(ids => uris.contains(ids._1))
+    val removed = BlacklistEvent.unBlacklist(toRemove.values.toSet, time)
     Logger.info("Marked "+removed+" URIs as no longer blacklisted by "+source)
-    val blacklisted = BlacklistEvent.blacklistedUriIdsEventIds(System.currentTimeMillis / 1000, Some(source))
+    Logger.debug("UPDATING EXISTING EVENTS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
     val timeOfLast = BlacklistEvent.timeOfLast(source)
-    val reportedEvents = uris.map { id => 
-      val endTime = if (blacklisted.contains(id) || time >= timeOfLast) None else Some(time)
-      ReportedEvent(id, source, time, endTime)
+    val updated = if (time < timeOfLast) {
+      val toUpdate = urisEvents.filter(ids => uris.contains(ids._1))
+      val updCount = BlacklistEvent.update(toUpdate.values.toSet, time)
+    	Logger.info("Updated "+updCount+" existing blacklist events for "+source)
+    	updCount 
+    } else {
+      0
     }
-    val addedOrUpdated = BlacklistEvent.createOrUpdate(reportedEvents, source)
-    Logger.info("Imported "+addedOrUpdated+" blacklist events for "+source)
-    return addedOrUpdated > 0
-  }
+    Logger.debug("ADDING NEW EVENTS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
+    val endTime = if (time >= timeOfLast) None else Some(time)
+    val toCreate = uris.filterNot(urisEvents.contains(_))
+    val created = BlacklistEvent.create(toCreate, source, time, endTime)
+    Logger.info("Added "+created+" new blacklist events for "+source)
+    Logger.info("Imported "+(updated+created)+" blacklist events for "+source)
+    return (updated+created) > 0
+  }  
   
   private def addToQueue(json: JsonNode, source: Source) = {
     val time = json.get("time").asLong

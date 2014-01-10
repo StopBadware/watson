@@ -41,7 +41,7 @@ case class Uri(
   }
   
   def removeFromBlacklist(source: Source, time: Long): Boolean = DB.withConnection { implicit conn =>
-    return BlacklistEvent.markNoLongerBlacklisted(id, source, time)
+    return BlacklistEvent.unBlacklist(id, source, time)
   }
   
 }
