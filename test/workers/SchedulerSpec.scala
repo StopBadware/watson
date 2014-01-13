@@ -20,18 +20,20 @@ class SchedulerSpec extends Specification {
         val time = System.currentTimeMillis / 1000
         val urlA = "example.com"
         val urlB = "http://www.example.com/" + time
-	      Blacklist.importBlacklist(BlacklistSpec.json(time, List(urlA, urlB)), source)
+        val urls = List(urlA, urlB)
+	      Blacklist.importBlacklist(BlacklistSpec.json(time, urls), source)
 	      val fromQueue = Redis.getBlacklist(source, time)
 	      fromQueue.nonEmpty must beTrue
 	      val queueCheck = BlacklistQueue()
 	      val blacklists = queueCheck.blacklists
 	      blacklists.nonEmpty must beTrue
-	      blacklists.map(_.source).contains(source) must beTrue
-	      blacklists.map(_.time).contains(time) must beTrue
-	      blacklists.filter(bl => bl.source==source && bl.time==time).map { blacklist =>
-          blacklist.urls.size must equalTo(2)
-          blacklist.urls.contains(urlA) must beTrue
-          blacklist.urls.contains(urlB) must beTrue
+	      blacklists.keySet.contains(source) must beTrue
+	      blacklists(source).contains(time) must beTrue
+	      blacklists(source).filter(_ == time).map { blTime =>
+	        val blacklist = Redis.getBlacklist(source, blTime)
+          blacklist.size must equalTo(urls.size)
+          blacklist.contains(urlA) must beTrue
+          blacklist.contains(urlB) must beTrue
         }
       }      
     }

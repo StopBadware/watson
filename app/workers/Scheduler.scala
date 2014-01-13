@@ -22,24 +22,23 @@ object Scheduler {
 
 case class BlacklistQueue() extends Runnable {
   
-  def blacklists: List[Blacklist] = {
+  def blacklists: Map[Source, List[Long]] = {
     val sourcesWithDifferential = List(Source.GOOG, Source.TTS)
-    return sourcesWithDifferential.map { source =>
-    	Redis.blacklistTimes(source).foldLeft(List.empty[Blacklist]) { (list, time) =>
-      	list :+ Blacklist(source, time, Redis.getBlacklist(source, time))
-    	}
-    }.flatten
+    return sourcesWithDifferential.map(source => source -> Redis.blacklistTimes(source)).toMap
   }
   
   def importQueue() = {
-		blacklists.sortBy(_.time).foreach { blacklist =>
-		  val success = Blacklist.importDifferential(blacklist.urls, blacklist.source, blacklist.time)
-		  if (success || blacklist.urls.isEmpty) {
-		    Redis.dropBlacklist(blacklist.source, blacklist.time)
-		  } else {
-		    Logger.error("Importing non-empty blacklist ("+blacklist+") from queue failed")
-		  }
-		}
+    blacklists.foreach { case (source, times) =>
+      times.sortWith(_ < _).foreach { time =>
+        val blacklist = Redis.getBlacklist(source, time)
+        val success = Blacklist.importDifferential(blacklist, source, time)
+        if (success || blacklist.isEmpty) {
+        	Redis.dropBlacklist(source, time)
+        } else {
+        	Logger.error("Importing "+source+" blacklist "+time+" from queue failed")
+        }
+      }
+    }
   }
   
   def run() = importQueue()
