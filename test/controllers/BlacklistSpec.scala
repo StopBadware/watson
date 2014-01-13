@@ -83,7 +83,6 @@ class BlacklistSpec extends Specification {
 	      Blacklist.importDifferential(bl.urls, source, timeB)
         bl.urls.forall(isBlacklisted) must beTrue
         
-        println("**********************")	//DELME WTSN-46
 	      Blacklist.importDifferential(bl.urls :+ falloffUrl, source, timeA)
 	      bl.urls.map { url =>
           isBlacklisted(url) must beTrue

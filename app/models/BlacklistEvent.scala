@@ -66,7 +66,11 @@ object BlacklistEvent {
     }
     return rs().map(row => (row[Int]("uri_id"), row[Int]("id"))).toMap
     
-  }  
+  } 
+  
+  def find(id: Int): Option[BlacklistEvent] = DB.withConnection { implicit conn =>
+    return mapFromRow(SQL("SELECT * FROM blacklist_events WHERE id={id}").on("id" -> id)().head)
+  }
   
   def findByUri(uriId: Int, source: Option[Source]=None): List[BlacklistEvent] = findEventsByUri(uriId, source)
   
@@ -140,6 +144,38 @@ object BlacklistEvent {
       0
     }
   }
+  
+  def updateBlacklistTime(eventId: Int, blacklistedAt: Long): Int = {
+    return updateBlacklistTime(Set(eventId), blacklistedAt)
+  }
+  
+  def updateBlacklistTime(eventIds: Set[Int], blacklistedAt: Long): Int = DB.withTransaction { implicit conn =>
+  	val blTime = new Timestamp(blacklistedAt * 1000)
+    return try {
+	    val sql = "UPDATE blacklist_events SET blacklisted_at=? WHERE id=? AND blacklisted_at>=?"    
+	    val ps = conn.prepareStatement(sql)
+	    eventIds.grouped(BatchSize).foldLeft(0) { (total, group) =>
+	      group.foreach { id =>
+	        ps.setTimestamp(1, blTime)
+	        ps.setInt(2, id)
+	        ps.setTimestamp(3, blTime)
+	        ps.addBatch()
+	      }
+	      val batch = ps.executeBatch()
+	  		ps.clearBatch()
+	  		total + batch.foldLeft(0)((cnt, b) => cnt + b)
+	    }
+    } catch {
+      case t: Throwable => t match {
+	    	case e: PSQLException => Logger.error(e.getMessage)
+	    	case e: BatchUpdateException => {
+	    	  Logger.error(e.getMessage)
+	    	  Logger.error(e.getNextException.getMessage)
+	    	}
+    	}
+      0
+    }
+  }  
   
   def unBlacklist(uriId: Int, source: Source, time: Long): Boolean = {
     val events = findEventsByUri(uriId, Some(source), true)
