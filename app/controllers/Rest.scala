@@ -5,11 +5,11 @@ import scala.actors.Futures.future
 import scala.util.Try
 import play.api._
 import play.api.mvc._
-import models.BlacklistEvent
+import models.{BlacklistEvent, Uri}
 
 object Rest extends Controller with JsonMapper {
   
-	def timeoflast(abbr: String) = Action { request =>
+	def timeoflast(abbr: String) = Action { implicit request =>
 		val source = models.Source.withAbbr(abbr)
 		if (source.isDefined) {
 		  val blTimeOfLast = BlacklistEvent.timeOfLast(source.get)
@@ -20,7 +20,7 @@ object Rest extends Controller with JsonMapper {
 		}
   }
 	
-	def importList(abbr: String) = Action(parse.temporaryFile) { request =>
+	def importList(abbr: String) = Action(parse.temporaryFile) { implicit request =>
 	  Logger.info("Received import for " + abbr)
 	  val source = models.Source.withAbbr(abbr)
 	  if (source.isDefined) {
@@ -34,6 +34,13 @@ object Rest extends Controller with JsonMapper {
 	  }
   }
 	
-	def requestReview = TODO	//TODO WTSN-30 receive review request
+	def requestReview = Action { implicit request =>
+	  request.body.asJson.map { json =>
+	    println(json)	//DELME WTSN-30
+	    val uri = Uri.findOrCreate(json.\("uri").toString)
+	    println(uri)	//DELME WTSN-30
+	  }
+	  BadRequest	//TODO WTSN-30
+	}
 	
 }

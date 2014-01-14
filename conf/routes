@@ -9,6 +9,7 @@ GET     /                           		controllers.Application.index
 # REST ENDPOINTS
 GET     /blacklists/timeoflast/:source   	controllers.Rest.timeoflast(source)
 POST    /blacklists/add/:source				controllers.Rest.importList(source)
+POST    /reviews/request					controllers.Rest.requestReview
 
 # MISC RESOURCES
 GET     /assets/*file               		controllers.Assets.at(path="/public", file)
