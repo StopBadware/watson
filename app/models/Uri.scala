@@ -44,6 +44,10 @@ case class Uri(
     return BlacklistEvent.unBlacklist(id, source, time)
   }
   
+  def requestReview(email: String, ip: Option[Long]=None, notes: Option[String]=None): Boolean = {
+    return ReviewRequest.create(id, email, ip, notes)
+  }
+  
 }
 
 object Uri {

@@ -166,7 +166,16 @@ class UriSpec extends Specification {
         uri.removeFromBlacklist(source, System.currentTimeMillis/1000)
         BlacklistEvent.findBlacklistedByUri(uri.id, Some(source)).size must equalTo(0)
       }
-    }    
+    }
+    
+    "request a review" in {
+      running(FakeApplication()) {
+        val uri = Uri.findOrCreate(reportedUri).get
+        ReviewRequest.findByUri(uri.id).isEmpty must beTrue
+        uri.requestReview("orgrim.doomhammer@example.com") must beTrue
+        ReviewRequest.findByUri(uri.id).nonEmpty must beTrue
+      }
+    }
     
   }
   
