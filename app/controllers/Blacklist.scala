@@ -51,30 +51,28 @@ object Blacklist extends Controller with JsonMapper {
   
   def importDifferential(reported: List[String], source: Source, time: Long): Boolean = {
     Logger.info("Importing "+reported.size+" entries for "+source+" ("+time+")")
-    Logger.debug("FINDING OR CREATING URIS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
     val uris = Uri.findOrCreateIds(reported).toSet
     val removed = updateNoLongerBlacklisted(source, time, uris)
     Logger.info("Marked "+removed+" URIs as no longer blacklisted by "+source)
-    Logger.debug("UPDATING EXISTING EVENTS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
     val urisEvents = BlacklistEvent.blacklistedUriIdsEventIds(source)
     val timeOfLast = BlacklistEvent.timeOfLast(source)
-    val updated = if (time < timeOfLast) BlacklistEvent.updateBlacklistTime(urisEvents.values.toSet, time) else 0
+    val updated = if (time < timeOfLast) {
+      BlacklistEvent.updateBlacklistTime(urisEvents.filter(t=>uris.contains(t._1)).values.toSet, time)
+    } else {
+      0
+    }
     Logger.info("Updated "+updated+" existing blacklist events for "+source)
-    Logger.debug("ADDING NEW EVENTS\t"+Runtime.getRuntime.freeMemory)			//DELME WTSN-46
     val endTime = if (time >= timeOfLast) None else Some(time)
     val toCreate = uris.filterNot(urisEvents.contains(_))
     val created = BlacklistEvent.create(toCreate.toList, source, time, endTime)
     Logger.info("Added "+created+" new blacklist events for "+source)
-    Logger.info("Imported "+(updated+created)+" blacklist events for "+source)
+    Logger.info("Imported or modified "+(updated+created)+" blacklist events for "+source)
     return (updated+created) > 0
   }
   
   private def updateNoLongerBlacklisted(source: Source, time: Long, uris: Set[Int]): Int = {
-    Logger.debug("MAPPING URIS->EVENTS (BEFORE)\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
     val urisEventsBefore = BlacklistEvent.blacklistedUriIdsEventIds(source, Some(time))
-    Logger.debug("FINDING EVENTS TO UNBLACKLIST\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
     val toUnblacklist = urisEventsBefore.filterNot(ids => uris.contains(ids._1))
-    Logger.debug("UNBLACKLISTING EVENTS\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
     val unblacklisted = BlacklistEvent.unBlacklist(toUnblacklist.values.toSet, time)
     //TODO WTSN-30 send notifications for toUnblacklist.keySet that are no longer blacklisted
     return unblacklisted

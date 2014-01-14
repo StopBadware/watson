@@ -152,7 +152,7 @@ object BlacklistEvent {
   def updateBlacklistTime(eventIds: Set[Int], blacklistedAt: Long): Int = DB.withTransaction { implicit conn =>
   	val blTime = new Timestamp(blacklistedAt * 1000)
     return try {
-	    val sql = "UPDATE blacklist_events SET blacklisted_at=? WHERE id=? AND blacklisted_at>=?"    
+	    val sql = "UPDATE blacklist_events SET blacklisted_at=? WHERE id=? AND blacklisted_at>?"    
 	    val ps = conn.prepareStatement(sql)
 	    eventIds.grouped(BatchSize).foldLeft(0) { (total, group) =>
 	      group.foreach { id =>
@@ -228,21 +228,19 @@ object BlacklistEvent {
   private def findEventsByUris(
       uriIds: List[Int], 
       source: Source,
-      currentOnly: Boolean=false): List[BlacklistEvent] = DB.withConnection { implicit conn =>
+      currentOnly: Boolean=false): List[BlacklistEvent] = DB.withTransaction { implicit conn =>
     return try {
-      Logger.debug("CREATING TEMP TABLE\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
-      SQL("DROP TABLE IF EXISTS temp_import").execute()
-	    SQL("CREATE TEMP TABLE temp_import (uri_id INTEGER PRIMARY KEY)").execute()
+      SQL("DROP TABLE IF EXISTS temp_uris").execute()
+	    SQL("CREATE TEMP TABLE temp_uris (uri_id INTEGER PRIMARY KEY)").execute()
 	    uriIds.grouped(BatchSize).foreach { group =>
-		    val sql = "INSERT INTO temp_import VALUES (?)" + (",(?)"*(group.size-1))
+		    val sql = "INSERT INTO temp_uris VALUES (?)" + (",(?)"*(group.size-1))
 		  	val ps = conn.prepareStatement(sql)
 	      for (i <- 1 to group.size) {
 	        ps.setInt(i, group(i-1))
 	      }
 		    ps.executeUpdate()
 	    }
-      Logger.debug("TEMP TABLE POPULATED\t"+Runtime.getRuntime.freeMemory)	//DELME WTSN-46
-	    val qry = SQL("SELECT blacklist_events.* FROM temp_import AS t LEFT JOIN blacklist_events ON "+ 
+	    val qry = SQL("SELECT blacklist_events.* FROM temp_uris AS t LEFT JOIN blacklist_events ON "+ 
 	      "t.uri_id=blacklist_events.uri_id WHERE blacklist_events.source={source}::SOURCE"+
 	      (if (currentOnly) " AND blacklisted=true" else "")).on("source"->source.abbr)()
 	    qry.map { row =>

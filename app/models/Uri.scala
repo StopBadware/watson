@@ -156,7 +156,7 @@ object Uri {
     }
   }
   
-  def find(sha256s: List[String]): List[Uri] = DB.withConnection { implicit conn =>
+  def find(sha256s: List[String]): List[Uri] = DB.withTransaction { implicit conn =>
     return sha256s.size match {
       case 0 => List()
       case 1 => List(find(sha256s.head)).flatten
