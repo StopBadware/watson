@@ -34,4 +34,6 @@ object Rest extends Controller with JsonMapper {
 	  }
   }
 	
+	def requestReview = TODO	//TODO WTSN-30 receive review request
+	
 }
