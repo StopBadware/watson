@@ -8,6 +8,7 @@ import play.api.db._
 import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
+import controllers.Email
 
 case class ReviewRequest(
     id: Int,
@@ -50,10 +51,14 @@ object ReviewRequest {
     return try {
       val ipOrNull = if (ip.isDefined) ip.get else null
       val notesOrNull = if (notes.isDefined && notes.nonEmpty) notes.get else null
-      SQL("""INSERT INTO review_requests (uri_id, email, ip, requester_notes) 
-        VALUES({uriId}, {email}, {ip}, {notes})""")
-        .on("uriId" -> uriId, "email" -> email, "ip" -> ipOrNull, "notes" -> notesOrNull)
-        .executeUpdate() > 0
+      if (Email.isValid(email)) {
+	      SQL("""INSERT INTO review_requests (uri_id, email, ip, requester_notes) 
+	        VALUES({uriId}, {email}, {ip}, {notes})""")
+	        .on("uriId" -> uriId, "email" -> email, "ip" -> ipOrNull, "notes" -> notesOrNull)
+	        .executeUpdate() > 0
+      } else {
+        false
+      }
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       false

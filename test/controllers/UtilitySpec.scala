@@ -39,6 +39,20 @@ class UtilitySpec extends Specification {
     
   }
   
+  "Email" should {
+    
+    "check if address is valid" in {
+      Email.isValid("voljin@example.com") must beTrue
+      Email.isValid("sylvanas.windrunner@email.example.co.uk") must beTrue
+      Email.isValid("") must beFalse
+      Email.isValid("bronzebeard") must beFalse
+      Email.isValid("example.com") must beFalse
+      Email.isValid("@example.com") must beFalse
+      Email.isValid("bronzebeard@example") must beFalse
+    }
+    
+  }
+  
   "PostgreSql" should {
     
     "check if error is duplicate warning" in {

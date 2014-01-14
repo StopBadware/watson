@@ -27,6 +27,17 @@ class ReviewRequestSpec extends Specification {
       }
     }
     
+    "not create a review request with invalid email" in {
+      running(FakeApplication()) {
+        val uri = validUri
+        ReviewRequest.create(uri.id, "") must beFalse
+        ReviewRequest.create(uri.id, "jaina") must beFalse
+        ReviewRequest.create(uri.id, "example.com") must beFalse
+        ReviewRequest.create(uri.id, "@example.com") must beFalse
+        ReviewRequest.create(uri.id, "jaina@example") must beFalse
+      }
+    }    
+    
     "close a review request" in {
       running(FakeApplication()) {
         val rr = request

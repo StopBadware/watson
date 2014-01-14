@@ -36,6 +36,12 @@ object Host {
 
 }
 
+object Email {
+  
+  def isValid(email: String): Boolean = email.matches("^.+@([a-zA-Z0-9\\-\\_]+\\.)*[a-zA-Z0-9\\-\\_]+\\.[a-zA-Z]+$")
+  
+}
+
 object PostgreSql {
   
   def isNotDupeError(err: String): Boolean = !err.startsWith("ERROR: duplicate key")
