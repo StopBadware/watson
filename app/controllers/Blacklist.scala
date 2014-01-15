@@ -55,17 +55,11 @@ object Blacklist extends Controller with JsonMapper {
     val removed = BlacklistEvent.updateNoLongerBlacklisted(source, time, uris)
     Logger.info("Marked "+removed+" URIs as no longer blacklisted by "+source)
     //TODO WTSN-30 close applicable review requests
-    val urisEvents = BlacklistEvent.blacklistedUriIdsEventIds(source)
     val timeOfLast = BlacklistEvent.timeOfLast(source)
-    val updated = if (time < timeOfLast) {
-      BlacklistEvent.updateBlacklistTime(urisEvents.filter(t=>uris.contains(t._1)).values.toList, time)
-    } else {
-      0
-    }
+    val updated = if (time < timeOfLast) BlacklistEvent.updateBlacklistTime(uris, time, source) else 0
     Logger.info("Updated "+updated+" existing blacklist events for "+source)
     val endTime = if (time >= timeOfLast) None else Some(time)
-    val toCreate = uris.filterNot(urisEvents.contains(_))
-    val created = BlacklistEvent.create(toCreate.toList, source, time, endTime)
+    val created = BlacklistEvent.create(uris, source, time, endTime)
     Logger.info("Added "+created+" new blacklist events for "+source)
     Logger.info("Imported or modified "+(updated+created)+" blacklist events for "+source)
     return (updated+created) > 0

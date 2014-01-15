@@ -44,22 +44,6 @@ class BlacklistEventSpec extends Specification {
       }
     }
     
-    "update a blacklist event time" in {
-      running(FakeApplication()) {
-        val now = System.currentTimeMillis / 1000
-        val uriId = validUri.id
-        val initialEvent = ReportedEvent(uriId, source, now)
-        BlacklistEvent.createOrUpdate(initialEvent) must beTrue
-        BlacklistEvent.findBlacklistedByUri(uriId, Some(source)).size must equalTo(1)
-        val updatedTime = now - 10
-        val events = BlacklistEvent.findBlacklistedByUri(uriId, Some(source))
-        events.size must equalTo(1)
-        val id = events.head.id
-        BlacklistEvent.updateBlacklistTime(id, updatedTime) must equalTo(1)
-        BlacklistEvent.find(id).get.blacklistedAt must equalTo(updatedTime)
-      }
-    }     
-    
     "create blacklist events in bulk" in {
       running(FakeApplication()) {
         val uris = (1 to numInBulk).foldLeft(List.empty[Int]) { (list, _) =>
@@ -91,7 +75,7 @@ class BlacklistEventSpec extends Specification {
       }
     }
     
-    "update blacklist event times in bulk" in {
+    "update blacklist event times" in {
       running(FakeApplication()) {
         val time = System.currentTimeMillis / 1000
         val uris = (1 to numInBulk).foldLeft(List.empty[Int]) { (list, _) =>
@@ -102,12 +86,24 @@ class BlacklistEventSpec extends Specification {
         val newBlTime = blEvents.foldLeft(time) { (min, event) =>
           if (event.blacklistedAt < min) event.blacklistedAt else min
         } - 10
-        val updated = BlacklistEvent.updateBlacklistTime(blEvents.map(_.id), newBlTime)
+        val updated = BlacklistEvent.updateBlacklistTime(uris, newBlTime, source)
         updated must equalTo(uris.size)
         blEvents.map { event =>
           BlacklistEvent.find(event.id).get.blacklistedAt must not equalTo(event.blacklistedAt)
           BlacklistEvent.find(event.id).get.blacklistedAt must equalTo(newBlTime)
         }
+      }
+    }
+    
+    "update event times from a provided blacklist" in {
+      running(FakeApplication()) {
+        val time = System.currentTimeMillis / 1000
+        val uris = (1 to numInBulk).foldLeft(List.empty[Int])((list, _) => list :+ validUri.id)
+        BlacklistEvent.create(uris, source, time, None) must equalTo(uris.size)
+        uris.map(id => BlacklistEvent.findByUri(id, Some(source))).flatten.forall(_.blacklistedAt==time) must beTrue
+        val updatedTime = time - 1
+        
+        uris.map(id => BlacklistEvent.findByUri(id, Some(source))).flatten.forall(_.blacklistedAt==updatedTime) must beTrue
       }
     }    
     
