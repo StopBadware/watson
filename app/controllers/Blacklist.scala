@@ -51,14 +51,14 @@ object Blacklist extends Controller with JsonMapper {
   
   def importDifferential(reported: List[String], source: Source, time: Long): Boolean = {
     Logger.info("Importing "+reported.size+" entries for "+source+" ("+time+")")
-    val uris = Uri.findOrCreateIds(reported).toSet
-    val removed = updateNoLongerBlacklisted(source, time, uris)
+    val uris = Uri.findOrCreateIds(reported)
+    val removed = BlacklistEvent.updateNoLongerBlacklisted(source, time, uris)
     Logger.info("Marked "+removed+" URIs as no longer blacklisted by "+source)
     //TODO WTSN-30 close applicable review requests
     val urisEvents = BlacklistEvent.blacklistedUriIdsEventIds(source)
     val timeOfLast = BlacklistEvent.timeOfLast(source)
     val updated = if (time < timeOfLast) {
-      BlacklistEvent.updateBlacklistTime(urisEvents.filter(t=>uris.contains(t._1)).values.toSet, time)
+      BlacklistEvent.updateBlacklistTime(urisEvents.filter(t=>uris.contains(t._1)).values.toList, time)
     } else {
       0
     }
@@ -69,13 +69,6 @@ object Blacklist extends Controller with JsonMapper {
     Logger.info("Added "+created+" new blacklist events for "+source)
     Logger.info("Imported or modified "+(updated+created)+" blacklist events for "+source)
     return (updated+created) > 0
-  }
-  
-  private def updateNoLongerBlacklisted(source: Source, time: Long, uris: Set[Int]): Int = {
-    val urisEventsBefore = BlacklistEvent.blacklistedUriIdsEventIds(source, Some(time))
-    val toUnblacklist = urisEventsBefore.filterNot(ids => uris.contains(ids._1))
-    val unblacklisted = BlacklistEvent.unBlacklist(toUnblacklist.values.toSet, time)
-    return unblacklisted
   }
   
   private def addToQueue(json: JsonNode, source: Source) = {

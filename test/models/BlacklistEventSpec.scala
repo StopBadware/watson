@@ -102,7 +102,7 @@ class BlacklistEventSpec extends Specification {
         val newBlTime = blEvents.foldLeft(time) { (min, event) =>
           if (event.blacklistedAt < min) event.blacklistedAt else min
         } - 10
-        val updated = BlacklistEvent.updateBlacklistTime(blEvents.map(_.id).toSet, newBlTime)
+        val updated = BlacklistEvent.updateBlacklistTime(blEvents.map(_.id), newBlTime)
         updated must equalTo(uris.size)
         blEvents.map { event =>
           BlacklistEvent.find(event.id).get.blacklistedAt must not equalTo(event.blacklistedAt)
@@ -119,8 +119,21 @@ class BlacklistEventSpec extends Specification {
         BlacklistEvent.create(uris, source, System.currentTimeMillis / 1000, None) must equalTo(uris.size)
         val blEvents = uris.map(id => BlacklistEvent.findByUri(id, Some(source))).flatten
         blEvents.forall(_.blacklisted) must beTrue
-        BlacklistEvent.unBlacklist(blEvents.map(_.id).toSet, System.currentTimeMillis / 1000) must equalTo(blEvents.size)
+        BlacklistEvent.unBlacklist(blEvents.map(_.id), System.currentTimeMillis / 1000) must equalTo(blEvents.size)
         uris.map(BlacklistEvent.findByUri(_, Some(source)).head).forall(_.blacklisted) must beFalse
+      }
+    }
+    
+    "unblacklist events not on a provided blacklist" in {
+      running(FakeApplication()) {
+        val time = System.currentTimeMillis / 1000
+        val urisA = (1 to numInBulk).foldLeft(List.empty[Int])((list, _) => list :+ validUri.id)
+        val urisB = (1 to numInBulk).foldLeft(List.empty[Int])((list, _) => list :+ validUri.id)
+        BlacklistEvent.create(urisA, source, time, None) must equalTo(urisA.size)
+        urisA.map(id => BlacklistEvent.findByUri(id, Some(source))).flatten.forall(_.blacklisted) must beTrue
+        BlacklistEvent.updateNoLongerBlacklisted(source, time+1, urisB)
+        urisA.map(id => BlacklistEvent.findByUri(id, Some(source))).flatten.forall(_.blacklisted) must beFalse
+        urisB.map(id => BlacklistEvent.findByUri(id, Some(source))).flatten.forall(_.blacklisted) must beTrue
       }
     }
     

@@ -3,6 +3,7 @@ package models
 import java.sql.{BatchUpdateException, Timestamp}
 import scala.util.Try
 import java.util.Date
+import java.sql.Timestamp
 import anorm._
 import play.api.db._
 import play.api.Play.current
@@ -146,10 +147,10 @@ object BlacklistEvent {
   }
   
   def updateBlacklistTime(eventId: Int, blacklistedAt: Long): Int = {
-    return updateBlacklistTime(Set(eventId), blacklistedAt)
+    return updateBlacklistTime(List(eventId), blacklistedAt)
   }
   
-  def updateBlacklistTime(eventIds: Set[Int], blacklistedAt: Long): Int = DB.withTransaction { implicit conn =>
+  def updateBlacklistTime(eventIds: List[Int], blacklistedAt: Long): Int = DB.withTransaction { implicit conn =>
   	val blTime = new Timestamp(blacklistedAt * 1000)
     return try {
 	    val sql = "UPDATE blacklist_events SET blacklisted_at=? WHERE id=? AND blacklisted_at>?"    
@@ -184,7 +185,7 @@ object BlacklistEvent {
     } == events.size
   }  
   
-  def unBlacklist(eventIds: Set[Int], unblacklistedAt: Long): Int = DB.withTransaction { implicit conn =>
+  def unBlacklist(eventIds: List[Int], unblacklistedAt: Long): Int = DB.withTransaction { implicit conn =>
     val unblTime = new Timestamp(unblacklistedAt * 1000)
     return try {
 	    val sql = "UPDATE blacklist_events SET blacklisted=false, unblacklisted_at=? WHERE id=?"    
@@ -209,7 +210,37 @@ object BlacklistEvent {
     	}
       0
     }
-  }     
+  }
+  
+  def updateNoLongerBlacklisted(source: Source, time: Long, uris: List[Int]): Int = DB.withTransaction { implicit conn =>
+    val toUnblacklist = try {
+      SQL("DROP TABLE IF EXISTS temp_uris").execute()
+      SQL("CREATE TEMP TABLE temp_uris (uri_id INTEGER PRIMARY KEY)").execute()
+      uris.grouped(BatchSize).foreach { group =>
+        val sql = "INSERT INTO temp_uris VALUES (?)" + (",(?)"*(group.size-1))
+        val ps = conn.prepareStatement(sql)
+        for (i <- 1 to group.size) {
+          ps.setInt(i, group(i-1))
+        }
+        ps.executeUpdate()
+      }
+      val qry = SQL("""SELECT blacklist_events.id FROM blacklist_events LEFT JOIN temp_uris ON 
+        blacklist_events.uri_id=temp_uris.uri_id WHERE blacklisted=true AND source={source}::SOURCE 
+        AND blacklisted_at<{time} AND temp_uris.uri_id IS NULL""")
+        .on("source"->source.abbr, "time"->new Timestamp(time*1000))()
+      qry.map(_[Int]("id")).toList
+    } catch {
+      case t: Throwable => t match {
+	    	case e: PSQLException => Logger.error(e.getMessage)
+	    	case e: BatchUpdateException => {
+	    	  Logger.error(e.getMessage)
+	    	  Logger.error(e.getNextException.getMessage)
+	    	}
+    	}
+      List()
+    }
+    return unBlacklist(toUnblacklist, time)
+  }
   
   private def findEventsByUri(
       uriId: Int, 
