@@ -47,6 +47,18 @@ class ReviewRequestSpec extends Specification {
       }
     }
     
+    "close all review requests for uris no longer blacklisted" in {
+      running(FakeApplication()) {
+        true must beFalse	//TODO WTSN-30
+      }
+    }
+    
+    "send notification email after closing review request" in {
+      running(FakeApplication()) {
+        true must beFalse	//TODO WTSN-30
+      }
+    }
+    
     "delete a review request" in {
       running(FakeApplication()) {
         val rr = request

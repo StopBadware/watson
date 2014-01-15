@@ -31,13 +31,17 @@ case class ReviewRequest(
   
   def close(closedAt: Option[Long]=None): Boolean = DB.withConnection { implicit conn =>
   	val closeTime = closedAt.getOrElse(System.currentTimeMillis / 1000)
-    return try {
+    val closed = try {
       SQL("UPDATE review_requests SET open=false, closed_at={closedAt} WHERE id={id}")
       	.on("id" -> id, "closedAt" -> new Timestamp(closeTime * 1000)).executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       false
     }
+    if (closed) {
+      //TODO WTSN-30 send close notification
+    }
+    closed
   } 
 
 }
