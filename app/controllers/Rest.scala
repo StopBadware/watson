@@ -35,12 +35,21 @@ object Rest extends Controller with JsonMapper {
   }
 	
 	def requestReview = Action { implicit request =>
-	  request.body.asJson.map { json =>
-	    println(json)	//DELME WTSN-30
-	    val uri = Uri.findOrCreate(json.\("uri").toString)
-	    println(uri)	//DELME WTSN-30
+	  val body = Try(mapJson(request.body.asJson.get.toString).get)
+	  if (body.isSuccess) {
+	    val json = body.get
+	    try {
+		    val uri = Uri.findOrCreate(json.get("uri").asText).get
+		    val email = json.get("email").asText
+		    val ip = if (json.has("ip")) Some(json.get("ip").asLong) else None
+		    val notes = if (json.has("notes")) Some(json.get("notes").asText) else None
+	    	if (uri.requestReview(email, ip, notes)) Ok else UnprocessableEntity
+	    } catch {
+	      case _: Exception => BadRequest
+	    }
+	  } else {
+	  	UnsupportedMediaType
 	  }
-	  BadRequest	//TODO WTSN-30
 	}
 	
 }
