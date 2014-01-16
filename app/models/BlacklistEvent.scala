@@ -259,7 +259,7 @@ object BlacklistEvent {
       val qry = SQL("""SELECT blacklist_events.id FROM blacklist_events LEFT JOIN temp_uris ON 
         blacklist_events.uri_id=temp_uris.uri_id WHERE blacklisted=true AND source={source}::SOURCE 
         AND blacklisted_at<{time} AND temp_uris.uri_id IS NULL""")
-        .on("source"->source.abbr, "time"->new Timestamp(time*1000))()
+        .on("source" -> source.abbr, "time" -> new Timestamp(time*1000))()
       qry.map(_[Int]("id")).toList
     } catch {
       case t: Throwable => t match {

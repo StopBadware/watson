@@ -30,6 +30,7 @@ case class ReviewRequest(
   }
   
   def close(closedAt: Option[Long]=None): Boolean = DB.withConnection { implicit conn =>
+    //TODO WTSN-30 pass closed reason
   	val closeTime = closedAt.getOrElse(System.currentTimeMillis / 1000)
     val closed = try {
       SQL("UPDATE review_requests SET open=false, closed_at={closedAt} WHERE id={id}")
@@ -85,6 +86,29 @@ object ReviewRequest {
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       List()
+    }
+  }
+  
+  def closeNoLongerBlacklisted(): Int = DB.withConnection { implicit conn =>
+    return try {
+    	val sql = SQL("""SELECT rr.id, rr.email FROM review_requests AS rr LEFT JOIN (SELECT review_requests.uri_id, 
+    	  count(*) AS cnt FROM review_requests LEFT JOIN blacklist_events ON review_requests.uri_id=blacklist_events.uri_id 
+    	  WHERE review_requests.open=true AND blacklist_events.blacklisted=true GROUP BY review_requests.uri_id) 
+    	  AS current ON rr.uri_id=current.uri_id WHERE current.uri_id IS NULL""")()
+    	val idsEmails = sql.map { row =>
+    	  val id = row[Int]("id")
+    	  val email = row[String]("email")
+    	  (id -> email)
+    	}.toMap
+    	println(idsEmails)	//DELME WTSN-30
+//    	idsEmails.map(_._1)
+//    	idsEmails.map(_._2)
+    	//TODO WTSN-30 close all ids
+    	//TODO WTSN-30 send emails
+    	0	//TODO WTSN-30
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      0
     }
   }
   

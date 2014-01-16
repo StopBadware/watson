@@ -9,6 +9,8 @@ import play.api.test.Helpers._
 @RunWith(classOf[JUnitRunner])
 class ReviewRequestSpec extends Specification {
   
+  private val numInBulk = 5
+  private val email = "test@stopbadware.org"
   private def validUri: Uri = Uri.findOrCreate(UriSpec.validUri).get
   private def request: ReviewRequest = {
     val uri = validUri
@@ -49,7 +51,27 @@ class ReviewRequestSpec extends Specification {
     
     "close all review requests for uris no longer blacklisted" in {
       running(FakeApplication()) {
-        true must beFalse	//TODO WTSN-30
+        val now = System.currentTimeMillis / 1000
+        val sourceA = Source.SBW
+        val sourceB = Source.GOOG
+        val overlap = validUri.id
+        val shouldClose = {
+          val uris = (1 to numInBulk).foldLeft(List.empty[Int])((list, _) => list :+ validUri.id)
+          BlacklistEvent.create(uris, sourceA, now, Some(now))
+          BlacklistEvent.create(uris :+ overlap, sourceB, now, Some(now))
+          uris.foreach(ReviewRequest.create(_, email))
+          uris.map(ReviewRequest.findByUri(_))
+        }.flatten
+        val shouldNotClose = {
+          val uris = (1 to numInBulk).foldLeft(List.empty[Int])((list, _) => list :+ validUri.id) :+ overlap
+          BlacklistEvent.create(uris, sourceA, now, None)
+          BlacklistEvent.create(uris, sourceB, now, None)
+          uris.foreach(ReviewRequest.create(_, email))
+          uris.map(ReviewRequest.findByUri(_))
+        }.flatten
+        ReviewRequest.closeNoLongerBlacklisted() must be_>=(shouldClose.size)
+        shouldClose.map(_.id).map(ReviewRequest.find(_).get.open must beFalse)
+        shouldNotClose.map(_.id).map(ReviewRequest.find(_).get.open must beTrue)
       }
     }
     
