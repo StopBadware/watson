@@ -90,22 +90,37 @@ object ReviewRequest {
   }
   
   def closeNoLongerBlacklisted(): Int = DB.withConnection { implicit conn =>
+    case class ToEmail(email: String, uri: String)
     return try {
-    	val sql = SQL("""SELECT rr.id, rr.email FROM review_requests AS rr LEFT JOIN (SELECT review_requests.uri_id, 
-    	  count(*) AS cnt FROM review_requests LEFT JOIN blacklist_events ON review_requests.uri_id=blacklist_events.uri_id 
-    	  WHERE review_requests.open=true AND blacklist_events.blacklisted=true GROUP BY review_requests.uri_id) 
-    	  AS current ON rr.uri_id=current.uri_id WHERE current.uri_id IS NULL""")()
-    	val idsEmails = sql.map { row =>
-    	  val id = row[Int]("id")
+    	val sql = SQL("""SELECT rr.uri_id, rr.email, uris.uri FROM review_requests AS rr LEFT JOIN 
+  	    (SELECT review_requests.uri_id, count(*) AS cnt FROM review_requests LEFT JOIN blacklist_events ON 
+    	  review_requests.uri_id=blacklist_events.uri_id WHERE review_requests.open=true AND 
+    	  blacklist_events.blacklisted=true GROUP BY review_requests.uri_id) AS current ON rr.uri_id=current.uri_id 
+    	  JOIN uris ON rr.uri_id=uris.id WHERE rr.open=true AND current.uri_id IS NULL""")()
+    	val urisEmails = sql.foldLeft((Set.empty[Int], Set.empty[ToEmail])) { (sets, row) =>
+    	  val uriId = row[Int]("uri_id")
     	  val email = row[String]("email")
-    	  (id -> email)
-    	}.toMap
-    	println(idsEmails)	//DELME WTSN-30
-//    	idsEmails.map(_._1)
-//    	idsEmails.map(_._2)
-    	//TODO WTSN-30 close all ids
+    	  val uri = row[String]("uri")
+    	  (sets._1 + uriId, sets._2 + ToEmail(email, uri))
+    	}
+    	val closed = close(urisEmails._1)
     	//TODO WTSN-30 send emails
-    	0	//TODO WTSN-30
+    	closed
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      0
+    }
+  }
+  
+  private def close(uriIds: Iterable[Int]): Int = DB.withTransaction { implicit conn =>
+    return try {
+      val sql = "UPDATE review_requests SET open=false, closed_at=NOW() WHERE uri_id=? AND open=true"
+      val ps = conn.prepareStatement(sql)
+      uriIds.foreach { id =>
+        ps.setInt(1, id)
+        ps.addBatch()
+      }
+      ps.executeBatch().foldLeft(0)((cnt, b) => cnt + b)
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       0

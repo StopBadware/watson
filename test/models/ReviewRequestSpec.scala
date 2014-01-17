@@ -14,7 +14,7 @@ class ReviewRequestSpec extends Specification {
   private def validUri: Uri = Uri.findOrCreate(UriSpec.validUri).get
   private def request: ReviewRequest = {
     val uri = validUri
-    ReviewRequest.create(uri.id, "sylvanas@example.com")
+    ReviewRequest.create(uri.id, email)
     ReviewRequest.findByUri(uri.id).head
   }
   
@@ -24,7 +24,7 @@ class ReviewRequestSpec extends Specification {
       running(FakeApplication()) {
         val uri = validUri
         ReviewRequest.findByUri(uri.id).isEmpty must beTrue
-        ReviewRequest.create(uri.id, "thrall@example.com", Some(0L), Some("For the Horde!")) must beTrue
+        ReviewRequest.create(uri.id, email, Some(0L), Some("For the Horde!")) must beTrue
         ReviewRequest.findByUri(uri.id).nonEmpty must beTrue
       }
     }
