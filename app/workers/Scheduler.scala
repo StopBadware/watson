@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit
 import play.api.{DefaultApplication, Logger, Mode, Play}
 import play.api.libs.concurrent.Execution.Implicits._
 import controllers.{Blacklist, Redis}
-import models.Source
+import models.enums.Source
 
 object Scheduler {
   	

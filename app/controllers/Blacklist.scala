@@ -8,6 +8,7 @@ import play.api.libs.json._
 import com.fasterxml.jackson.databind.JsonNode
 import com.codahale.jerkson.Json
 import models._
+import models.enums._
 
 object Blacklist extends Controller with JsonMapper {
   

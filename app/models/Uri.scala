@@ -9,6 +9,7 @@ import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
 import controllers._
+import models.enums.Source
 
 case class Uri(
     id: Int,

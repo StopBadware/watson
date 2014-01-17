@@ -9,6 +9,7 @@ import java.net.URI
 import scala.util.Random
 import com.codahale.jerkson.Json
 import models._
+import models.enums.Source
 
 @RunWith(classOf[JUnitRunner])
 class BlacklistSpec extends Specification {

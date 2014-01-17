@@ -5,7 +5,7 @@ import play.api.Logger
 import play.api.mvc.Controller
 import com.codahale.jerkson.Json
 import com.redis._
-import models.Source
+import models.enums.Source
 
 object Redis extends Controller {
   

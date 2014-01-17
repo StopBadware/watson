@@ -1,10 +1,11 @@
-package models
+package models.enums
 
 import anorm._
 import play.api.db._
 import play.api.Play.current
+import anorm.MayErr.eitherToError
 
-class Source(shortName: String) {
+protected class Source(shortName: String) {
   
   val abbr = shortName
   
@@ -18,11 +19,11 @@ class Source(shortName: String) {
 
 object Source {
   
-  val GOOG: Source = models.GOOG
-  val NSF: Source = models.NSF
-  val TTS: Source = models.TTS
-  val SBW: Source = models.SBW
-  val SBWCR: Source = models.SBWCR
+  val GOOG: Source = models.enums.GOOG
+  val NSF: Source = models.enums.NSF
+  val TTS: Source = models.enums.TTS
+  val SBW: Source = models.enums.SBW
+  val SBWCR: Source = models.enums.SBWCR
   
   val sources = Map(
       "GOOG" -> GOOG,

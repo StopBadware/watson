@@ -8,6 +8,7 @@ import play.api.test.Helpers._
 import java.net.URISyntaxException
 import scala.util.Random
 import scala.actors.Futures.future
+import models.enums.Source
 
 @RunWith(classOf[JUnitRunner])
 class UriSpec extends Specification {

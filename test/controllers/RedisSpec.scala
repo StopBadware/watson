@@ -7,7 +7,7 @@ import org.specs2.specification.AfterExample
 import play.api.test._
 import play.api.test.Helpers._
 import scala.util.Random
-import models.Source
+import models.enums.Source
 
 @RunWith(classOf[JUnitRunner])
 class RedisSpec extends Specification with AfterExample {

@@ -10,6 +10,7 @@ import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
 import controllers.PostgreSql
+import models.enums.Source
 
 case class BlacklistEvent(
     id: Int,

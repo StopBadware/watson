@@ -6,7 +6,8 @@ import org.specs2.runner._
 import play.api.test._
 import play.api.test.Helpers._
 import controllers.{Blacklist, BlacklistSpec, Hash, Redis}
-import models.{BlacklistEvent, Source, Uri}
+import models.{BlacklistEvent, Uri}
+import models.enums.Source
 
 @RunWith(classOf[JUnitRunner])
 class SchedulerSpec extends Specification {

@@ -3,7 +3,8 @@
 # --- !Ups
 
 CREATE TYPE SOURCE AS ENUM ('GOOG', 'NSF', 'TTS', 'SBW', 'SBWCR');
-CREATE TYPE REVIEW_STATUS AS ENUM ('ABUSIVE', 'NEW', 'PENDING', 'BAD', 'CLEAN', 'NO_PARTNERS_REPORTING');
+CREATE TYPE CLOSED_REASON AS ENUM ('ABUSIVE', 'ADMINISTRATIVE', 'REVIEWED_BAD', 'REVIEWED_CLEAN', 'NO_PARTNERS_REPORTING');
+CREATE TYPE REVIEW_STATUS AS ENUM ('NEW', 'PENDING', 'BAD', 'CLEAN', 'CLOSED_WITHOUT_REVIEW');
 
 CREATE TABLE uris (
   id SERIAL PRIMARY KEY,
@@ -44,21 +45,6 @@ CREATE INDEX ON blacklist_events (uri_id);
 CREATE INDEX ON blacklist_events (source);
 CREATE INDEX ON blacklist_events (blacklisted, blacklisted_at, unblacklisted_at);
 
-CREATE TABLE review_requests (
-  id SERIAL PRIMARY KEY,
-  uri_id INTEGER NOT NULL REFERENCES uris (id) ON DELETE RESTRICT,
-  open BOOLEAN NOT NULL DEFAULT TRUE,
-  email VARCHAR(256) NOT NULL,
-  ip BIGINT DEFAULT NULL,
-  requester_notes VARCHAR(2048) DEFAULT NULL,
-  requested_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  closed_at TIMESTAMP DEFAULT NULL
-);
-
-CREATE INDEX ON review_requests (uri_id);
-CREATE INDEX ON review_requests (open, requested_at);
-CREATE INDEX ON review_requests (email, ip);
-
 CREATE TABLE users (
   id SERIAL PRIMARY KEY
 );
@@ -82,14 +68,33 @@ CREATE INDEX ON reviews (uri_id, review_data_id);
 CREATE INDEX ON reviews (status, created_at, status_updated_at);
 CREATE INDEX ON reviews (reviewed_by, verified_by);
 
+CREATE TABLE review_requests (
+  id SERIAL PRIMARY KEY,
+  uri_id INTEGER NOT NULL REFERENCES uris (id) ON DELETE RESTRICT,
+  open BOOLEAN NOT NULL DEFAULT TRUE,
+  email VARCHAR(256) NOT NULL,
+  ip BIGINT DEFAULT NULL,
+  requester_notes VARCHAR(2048) DEFAULT NULL,
+  requested_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  closed_at TIMESTAMP DEFAULT NULL,
+  closed_reason CLOSED_REASON DEFAULT NULL,
+  review_id INTEGER DEFAULT NULL REFERENCES reviews (id) ON DELETE RESTRICT
+);
+
+CREATE INDEX ON review_requests (uri_id, review_id);
+CREATE INDEX ON review_requests (open, requested_at, closed_at);
+CREATE INDEX ON review_requests (email, ip);
+CREATE INDEX ON review_requests (closed_reason);
+
 # --- !Downs
 
-DROP TABLE blacklist_events CASCADE;
-DROP TABLE sources CASCADE;
-DROP TABLE review_requests CASCADE;
-DROP TABLE reviews CASCADE;
-DROP TABLE users CASCADE;
-DROP TABLE review_data CASCADE;
 DROP TABLE uris CASCADE;
+DROP TABLE sources CASCADE;
+DROP TABLE blacklist_events CASCADE;
+DROP TABLE users CASCADE;
+DROP TABLE reviews CASCADE;
+DROP TABLE review_data CASCADE;
+DROP TABLE review_requests CASCADE;
 DROP TYPE SOURCE;
+DROP TYPE CLOSED_REASON;
 DROP TYPE REVIEW_STATUS;
