@@ -9,6 +9,7 @@ import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
 import controllers.Email
+import models.enums.ClosedReason
 
 case class ReviewRequest(
     id: Int,
@@ -18,7 +19,9 @@ case class ReviewRequest(
     ip: Option[Long],
     requesterNotes: Option[String],
     requestedAt: Long,
-    closedAt: Option[Long]
+    closedAt: Option[Long],
+    closedReason: Option[ClosedReason],
+    reviewId: Option[Int]
     ) {
   
   def delete() = DB.withConnection { implicit conn =>
@@ -29,12 +32,17 @@ case class ReviewRequest(
     }
   }
   
-  def close(closedAt: Option[Long]=None): Boolean = DB.withConnection { implicit conn =>
-    //TODO WTSN-30 pass closed reason
+  def close(reason: ClosedReason, reviewId: Option[Int]=None, closedAt: Option[Long]=None): Boolean = DB.withConnection { implicit conn =>
   	val closeTime = closedAt.getOrElse(System.currentTimeMillis / 1000)
     val closed = try {
-      SQL("UPDATE review_requests SET open=false, closed_at={closedAt} WHERE id={id}")
-      	.on("id" -> id, "closedAt" -> new Timestamp(closeTime * 1000)).executeUpdate() > 0
+      val revId = if (reviewId.isDefined) reviewId.get else null
+      SQL("""UPDATE review_requests SET open=false, closed_at={closedAt}, review_id={reviewId} 
+        , closed_reason={reason}::CLOSED_REASON WHERE id={id}""")
+      	.on("id" -> id,
+      	    "reason" -> reason.toString,
+      	    "closedAt" -> new Timestamp(closeTime * 1000), 
+      	    "reviewId" -> revId)
+      	.executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       false
@@ -103,7 +111,7 @@ object ReviewRequest {
     	  val uri = row[String]("uri")
     	  (sets._1 + uriId, sets._2 + ToEmail(email, uri))
     	}
-    	val closed = close(urisEmails._1)
+    	val closed = closeAsNotBlacklisted(urisEmails._1)
     	//TODO WTSN-30 send emails
     	closed
     } catch {
@@ -112,9 +120,10 @@ object ReviewRequest {
     }
   }
   
-  private def close(uriIds: Iterable[Int]): Int = DB.withTransaction { implicit conn =>
+  private def closeAsNotBlacklisted(uriIds: Iterable[Int]): Int = DB.withTransaction { implicit conn =>
     return try {
-      val sql = "UPDATE review_requests SET open=false, closed_at=NOW() WHERE uri_id=? AND open=true"
+      val sql = "UPDATE review_requests SET open=false, closed_at=NOW(), closed_reason='"+
+    		ClosedReason.NO_PARTNERS_REPORTING.toString+"'::CLOSED_REASON WHERE uri_id=? AND open=true"
       val ps = conn.prepareStatement(sql)
       uriIds.foreach { id =>
         ps.setInt(1, id)
@@ -142,7 +151,9 @@ object ReviewRequest {
 		    row[Option[Long]]("ip"),
 		    row[Option[String]]("requester_notes"),
 		    row[Date]("requested_at").getTime / 1000,
-		    closedAt
+		    closedAt,
+		    row[Option[ClosedReason]]("closed_reason"),
+		    row[Option[Int]]("review_id")
   		))
     } catch {
       case e: Exception => None

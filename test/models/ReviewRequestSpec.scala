@@ -5,7 +5,7 @@ import org.junit.runner._
 import org.specs2.runner._
 import play.api.test._
 import play.api.test.Helpers._
-import models.enums.Source
+import models.enums.{ClosedReason, Source}
 
 @RunWith(classOf[JUnitRunner])
 class ReviewRequestSpec extends Specification {
@@ -45,7 +45,7 @@ class ReviewRequestSpec extends Specification {
       running(FakeApplication()) {
         val rr = request
         rr.open must beTrue	
-        rr.close(Some(System.currentTimeMillis / 1000))
+        rr.close(ClosedReason.ADMINISTRATIVE, None, Some(System.currentTimeMillis / 1000))
         ReviewRequest.find(rr.id).get.open must beFalse
       }
     }
