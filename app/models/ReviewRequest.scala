@@ -8,7 +8,7 @@ import play.api.db._
 import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
-import controllers.Email
+import controllers.{Email, Mailer}
 import models.enums.ClosedReason
 
 case class ReviewRequest(
@@ -49,6 +49,13 @@ case class ReviewRequest(
     }
     if (closed) {
       //TODO WTSN-30 send close notification
+//      val uri = Uri.	//TODO FIND URI by ID
+      val uri = ""	//DELME WTSN-30
+      val badCode = ""	//TODO WTSN-30
+      reason match {
+        case ClosedReason.NO_PARTNERS_REPORTING => Mailer.sendNoLongerBlacklisted(email, uri)
+        case ClosedReason.REVIEWED_BAD => Mailer.sendReviewClosedBad(email, uri, badCode)
+      }
     }
     closed
   } 
@@ -112,7 +119,9 @@ object ReviewRequest {
     	  (sets._1 + uriId, sets._2 + ToEmail(email, uri))
     	}
     	val closed = closeAsNotBlacklisted(urisEmails._1)
-    	//TODO WTSN-30 send emails
+    	urisEmails._2.foreach { emailUri =>
+    	  Mailer.sendNoLongerBlacklisted(emailUri.email, emailUri.uri)
+    	}
     	closed
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)

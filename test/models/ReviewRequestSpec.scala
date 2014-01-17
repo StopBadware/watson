@@ -76,12 +76,6 @@ class ReviewRequestSpec extends Specification {
       }
     }
     
-    "send notification email after closing review request" in {
-      running(FakeApplication()) {
-        true must beFalse	//TODO WTSN-30
-      }
-    }
-    
     "delete a review request" in {
       running(FakeApplication()) {
         val rr = request
