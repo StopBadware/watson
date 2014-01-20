@@ -6,6 +6,7 @@ import scala.util.Try
 import play.api._
 import play.api.mvc._
 import com.codahale.jerkson.Json._
+import models.EmailTemplate
 
 object Mailer extends Controller {
   
@@ -13,14 +14,20 @@ object Mailer extends Controller {
   private val apiKey = sys.env("MANDRILL_APIKEY")
   private val sendMail = Try(sys.env("SEND_EMAILS").equalsIgnoreCase("true")).getOrElse(false)
   private val smtpUrl = "https://mandrillapp.com/api/1.0/messages/send.json"
+  private val noLongBlacklisted = "NoLongerBlacklisted"
+  private val reviewClosedBad = "ReviewClosedBad"
+  private val reviewClosedCleanTts = "ReviewClosedCleanTts"
     
-  //TODO WTSN-30 email template content will rarely change, grab from db on object creation, update map when template updated
-  
   def sendNoLongerBlacklisted(email: String, uri: String): Boolean = {
-    //TODO WTSN-30 send no longer blacklisted notification
-    val subject = "TEST"
-    val body = "EOM"
-    return send(sendReqJson(email, subject, body, "NoLongerBlacklisted"))
+    val template = EmailTemplate.find(noLongBlacklisted)
+    val subjBody = if (template.isDefined) {
+      (template.get.subject, template.get.body)
+    } else {
+      //TODO WTSN-30 insert default
+      ("PLACEHOLDER SUBJECT", "PLACEHOLDER BODY")
+    }
+    //TODO WTSN-30 insert URI
+    return send(sendReqJson(email, subjBody._1, subjBody._2, noLongBlacklisted))
   }
   
   def sendReviewClosedBad(email: String, uri: String, badCode: String): Boolean = {
@@ -71,6 +78,5 @@ object Mailer extends Controller {
     ))
   }
   
-//  private def findOrCreate
   
 }
