@@ -24,11 +24,12 @@ case class ReviewRequest(
     reviewId: Option[Int]
     ) {
   
-  def delete() = DB.withConnection { implicit conn =>
-    try {
-      SQL("DELETE FROM review_requests WHERE id={id}").on("id" -> id).executeUpdate()
+  def delete(): Boolean = DB.withConnection { implicit conn =>
+    return try {
+      SQL("DELETE FROM review_requests WHERE id={id}").on("id" -> id).executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
+      false
     }
   }
   
