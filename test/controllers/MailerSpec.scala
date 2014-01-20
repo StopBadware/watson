@@ -9,11 +9,13 @@ import play.api.test.Helpers._
 @RunWith(classOf[JUnitRunner])
 class MailerSpec extends Specification {
   
+  private val email = "test@stopbadware.org"
+  
   "Mailer" should {
     
     "send notification email for review of uri no longer blacklisted" in {
       running(FakeApplication()) {
-        true must beFalse	//TODO WTSN-30
+        Mailer.sendNoLongerBlacklisted(email, "example.com") must beTrue
       }
     }
     
@@ -24,12 +26,6 @@ class MailerSpec extends Specification {
     }
     
     "send notification email after closing TTS review request clean" in {
-      running(FakeApplication()) {
-        true must beFalse	//TODO WTSN-30
-      }
-    }
-    
-    "send an email" in {
       running(FakeApplication()) {
         true must beFalse	//TODO WTSN-30
       }
