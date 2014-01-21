@@ -34,7 +34,16 @@ class UriSpec extends Specification {
         }
       	Uri.create(uris) must equalTo(numInBulk)
       }
-    }    
+    } 
+    
+    "find an existing Uri by ID" in {
+      running(FakeApplication()) {
+        val reported = reportedUri
+      	Uri.create(reported) must beTrue
+      	val id = Uri.find(reported.sha256).get.id
+      	Uri.find(id) must beSome
+      }
+    }
     
     "find an existing Uri by SHA2-256" in {
       running(FakeApplication()) {
