@@ -70,6 +70,7 @@ case class ReviewRequest(
           Mailer.sendReviewClosedCleanTts(email, uri)
         }
       }
+      case _ => Logger.info("Sending no notification for review request "+id+" closed as "+reason)
     }
   }
 
