@@ -101,6 +101,8 @@ object ReviewRequest {
     if (created) {
       val uri = Try(Uri.find(uriId).get.uri).getOrElse("")
       Mailer.sendReviewRequestReceived(email, uri)
+      //TODO WTSN-12 if blacklisted by Google add to rescan queue
+      //TODO WTSN-24 add to scanning queue
     }
     created
   }
