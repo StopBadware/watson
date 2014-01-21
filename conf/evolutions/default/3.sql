@@ -12,7 +12,7 @@ CREATE TABLE email_templates (
 
 INSERT INTO email_templates (name, subject, body) VALUES  
   ('NoLongerBlacklisted', '[StopBadware] subject', 'Use [URI] or [SAFE_URI] to insert links to URI or Clearinghouse entry'), 
-  ('ReviewClosedBad', '[StopBadware] subject', 'Use [URI] or [SAFE_URI] to insert links to URI or Clearinghouse entry'),
+  ('ReviewClosedBad', '[StopBadware] subject', 'Use [URI] or [SAFE_URI] to insert links to URI or Clearinghouse entry and [TESTER_NOTES] for comments from reviewer'),
   ('ReviewClosedCleanTts', '[StopBadware] subject', 'Use [URI] or [SAFE_URI] to insert links to URI or Clearinghouse entry'), 
   ('ReviewRequestReceived', '[StopBadware] subject', 'Use [URI] or [SAFE_URI] to insert links to URI or Clearinghouse entry');
 
