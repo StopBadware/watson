@@ -103,7 +103,7 @@ class BlacklistEventSpec extends Specification {
         BlacklistEvent.create(uris, source, time, None) must equalTo(uris.size)
         uris.map(id => BlacklistEvent.findByUri(id, Some(source))).flatten.forall(_.blacklistedAt==time) must beTrue
         val updatedTime = time - 1
-        
+        BlacklistEvent.updateBlacklistTime(uris, updatedTime, source)
         uris.map(id => BlacklistEvent.findByUri(id, Some(source))).flatten.forall(_.blacklistedAt==updatedTime) must beTrue
       }
     }    
