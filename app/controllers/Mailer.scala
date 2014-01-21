@@ -19,42 +19,40 @@ object Mailer extends Controller {
   private val reviewClosedCleanTts = "ReviewClosedCleanTts"
   private val reviewRequestReceived = "ReviewRequestReceived"
     
-  def sendNoLongerBlacklisted(email: String, uri: String): Boolean = {
-    val template = EmailTemplate.find(noLongerBlacklisted)
+  def sendNoLongerBlacklisted(email: String, uri: String): Boolean = sendTemplate(noLongerBlacklisted, email, uri)
+  
+  def sendReviewClosedCleanTts(email: String, uri: String): Boolean = sendTemplate(reviewClosedCleanTts, email, uri)
+  
+  def sendReviewRequestReceived(email: String, uri: String): Boolean = sendTemplate(reviewRequestReceived, email, uri)
+  
+  def sendReviewClosedBad(email: String, uri: String, notes: String): Boolean = {
+    sendTemplate(reviewClosedBad, email, uri, notes)
+  }
+  
+  private def sendTemplate(templateName: String, email: String, uri: String, notes: String=""): Boolean = {
+    val template = EmailTemplate.find(templateName)
     return if (template.isDefined) {
-      val body = insertUriLinks(template.get.body, uri)
-      send(sendReqJson(email, template.get.subject, body, noLongerBlacklisted))
+      val body = replacePlaceholders(template.get.body, uri, notes)
+      val json = sendReqJson(email, template.get.subject, body, templateName)
+      if (sendMail || email.endsWith("@stopbadware.org")) send(json) else json.nonEmpty
     } else {
-      Logger.error("No email template found for "+noLongerBlacklisted)
+      Logger.error("No email template found for "+templateName)
       false
     }
   }
   
-  def sendReviewClosedBad(email: String, uri: String, badCode: String): Boolean = {
-    //TODO WTSN-30 send no longer blacklisted notification
-    return false	//DELME WTSN-30
-  }
-  
-  def sendReviewClosedCleanTts(email: String, uri: String): Boolean = {
-    //TODO WTSN-30 send no longer blacklisted notification
-    return false	//DELME WTSN-30
-  }
-  
-  def sendReviewRequestReceived(email: String, uri: String): Boolean = {
-    //TODO WTSN-30 send review request received notification
-    return false	//DELME WTSN-30
-  }
-  
-  private def insertUriLinks(content: String, uri: String): String = {
+  private def replacePlaceholders(content: String, uri: String, notes: String=""): String = {
     val link = "<a href='"+uri+"'>"+uri+"</a>"
     val safeLink = "<a href='"+"https://www.stopbadware.org/clearinghouse/search/?exactonly=true&url="+uri+"'>"+uri+"</a>"
-    content.replaceAllLiterally("[URI]", link).replaceAllLiterally("[SAFE_URI]", safeLink)
+    return content
+  		.replaceAllLiterally("[URI]", link)
+  		.replaceAllLiterally("[SAFE_URI]", safeLink)
+  		.replaceAllLiterally("[TESTER_NOTES]", notes)
   }
   
   private def send(json: String): Boolean = {
     return try {
       val url = new URL(smtpUrl)
-//      val url = new URL("http://127.0.0.1:1811/")	//DELME WTSN-30
       val conn = url.openConnection.asInstanceOf[HttpURLConnection]
       conn.setRequestMethod("POST")
       conn.setRequestProperty("Content-Type", "application/json")
@@ -63,7 +61,6 @@ object Mailer extends Controller {
       out.write(json)
       out.close()
       val response = conn.getResponseCode
-      println(response)	//DELME WTSN-30
       conn.disconnect()
       if (response != 200) {
         Logger.warn("Received HTTP status "+response+" sending email")

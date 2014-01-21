@@ -22,7 +22,7 @@ class MailerSpec extends Specification {
     
     "send notification email after closing review request bad" in {
       running(FakeApplication()) {
-        Mailer.sendReviewClosedBad(email, uri, "BADCODE") must beTrue
+        Mailer.sendReviewClosedBad(email, uri, "Your site needs more cowbell") must beTrue
       }
     }
     
