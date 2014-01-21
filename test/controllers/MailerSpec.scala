@@ -10,24 +10,31 @@ import play.api.test.Helpers._
 class MailerSpec extends Specification {
   
   private val email = "test@stopbadware.org"
+  private val uri = "http://example.com/"
   
   "Mailer" should {
     
     "send notification email for review of uri no longer blacklisted" in {
       running(FakeApplication()) {
-        Mailer.sendNoLongerBlacklisted(email, "example.com") must beTrue
+        Mailer.sendNoLongerBlacklisted(email, uri) must beTrue
       }
     }
     
     "send notification email after closing review request bad" in {
       running(FakeApplication()) {
-        true must beFalse	//TODO WTSN-30
+        Mailer.sendReviewClosedBad(email, uri, "BADCODE") must beTrue
       }
     }
     
     "send notification email after closing TTS review request clean" in {
       running(FakeApplication()) {
-        true must beFalse	//TODO WTSN-30
+        Mailer.sendReviewClosedCleanTts(email, uri) must beTrue
+      }
+    }
+    
+    "send notification email after receiving review request" in {
+      running(FakeApplication()) {
+        Mailer.sendReviewRequestReceived(email, uri) must beTrue
       }
     }
     

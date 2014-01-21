@@ -14,20 +14,20 @@ object Mailer extends Controller {
   private val apiKey = sys.env("MANDRILL_APIKEY")
   private val sendMail = Try(sys.env("SEND_EMAILS").equalsIgnoreCase("true")).getOrElse(false)
   private val smtpUrl = "https://mandrillapp.com/api/1.0/messages/send.json"
-  private val noLongBlacklisted = "NoLongerBlacklisted"
+  private val noLongerBlacklisted = "NoLongerBlacklisted"
   private val reviewClosedBad = "ReviewClosedBad"
   private val reviewClosedCleanTts = "ReviewClosedCleanTts"
+  private val reviewRequestReceived = "ReviewRequestReceived"
     
   def sendNoLongerBlacklisted(email: String, uri: String): Boolean = {
-    val template = EmailTemplate.find(noLongBlacklisted)
-    val subjBody = if (template.isDefined) {
-      (template.get.subject, template.get.body)
+    val template = EmailTemplate.find(noLongerBlacklisted)
+    return if (template.isDefined) {
+      val body = insertUriLinks(template.get.body, uri)
+      send(sendReqJson(email, template.get.subject, body, noLongerBlacklisted))
     } else {
-      //TODO WTSN-30 insert default
-      ("PLACEHOLDER SUBJECT", "PLACEHOLDER BODY")
+      Logger.error("No email template found for "+noLongerBlacklisted)
+      false
     }
-    //TODO WTSN-30 insert URI
-    return send(sendReqJson(email, subjBody._1, subjBody._2, noLongBlacklisted))
   }
   
   def sendReviewClosedBad(email: String, uri: String, badCode: String): Boolean = {
@@ -40,10 +40,21 @@ object Mailer extends Controller {
     return false	//DELME WTSN-30
   }
   
+  def sendReviewRequestReceived(email: String, uri: String): Boolean = {
+    //TODO WTSN-30 send review request received notification
+    return false	//DELME WTSN-30
+  }
+  
+  private def insertUriLinks(content: String, uri: String): String = {
+    val link = "<a href='"+uri+"'>"+uri+"</a>"
+    val safeLink = "<a href='"+"https://www.stopbadware.org/clearinghouse/search/?exactonly=true&url="+uri+"'>"+uri+"</a>"
+    content.replaceAllLiterally("[URI]", link).replaceAllLiterally("[SAFE_URI]", safeLink)
+  }
+  
   private def send(json: String): Boolean = {
     return try {
-//      val url = new URL(smtpUrl)
-      val url = new URL("http://127.0.0.1:1811/")	//DELME WTSN-30
+      val url = new URL(smtpUrl)
+//      val url = new URL("http://127.0.0.1:1811/")	//DELME WTSN-30
       val conn = url.openConnection.asInstanceOf[HttpURLConnection]
       conn.setRequestMethod("POST")
       conn.setRequestProperty("Content-Type", "application/json")
@@ -73,7 +84,9 @@ object Mailer extends Controller {
 	      "to" -> Array(Map("email" -> email)),
 	      "subject" -> subject,
 	      "html" -> htmlBody,
-	      "tags" -> Array(tag)
+	      "tags" -> Array(tag),
+	      "track_clicks" -> false,
+	      "track_opens" -> false
       )
     ))
   }
