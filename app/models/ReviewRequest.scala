@@ -9,7 +9,8 @@ import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
 import controllers.{Email, Mailer}
-import models.enums.ClosedReason
+import models.enums.{ClosedReason, Source}
+import models.enums.ClosedReason._
 
 case class ReviewRequest(
     id: Int,
@@ -48,18 +49,29 @@ case class ReviewRequest(
       case e: PSQLException => Logger.error(e.getMessage)
       false
     }
+    
     if (closed) {
-      //TODO WTSN-30 send close notification
-//      val uri = Uri.	//TODO FIND URI by ID
-      val uri = ""	//DELME WTSN-30
-      val badCode = ""	//TODO WTSN-30
-      reason match {
-        case ClosedReason.NO_PARTNERS_REPORTING => Mailer.sendNoLongerBlacklisted(email, uri)
-        case ClosedReason.REVIEWED_BAD => Mailer.sendReviewClosedBad(email, uri, badCode)
-      }
+      sendNotification(reason, reviewId)
     }
     closed
-  } 
+  }
+  
+  private def sendNotification(reason: ClosedReason, reviewId: Option[Int]=None) = {
+    val uri = Try(Uri.find(uriId).get.uri).getOrElse("")
+    reason match {
+      case NO_PARTNERS_REPORTING => Mailer.sendNoLongerBlacklisted(email, uri)
+      case REVIEWED_BAD => {
+        val notes = ""	//TODO WTSN-18 retrieve notes from review
+        Mailer.sendReviewClosedBad(email, uri, notes)
+      }
+      case REVIEWED_CLEAN => {
+        val events = BlacklistEvent.findBlacklistedByUri(uriId)
+        if (events.size == 1 && events.head.source == Source.TTS) {
+          Mailer.sendReviewClosedCleanTts(email, uri)
+        }
+      }
+    }
+  }
 
 }
 
@@ -69,7 +81,7 @@ object ReviewRequest {
     email: String,
     ip: Option[Long]=None,
     notes: Option[String]=None): Boolean = DB.withConnection { implicit conn =>
-    return try {
+    val created = try {
       val ipOrNull = if (ip.isDefined) ip.get else null
       val notesOrNull = if (notes.isDefined && notes.nonEmpty) notes.get else null
       if (Email.isValid(email)) {
@@ -84,6 +96,12 @@ object ReviewRequest {
       case e: PSQLException => Logger.error(e.getMessage)
       false
     }
+    
+    if (created) {
+      val uri = Try(Uri.find(uriId).get.uri).getOrElse("")
+      Mailer.sendReviewRequestReceived(email, uri)
+    }
+    created
   }
   
   def find(id: Int): Option[ReviewRequest] = DB.withConnection { implicit conn =>
@@ -133,7 +151,7 @@ object ReviewRequest {
   private def closeAsNotBlacklisted(uriIds: Iterable[Int]): Int = DB.withTransaction { implicit conn =>
     return try {
       val sql = "UPDATE review_requests SET open=false, closed_at=NOW(), closed_reason='"+
-    		ClosedReason.NO_PARTNERS_REPORTING.toString+"'::CLOSED_REASON WHERE uri_id=? AND open=true"
+    		NO_PARTNERS_REPORTING.toString+"'::CLOSED_REASON WHERE uri_id=? AND open=true"
       val ps = conn.prepareStatement(sql)
       uriIds.foreach { id =>
         ps.setInt(1, id)
