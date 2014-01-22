@@ -9,6 +9,7 @@ import play.api.test.Helpers._
 @RunWith(classOf[JUnitRunner])
 class ReviewTagSpec extends Specification {
   
+  private val numInBulk = 5
   def nowHex: String = System.currentTimeMillis.toHexString
   def createAndFind(prefix: String): ReviewTag = {
     val name = prefix+"_"+nowHex
@@ -64,13 +65,24 @@ class ReviewTagSpec extends Specification {
     
     "find tags by ids" in {
       running(FakeApplication()) {
-        true must beFalse	//DELME WTSN-31
+        val ids = (1 to numInBulk).map(id => createAndFind("ID"+id).id).toList
+        val found = ReviewTag.find(ids)
+        found.size must equalTo(ids.size)
+        found.map(tag => ids.contains(tag.id) must beTrue)
       }
     }
     
     "find all active tags" in {
       running(FakeApplication()) {
-        true must beFalse	//DELME WTSN-31
+        val active = (1 to numInBulk).map(id => createAndFind("ID"+id).id).toList
+        val inactive = (1 to numInBulk).map { id => 
+          val tag = createAndFind("ID"+id)
+          tag.toggleActive(false)
+          tag.id
+        }.toList
+        val activeTags = ReviewTag.allActive.map(_.id)
+        active.map(activeTags.contains(_) must beTrue)
+        inactive.map(activeTags.contains(_) must beFalse)
       }
     }
     

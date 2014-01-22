@@ -61,6 +61,33 @@ object ReviewTag {
     return Try(mapFromRow(SQL("SELECT * FROM review_tags WHERE id={id} LIMIT 1").on("id"->id)().head)).getOrElse(None)
   }
   
+  def find(ids: List[Int]): List[ReviewTag] = DB.withConnection { implicit conn =>
+    return try {
+      val sql = "SELECT * FROM review_tags WHERE id in (?"+(",?"*(ids.size-1))+")"
+      val ps = conn.prepareStatement(sql)
+      for (i <- 1 to ids.size) {
+        ps.setInt(i, ids(i-1))
+      }
+      val rs = ps.executeQuery
+      Iterator.continually((rs, rs.next())).takeWhile(_._2).map { case (row, hasNext) =>
+        Some(ReviewTag(
+			    row.getInt("id"),
+			    row.getString("name"),
+			    Try(Some(row.getString("description"))).getOrElse(None),
+			    row.getString("hex_color"),
+			    row.getBoolean("active")
+	  		))
+      }.flatten.toList
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      List()
+    }
+  }
+  
+  def allActive: List[ReviewTag] = DB.withConnection { implicit conn =>
+    Try(SQL("SELECT * FROM review_tags WHERE active=true")().map(mapFromRow).flatten.toList).getOrElse(List())
+  }
+  
   def findByName(name: String): Option[ReviewTag] = DB.withConnection { implicit conn =>
     return Try(mapFromRow(SQL("SELECT * FROM review_tags WHERE name={name} LIMIT 1")
       .on("name" -> name.toUpperCase)().head)).getOrElse(None)
