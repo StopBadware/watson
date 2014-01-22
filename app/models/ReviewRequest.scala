@@ -110,12 +110,7 @@ object ReviewRequest {
   }
   
   def find(id: Int): Option[ReviewRequest] = DB.withConnection { implicit conn =>
-    return try {
-      SQL("SELECT * FROM review_requests WHERE id={id}").on("id" -> id)().map(mapFromRow).headOption.getOrElse(None)
-    } catch {
-      case e: PSQLException => Logger.error(e.getMessage)
-      None
-    }
+    return Try(mapFromRow(SQL("SELECT * FROM review_requests WHERE id={id}").on("id" -> id)().head)).getOrElse(None)
   }
   
   def findByUri(uriId: Int): List[ReviewRequest] = DB.withConnection { implicit conn =>

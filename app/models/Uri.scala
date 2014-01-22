@@ -153,21 +153,12 @@ object Uri {
   }
   
   def find(id: Int): Option[Uri] = DB.withConnection { implicit conn =>
-    return try {
-      Try(mapFromRow(SQL("SELECT * FROM uris WHERE id={id} LIMIT 1").on("id"->id)().head)).getOrElse(None)
-    } catch {
-      case e: PSQLException => Logger.error(e.getMessage)
-      None
-    }
+    return Try(mapFromRow(SQL("SELECT * FROM uris WHERE id={id} LIMIT 1").on("id"->id)().head)).getOrElse(None)
   }
   
   def find(sha256: String): Option[Uri] = DB.withConnection { implicit conn =>
-    return try {
-      Try(mapFromRow(SQL("SELECT * FROM uris WHERE sha2_256={sha256} LIMIT 1").on("sha256"->sha256)().head)).getOrElse(None)
-    } catch {
-      case e: PSQLException => Logger.error(e.getMessage)
-      None
-    }
+    return Try(mapFromRow(SQL("SELECT * FROM uris WHERE sha2_256={sha256} LIMIT 1")
+      .on("sha256"->sha256)().head)).getOrElse(None)
   }
   
   def find(sha256s: List[String]): List[Uri] = DB.withTransaction { implicit conn =>
