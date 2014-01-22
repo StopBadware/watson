@@ -52,6 +52,7 @@ case class ReviewRequest(
     
     if (closed) {
       sendNotification(reason, reviewId)
+      //TODO WTSN-31 close review
     }
     closed
   }
@@ -103,6 +104,7 @@ object ReviewRequest {
       Mailer.sendReviewRequestReceived(email, uri)
       //TODO WTSN-12 if blacklisted by Google add to rescan queue
       //TODO WTSN-24 add to scanning queue
+      //TODO WTSN-31 create review
     }
     created
   }
@@ -144,6 +146,7 @@ object ReviewRequest {
     	urisEmails._2.foreach { emailUri =>
     	  Mailer.sendNoLongerBlacklisted(emailUri.email, emailUri.uri)
     	}
+    	//TODO WTSN-31 check for reviews to close
     	closed
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
