@@ -14,13 +14,15 @@ object ReviewStatus {
   val CLOSED_WITHOUT_REVIEW: ReviewStatus = models.enums.CLOSED_WITHOUT_REVIEW
   val NEW: ReviewStatus = models.enums.NEW
   val PENDING: ReviewStatus = models.enums.PENDING
+  val REJECTED: ReviewStatus = models.enums.REJECTED
   
   val statuses = Map(
       "BAD" -> BAD,
       "CLEAN" -> CLEAN,
       "CLOSED_WITHOUT_REVIEW" -> CLOSED_WITHOUT_REVIEW,
       "NEW" -> NEW,
-      "PENDING" -> PENDING
+      "PENDING" -> PENDING,
+      "REJECTED" -> REJECTED
     )
   
   def fromStr(str: String): Option[ReviewStatus] = {
@@ -42,3 +44,4 @@ case object CLEAN extends ReviewStatus("CLEAN")
 case object CLOSED_WITHOUT_REVIEW extends ReviewStatus("CLOSED_WITHOUT_REVIEW")
 case object NEW extends ReviewStatus("NEW")
 case object PENDING extends ReviewStatus("PENDING")
+case object REJECTED extends ReviewStatus("REJECTED")
