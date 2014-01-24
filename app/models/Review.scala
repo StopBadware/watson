@@ -26,6 +26,7 @@ case class Review(
   }
   
   def reject(verifier: Int, comments: String): Boolean = DB.withConnection { implicit conn =>
+    //TODO WTSN-31 add comments to review data
     return false 		//TODO WTSN-31
   }
   
@@ -66,7 +67,11 @@ object Review {
     return None		//TODO WTSN-31
   }
   
-  def findByUris(uriId: Int): List[Review] = DB.withConnection { implicit conn =>
+  def findByTag(tagId: Int): List[Review] = DB.withConnection { implicit conn =>
+    return List()		//TODO WTSN-31
+  }
+  
+  def findByUri(uriId: Int): List[Review] = DB.withConnection { implicit conn =>
     return List()		//TODO WTSN-31
   }
   
