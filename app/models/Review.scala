@@ -79,8 +79,7 @@ object Review {
   
   def findByUri(uriId: Int): List[Review] = DB.withConnection { implicit conn =>
     return try {
-//      SQL("SELECT * FROM reviews WHERE uri_id={uriId} LIMIT 1").on("uriId"->uriId)()
-      SQL("SELECT * FROM reviews WHERE uri_id={uriId} LIMIT 1").on("uriId"->1)()	//TODO REVERT WTSN-31
+      SQL("SELECT * FROM reviews WHERE uri_id={uriId} LIMIT 1").on("uriId"->uriId)()
       	.map(mapFromRow).flatten.toList
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
@@ -89,12 +88,6 @@ object Review {
   }
   
   private def mapFromRow(row: SqlRow): Option[Review] = {
-    val tags  = {
-      val array = row[Option[Array[Int]]]("review_tag_ids").getOrElse(Array())
-//      (tag <- array)
-      List()
-    }
-    println(tags)	//DELME WTSN-31
     return try {
       Some(Review(
       	row[Int]("id"), 
@@ -102,7 +95,7 @@ object Review {
 			  row[Option[Int]]("reviewed_by"),
 			  row[Option[Int]]("verified_by"),
 			  row[Option[Int]]("review_data_id"),
-			  tags,
+			  row[Option[Array[Int]]]("review_tag_ids").getOrElse(Array()).toList,
 			  row[ReviewStatus]("status"),
 			  row[Date]("created_at").getTime / 1000,
 			  row[Date]("status_updated_at").getTime / 1000
