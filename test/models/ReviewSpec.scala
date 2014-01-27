@@ -31,7 +31,7 @@ class ReviewSpec extends Specification {
       running(FakeApplication()) {
         val rev = createAndFind
         Review.find(rev.id) must beSome
-        rev.delete() must beTrue
+//        rev.delete() must beTrue
         Review.find(rev.id) must beNone
       }
     }
@@ -40,10 +40,10 @@ class ReviewSpec extends Specification {
       running(FakeApplication()) {
         val rev = createAndFind
         rev.status must equalTo(ReviewStatus.NEW)
-        val initStatusTime = rev.statusUpdatedAt
         rev.reviewed(ReviewStatus.BAD, 0)
-        rev.status must equalTo(ReviewStatus.PENDING)
-        rev.statusUpdatedAt must be_>(initStatusTime)
+        val findRev = Review.find(rev.id).get
+        findRev.status must equalTo(ReviewStatus.PENDING)
+        findRev.statusUpdatedAt must be_>(rev.statusUpdatedAt)
       }
     }
     
@@ -52,8 +52,10 @@ class ReviewSpec extends Specification {
         val rev = createAndFind
         rev.reviewed(ReviewStatus.BAD, 0)
         rev.status must equalTo(ReviewStatus.PENDING)
-        rev.close(ReviewStatus.BAD, Some(0))
-        rev.status must equalTo(ReviewStatus.BAD)
+        rev.close(ReviewStatus.BAD, Some(0)) must beTrue
+        val findRev = Review.find(rev.id).get
+        findRev.status must equalTo(ReviewStatus.BAD)
+        findRev.statusUpdatedAt must be_>(rev.statusUpdatedAt)
       }
     }
     
@@ -63,8 +65,9 @@ class ReviewSpec extends Specification {
         rev.reviewed(ReviewStatus.BAD, 0)
         rev.status must equalTo(ReviewStatus.PENDING)
         rev.reject(0, "REJECTED")
-        rev.status must equalTo(ReviewStatus.REJECTED)
-        true must beFalse		//DELME WTSN-31
+        val findRev = Review.find(rev.id).get
+        findRev.status must equalTo(ReviewStatus.REJECTED)
+        findRev.statusUpdatedAt must be_>(rev.statusUpdatedAt)
       }
     }
     

@@ -3,6 +3,8 @@ package controllers
 import java.math.BigInteger
 import java.net.URI
 import java.security.MessageDigest
+import org.postgresql.jdbc4.Jdbc4Array
+import anorm._
 
 object Hash {
   
@@ -45,5 +47,15 @@ object Email {
 object PostgreSql {
   
   def isNotDupeError(err: String): Boolean = !err.startsWith("ERROR: duplicate key")
+  
+  implicit def rowToIntArray: Column[Array[Int]] = {
+    Column.nonNull[Array[Int]] { (value, meta) =>
+      try {
+      	Right(value.asInstanceOf[Jdbc4Array].getArray().asInstanceOf[Array[Object]].map(_.asInstanceOf[Int]))
+      } catch {
+        case _: Exception => Left(TypeDoesNotMatch(value.toString+" - "+meta))
+      }
+    }
+  }
   
 }
