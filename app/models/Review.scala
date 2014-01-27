@@ -23,7 +23,7 @@ case class Review(
   ) {
   
   def reviewed(verdict: ReviewStatus, reviewer: Int, reviewData: Option[Int]=None): Boolean = DB.withConnection { implicit conn =>
-    val dataId = if (reviewData.isDefined) reviewData.get else reviewDataId.getOrElse(null)
+    val dataId = if (reviewData.isDefined) reviewData else reviewDataId
     val newStatus = if (verdict == ReviewStatus.BAD) ReviewStatus.PENDING else verdict
     return try {
       SQL("""UPDATE reviews SET status={status}::REVIEW_STATUS, reviewed_by={reviewerId}, 
@@ -36,24 +36,25 @@ case class Review(
   }
   
   def reject(verifier: Int, comments: String): Boolean = DB.withConnection { implicit conn =>
-    //TODO WTSN-31 add comments to review data
-    return false 		//TODO WTSN-31
+    //TODO WTSN-18 add comments to review data
+    return close(ReviewStatus.REJECTED, Some(verifier))
   }
   
   def close(closeAs: ReviewStatus, verifier: Option[Int]=None): Boolean = DB.withConnection { implicit conn =>
-    return false 		//TODO WTSN-31
+    val verifierId = if (verifier.isDefined) verifier else verifiedBy
+    val closed = try {
+      SQL("""UPDATE reviews SET status={status}::REVIEW_STATUS, verified_by={verifierId}, 
+        status_updated_at=NOW() WHERE id={id} AND status<='PENDING'::REVIEW_STATUS""")
+        .on("id" -> id, "status" -> closeAs.toString, "verifierId" -> verifierId).executeUpdate() > 0
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      false
+    }
+    if (closed) {
+      //TODO WTSN-31 close review requests
+    }
+    return closed
   }
-  
-//  def updateStatus(description: Option[String], hexColor: String): Boolean = DB.withConnection { implicit conn =>
-//    return try {
-//      SQL("UPDATE reviews SET description={description}, hex_color={hexColor} WHERE id={id}")
-//        .on("id" -> id, "description" -> Try(description.get).getOrElse(null), "hexColor" -> hexColor)
-//        .executeUpdate() > 0
-//    } catch {
-//      case e: PSQLException => Logger.error(e.getMessage)
-//      false
-//    }
-//  }	//DELME WTSN-31
   
   def delete(): Boolean = DB.withConnection { implicit conn =>
     return try {

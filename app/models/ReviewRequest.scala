@@ -3,14 +3,14 @@ package models
 import java.util.Date
 import java.sql.Timestamp
 import scala.util.Try
+import scala.actors.Futures.future
 import anorm._
 import play.api.db._
 import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
 import controllers.{Email, Mailer}
-import models.enums.{ClosedReason, Source}
-import models.enums.ClosedReason._
+import models.enums._
 
 case class ReviewRequest(
     id: Int,
@@ -34,16 +34,16 @@ case class ReviewRequest(
     }
   }
   
-  def close(reason: ClosedReason, reviewId: Option[Int]=None, closedAt: Option[Long]=None): Boolean = DB.withConnection { implicit conn =>
-  	val closeTime = closedAt.getOrElse(System.currentTimeMillis / 1000)
+  def close(reason: ClosedReason, review: Option[Int]=None, closedAt: Option[Long]=None): Boolean = DB.withConnection { implicit conn =>
+  	val revId = if (review.isDefined) review else reviewId
+    val closeTime = closedAt.getOrElse(System.currentTimeMillis / 1000)
     val closed = try {
-      val revId = if (reviewId.isDefined) reviewId.get else null
       SQL("""UPDATE review_requests SET open=false, closed_at={closedAt}, review_id={reviewId} 
         , closed_reason={reason}::CLOSED_REASON WHERE id={id}""")
       	.on("id" -> id,
-      	    "reason" -> reason.toString,
-      	    "closedAt" -> new Timestamp(closeTime * 1000), 
-      	    "reviewId" -> revId)
+    	    "reason" -> reason.toString,
+    	    "closedAt" -> new Timestamp(closeTime * 1000), 
+    	    "reviewId" -> revId)
       	.executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
@@ -51,8 +51,8 @@ case class ReviewRequest(
     }
     
     if (closed) {
-      sendNotification(reason, reviewId)
-      //TODO WTSN-31 close review
+      future(sendNotification(reason, revId))
+      revId.map(Review.find(_).map(_.close(ReviewStatus.CLOSED_WITHOUT_REVIEW)))
     }
     closed
   }
@@ -84,12 +84,10 @@ object ReviewRequest {
     ip: Option[Long]=None,
     notes: Option[String]=None): Boolean = DB.withConnection { implicit conn =>
     val created = try {
-      val ipOrNull = if (ip.isDefined) ip.get else null
-      val notesOrNull = if (notes.isDefined && notes.nonEmpty) notes.get else null
       if (Email.isValid(email)) {
 	      SQL("""INSERT INTO review_requests (uri_id, email, ip, requester_notes) 
 	        VALUES({uriId}, {email}, {ip}, {notes})""")
-	        .on("uriId" -> uriId, "email" -> email, "ip" -> ipOrNull, "notes" -> notesOrNull)
+	        .on("uriId" -> uriId, "email" -> email, "ip" -> ip, "notes" -> notes)
 	        .executeUpdate() > 0
       } else {
         false

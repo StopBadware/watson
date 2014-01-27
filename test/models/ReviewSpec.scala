@@ -10,8 +10,8 @@ import models.enums.ReviewStatus
 @RunWith(classOf[JUnitRunner])
 class ReviewSpec extends Specification {
   
-  private val reviewer = 1	//TODO WTSN-31 get from users table (create if needed)
-  private val verifier = 1	//TODO WTSN-31 get from users table (create if needed)
+  private val reviewer = 1	//TODO WTSN-48 get from users table (create if needed)
+  private val verifier = 1	//TODO WTSN-48 get from users table (create if needed)
   private def validUri: Uri = Uri.findOrCreate(UriSpec.validUri).get
   private def createAndFind: Review = {
     val uri = validUri
@@ -53,8 +53,7 @@ class ReviewSpec extends Specification {
     "verify a review" in {
       running(FakeApplication()) {
         val rev = createAndFind
-        rev.reviewed(ReviewStatus.BAD, reviewer)
-        rev.status must equalTo(ReviewStatus.PENDING)
+        rev.reviewed(ReviewStatus.BAD, reviewer) must beTrue
         rev.close(ReviewStatus.BAD, Some(verifier)) must beTrue
         Review.find(rev.id).get.status must equalTo(ReviewStatus.BAD)
       }
@@ -63,9 +62,8 @@ class ReviewSpec extends Specification {
     "reject a review" in {
       running(FakeApplication()) {
         val rev = createAndFind
-        rev.reviewed(ReviewStatus.BAD, reviewer)
-        rev.status must equalTo(ReviewStatus.PENDING)
-        rev.reject(verifier, "REJECTED")
+        rev.reviewed(ReviewStatus.BAD, reviewer) must beTrue
+        rev.reject(verifier, "REJECTED") must beTrue
         Review.find(rev.id).get.status must equalTo(ReviewStatus.REJECTED)
       }
     }
