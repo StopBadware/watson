@@ -71,7 +71,7 @@ object BlacklistEvent {
   } 
   
   def find(id: Int): Option[BlacklistEvent] = DB.withConnection { implicit conn =>
-    return mapFromRow(SQL("SELECT * FROM blacklist_events WHERE id={id}").on("id" -> id)().head)
+    return Try(mapFromRow(SQL("SELECT * FROM blacklist_events WHERE id={id}").on("id" -> id)().head)).getOrElse(None)
   }
   
   def findByUri(uriId: Int, source: Option[Source]=None): List[BlacklistEvent] = findEventsByUri(uriId, source)
