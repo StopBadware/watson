@@ -21,10 +21,18 @@ case class Review(
 	  createdAt: Long,
 	  statusUpdatedAt: Long
   ) {
-
   
   def reviewed(verdict: ReviewStatus, reviewer: Int, reviewData: Option[Int]=None): Boolean = DB.withConnection { implicit conn =>
-    return false 		//TODO WTSN-31
+    val dataId = if (reviewData.isDefined) reviewData.get else reviewDataId.getOrElse(null)
+    val newStatus = if (verdict == ReviewStatus.BAD) ReviewStatus.PENDING else verdict
+    return try {
+      SQL("""UPDATE reviews SET status={status}::REVIEW_STATUS, reviewed_by={reviewerId}, 
+        review_data_id={dataId}, status_updated_at=NOW() WHERE id={id}""")
+        .on("id" -> id, "status" -> newStatus.toString, "reviewerId" -> reviewer, "dataId" -> dataId).executeUpdate() > 0
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      false
+    }
   }
   
   def reject(verifier: Int, comments: String): Boolean = DB.withConnection { implicit conn =>
