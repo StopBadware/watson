@@ -68,9 +68,19 @@ class ReviewSpec extends Specification {
       }
     }
     
-    "re-open a review" in {
+    "reopen a review" in {
       running(FakeApplication()) {
         val rev = createAndFind
+        rev.close(ReviewStatus.CLOSED_WITHOUT_REVIEW) must beTrue
+        Review.find(rev.id).get.reopen() must beTrue
+        Review.find(rev.id).get.status must equalTo(ReviewStatus.REOPENED)
+      }
+    }
+    
+    "determines if trade is in a closed state or not" in {
+      running(FakeApplication()) {
+        val rev = createAndFind
+        //TODO WTSN-31 
         true must beFalse		//DELME WTSN-31
       }
     }

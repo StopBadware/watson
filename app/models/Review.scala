@@ -56,6 +56,16 @@ case class Review(
     return closed
   }
   
+  def reopen(): Boolean = DB.withConnection { implicit conn =>
+    return try {
+      SQL("""UPDATE reviews SET status='REOPENED'::REVIEW_STATUS, status_updated_at=NOW() WHERE id={id}""")
+      	.on("id" -> id).executeUpdate() > 0
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      false
+    }
+  }
+  
   def delete(): Boolean = DB.withConnection { implicit conn =>
     return try {
       SQL("DELETE FROM reviews WHERE id={id}").on("id" -> id).executeUpdate() > 0
