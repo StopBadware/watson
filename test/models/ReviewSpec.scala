@@ -136,7 +136,7 @@ class ReviewSpec extends Specification {
     "find a review" in {
       running(FakeApplication()) {
         val rev = createAndFind
-        true must beFalse		//DELME WTSN-31
+        Review.find(rev.id) must beSome
       }
     }
     
@@ -150,7 +150,7 @@ class ReviewSpec extends Specification {
     "find reviews by Uri" in {
       running(FakeApplication()) {
         val rev = createAndFind
-        true must beFalse		//DELME WTSN-31
+        Review.findByUri(rev.uriId) must not beEmpty
       }
     }
     

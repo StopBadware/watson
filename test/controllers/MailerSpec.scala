@@ -16,25 +16,25 @@ class MailerSpec extends Specification {
     
     "send notification email for review of uri no longer blacklisted" in {
       running(FakeApplication()) {
-        Mailer.sendNoLongerBlacklisted(email, uri) must beTrue
+        Mailer.sendNoLongerBlacklisted(email, uri).apply() must beTrue
       }
     }
     
     "send notification email after closing review request bad" in {
       running(FakeApplication()) {
-        Mailer.sendReviewClosedBad(email, uri, "Your site needs more cowbell") must beTrue
+        Mailer.sendReviewClosedBad(email, uri, "Your site needs more cowbell").apply() must beTrue
       }
     }
     
     "send notification email after closing TTS review request clean" in {
       running(FakeApplication()) {
-        Mailer.sendReviewClosedCleanTts(email, uri) must beTrue
+        Mailer.sendReviewClosedCleanTts(email, uri).apply() must beTrue
       }
     }
     
     "send notification email after receiving review request" in {
       running(FakeApplication()) {
-        Mailer.sendReviewRequestReceived(email, uri) must beTrue
+        Mailer.sendReviewRequestReceived(email, uri).apply() must beTrue
       }
     }
     

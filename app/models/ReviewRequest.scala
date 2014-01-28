@@ -3,7 +3,6 @@ package models
 import java.util.Date
 import java.sql.Timestamp
 import scala.util.Try
-import scala.actors.Futures.future
 import anorm._
 import play.api.db._
 import play.api.Play.current
@@ -51,7 +50,7 @@ case class ReviewRequest(
     }
     
     if (closed) {
-      future(sendNotification(reason, revId))
+      sendNotification(reason, revId)
       revId.map(Review.find(_).map(_.close(ReviewStatus.CLOSED_WITHOUT_REVIEW)))
     }
     closed
