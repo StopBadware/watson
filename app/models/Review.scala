@@ -84,7 +84,9 @@ object Review {
   def create(uriId: Int): Boolean = DB.withConnection { implicit conn =>
     //TODO WTSN-31 only create if not only open review for uri id
     try {
-      SQL("INSERT INTO reviews (uri_id) VALUES ({uriId})").on("uriId" -> uriId).executeUpdate() > 0
+      SQL("""INSERT INTO reviews (uri_id) SELECT {uriId} WHERE NOT EXISTS 
+        (SELECT 1 FROM reviews WHERE uri_id={uriId} AND status<='PENDING'::REVIEW_STATUS)""")
+        .on("uriId" -> uriId).executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       false

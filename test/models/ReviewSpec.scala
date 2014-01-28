@@ -25,7 +25,17 @@ class ReviewSpec extends Specification {
       running(FakeApplication()) {
         val uri = validUri
         Review.create(uri.id) must beTrue
-        Review.findByUri(uri.id).nonEmpty must beTrue
+        Review.findByUri(uri.id).map(_.isOpen).size must equalTo(1)
+      }
+    }
+    
+    "not create a review if an open review already exists for a Uri" in {
+      running(FakeApplication()) {
+        val uri = validUri
+        Review.create(uri.id) must beTrue
+        Review.findByUri(uri.id).map(_.isOpen).size must equalTo(1)
+        Review.create(uri.id) must beFalse
+        Review.findByUri(uri.id).map(_.isOpen).size must equalTo(1)
       }
     }
     
