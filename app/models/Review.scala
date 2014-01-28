@@ -75,6 +75,8 @@ case class Review(
     }
   }
   
+  def isOpen: Boolean = status.isOpen
+  
 }
 
 object Review {
@@ -103,6 +105,16 @@ object Review {
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       List()
+    }
+  }
+  
+  def closeAllWithoutOpenReviewRequests(): Int = {
+    return try {
+      
+      0	//TODO WTSN-31
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      0
     }
   }
   

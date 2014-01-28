@@ -25,6 +25,16 @@ class ReviewStatusSpec extends Specification {
       ReviewStatus.CLOSED_WITHOUT_REVIEW must equalTo(ReviewStatus.CLOSED_WITHOUT_REVIEW)
     }
     
+    "determines if status represents a state of open" in {
+      ReviewStatus.BAD.isOpen must beFalse
+      ReviewStatus.CLEAN.isOpen must beFalse
+      ReviewStatus.CLOSED_WITHOUT_REVIEW.isOpen must beFalse
+      ReviewStatus.NEW.isOpen must beTrue
+      ReviewStatus.PENDING.isOpen must beTrue
+      ReviewStatus.REJECTED.isOpen must beTrue
+      ReviewStatus.REOPENED.isOpen must beTrue
+    }
+    
   }
 
 }

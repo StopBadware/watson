@@ -4,6 +4,7 @@ import anorm.{Column, TypeDoesNotMatch}
 import anorm.MayErr.eitherToError
 
 protected class ReviewStatus(status: String) {
+  def isOpen: Boolean = this.isInstanceOf[Open]
   override def toString: String = status
 }
 
@@ -44,7 +45,9 @@ object ReviewStatus {
 case object BAD extends ReviewStatus("BAD")
 case object CLEAN extends ReviewStatus("CLEAN")
 case object CLOSED_WITHOUT_REVIEW extends ReviewStatus("CLOSED_WITHOUT_REVIEW")
-case object NEW extends ReviewStatus("NEW")
-case object PENDING extends ReviewStatus("PENDING")
-case object REJECTED extends ReviewStatus("REJECTED")
-case object REOPENED extends ReviewStatus("REOPENED")
+case object NEW extends ReviewStatus("NEW") with Open
+case object PENDING extends ReviewStatus("PENDING") with Open
+case object REJECTED extends ReviewStatus("REJECTED") with Open
+case object REOPENED extends ReviewStatus("REOPENED") with Open
+
+protected trait Open {}

@@ -5,7 +5,7 @@ import org.junit.runner._
 import org.specs2.runner._
 import play.api.test._
 import play.api.test.Helpers._
-import models.enums.ReviewStatus
+import models.enums.{ClosedReason, ReviewStatus}
 
 @RunWith(classOf[JUnitRunner])
 class ReviewSpec extends Specification {
@@ -59,6 +59,23 @@ class ReviewSpec extends Specification {
       }
     }
     
+    "close reviews that no longer have open review requests" in {
+      running(FakeApplication()) {
+        val revWithoutRequest = createAndFind
+        ReviewRequest.findByUri(revWithoutRequest.uriId) must beEmpty
+        val revWithClosedRequest = createAndFind
+        ReviewRequest.create(revWithClosedRequest.uriId, "thrall@example.com")
+        val request = ReviewRequest.findByUri(revWithClosedRequest.uriId)
+        request.head.close(ClosedReason.NO_PARTNERS_REPORTING) must beTrue
+        val revWithOpenRequest = createAndFind
+        ReviewRequest.create(revWithOpenRequest.uriId, "sylvanas@example.com")
+        Review.closeAllWithoutOpenReviewRequests() must be_>(0)
+        Review.find(revWithoutRequest.id).head.isOpen must beFalse
+        Review.find(revWithClosedRequest.id).head.isOpen must beFalse
+        Review.find(revWithOpenRequest.id).head.isOpen must beTrue
+      }
+    }
+    
     "reject a review" in {
       running(FakeApplication()) {
         val rev = createAndFind
@@ -77,11 +94,12 @@ class ReviewSpec extends Specification {
       }
     }
     
-    "determines if trade is in a closed state or not" in {
+    "determines if review is in a closed state or not" in {
       running(FakeApplication()) {
         val rev = createAndFind
-        //TODO WTSN-31 
-        true must beFalse		//DELME WTSN-31
+        rev.isOpen must beTrue
+        rev.close(ReviewStatus.CLOSED_WITHOUT_REVIEW)
+        Review.find(rev.id).get.isOpen must beFalse
       }
     }
     
