@@ -34,7 +34,9 @@ case class ReviewRequest(
   }
   
   def close(reason: ClosedReason, review: Option[Int]=None, closedAt: Option[Long]=None): Boolean = DB.withConnection { implicit conn =>
-  	val revId = if (review.isDefined) review else reviewId
+  	//TODO WTSN-31 if reviewed clean update status but do not close
+    //TODO WTSN-31 if no partners reporting close but do not update status if reviewed clean
+    val revId = if (review.isDefined) review else reviewId
     val closeTime = closedAt.getOrElse(System.currentTimeMillis / 1000)
     val closed = try {
       SQL("""UPDATE review_requests SET open=false, closed_at={closedAt}, review_id={reviewId} 
@@ -51,7 +53,8 @@ case class ReviewRequest(
     
     if (closed) {
       sendNotification(reason, revId)
-      revId.map(Review.find(_).map(_.close(ReviewStatus.CLOSED_WITHOUT_REVIEW)))
+      //TODO WTSN-31 only close review if no other open review requests
+      revId.foreach(Review.find(_).filter(_.isOpen).foreach(_.close(ReviewStatus.CLOSED_WITHOUT_REVIEW)))
     }
     closed
   }
@@ -100,8 +103,6 @@ object ReviewRequest {
       val uri = Try(Uri.find(uriId).get.uri).getOrElse("")
       Mailer.sendReviewRequestReceived(email, uri)
       Review.create(uriId)
-      //TODO WTSN-12 if blacklisted by Google add to rescan queue
-      //TODO WTSN-24 add to scanning queue
     }
     created
   }

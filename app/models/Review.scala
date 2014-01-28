@@ -7,7 +7,7 @@ import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
 import scala.util.Try
-import models.enums.ReviewStatus
+import models.enums.{ClosedReason, ReviewStatus}
 import controllers.PostgreSql.rowToIntArray
 
 case class Review(
@@ -25,7 +25,7 @@ case class Review(
   def reviewed(verdict: ReviewStatus, reviewer: Int, reviewData: Option[Int]=None): Boolean = DB.withConnection { implicit conn =>
     val dataId = if (reviewData.isDefined) reviewData else reviewDataId
     val newStatus = if (verdict == ReviewStatus.BAD) ReviewStatus.PENDING else verdict
-    return try {
+    val updated = try {
       SQL("""UPDATE reviews SET status={status}::REVIEW_STATUS, reviewed_by={reviewerId}, 
         review_data_id={dataId}, status_updated_at=NOW() WHERE id={id}""")
         .on("id" -> id, "status" -> newStatus.toString, "reviewerId" -> reviewer, "dataId" -> dataId).executeUpdate() > 0
@@ -33,6 +33,12 @@ case class Review(
       case e: PSQLException => Logger.error(e.getMessage)
       false
     }
+    
+    if (updated && verdict == ReviewStatus.CLEAN) {
+      close(verdict)
+    }
+    
+    return updated
   }
   
   def reject(verifier: Int, comments: String): Boolean = DB.withConnection { implicit conn =>
@@ -51,7 +57,13 @@ case class Review(
       false
     }
     if (closed) {
+      val reason = closeAs match {
+        case ReviewStatus.BAD => ClosedReason.REVIEWED_BAD
+        case ReviewStatus.CLEAN => ClosedReason.REVIEWED_CLEAN
+      }
+      ReviewRequest.findByUri(uriId).foreach(_.close(reason, Some(id)))
       //TODO WTSN-31 close review requests
+      //TODO WTSN-12 add to Google rescan queue if blacklisted by google
     }
     return closed
   }
@@ -82,8 +94,9 @@ case class Review(
 object Review {
   
   def create(uriId: Int): Boolean = DB.withConnection { implicit conn =>
-    //TODO WTSN-31 only create if not only open review for uri id
-    try {
+    //TODO WTSN-12 if blacklisted by Google add to rescan queue
+    //TODO WTSN-24 add to scanning queue
+    return try {
       SQL("""INSERT INTO reviews (uri_id) SELECT {uriId} WHERE NOT EXISTS 
         (SELECT 1 FROM reviews WHERE uri_id={uriId} AND status<='PENDING'::REVIEW_STATUS)""")
         .on("uriId" -> uriId).executeUpdate() > 0
