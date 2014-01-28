@@ -69,10 +69,16 @@ class ReviewSpec extends Specification {
         request.head.close(ClosedReason.NO_PARTNERS_REPORTING) must beTrue
         val revWithOpenRequest = createAndFind
         ReviewRequest.create(revWithOpenRequest.uriId, "sylvanas@example.com")
+        val revWithOpenAndClosedRequest = createAndFind
+        ReviewRequest.create(revWithOpenAndClosedRequest.uriId, "voljin@example.com")
+        ReviewRequest.findByUri(revWithOpenAndClosedRequest.uriId).head.close(ClosedReason.NO_PARTNERS_REPORTING)
+        ReviewRequest.create(revWithOpenAndClosedRequest.uriId, "baine@example.com")
+        
         Review.closeAllWithoutOpenReviewRequests() must be_>(0)
         Review.find(revWithoutRequest.id).head.isOpen must beFalse
         Review.find(revWithClosedRequest.id).head.isOpen must beFalse
         Review.find(revWithOpenRequest.id).head.isOpen must beTrue
+        Review.find(revWithOpenAndClosedRequest.id).head.isOpen must beTrue
       }
     }
     

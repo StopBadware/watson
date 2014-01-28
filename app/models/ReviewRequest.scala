@@ -139,7 +139,7 @@ object ReviewRequest {
     	urisEmails._2.foreach { emailUri =>
     	  Mailer.sendNoLongerBlacklisted(emailUri.email, emailUri.uri)
     	}
-    	//TODO WTSN-31 check for reviews to close
+    	Review.closeAllWithoutOpenReviewRequests()
     	closed
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)

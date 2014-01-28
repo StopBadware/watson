@@ -82,6 +82,7 @@ case class Review(
 object Review {
   
   def create(uriId: Int): Boolean = DB.withConnection { implicit conn =>
+    //TODO WTSN-31 only create if not only open review for uri id
     try {
       SQL("INSERT INTO reviews (uri_id) VALUES ({uriId})").on("uriId" -> uriId).executeUpdate() > 0
     } catch {
@@ -108,10 +109,11 @@ object Review {
     }
   }
   
-  def closeAllWithoutOpenReviewRequests(): Int = {
+  def closeAllWithoutOpenReviewRequests(): Int = DB.withConnection { implicit conn =>
     return try {
-      
-      0	//TODO WTSN-31
+      SQL("""UPDATE reviews SET status='CLOSED_WITHOUT_REVIEW'::REVIEW_STATUS, status_updated_at=NOW()  
+        WHERE reviews.status<='PENDING'::REVIEW_STATUS AND (SELECT COUNT(*) FROM review_requests  
+        WHERE review_requests.open=true AND review_requests.uri_id=reviews.uri_id)=0""").executeUpdate()
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       0
