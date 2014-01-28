@@ -30,6 +30,13 @@ class ReviewRequestSpec extends Specification {
       }
     }
     
+    "create a review after opening a review request" in {
+      running(FakeApplication()) {
+        val rr = request
+        Review.findByUri(rr.uriId).map(_.isOpen) must not beEmpty
+      }
+    }
+    
     "not create a review request with invalid email" in {
       running(FakeApplication()) {
         val uri = validUri
