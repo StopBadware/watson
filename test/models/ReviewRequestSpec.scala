@@ -11,7 +11,7 @@ import models.enums.{ClosedReason, Source}
 class ReviewRequestSpec extends Specification {
   
   private val numInBulk = 5
-  private val email = "test@stopbadware.org"
+  private val email = "thrall@example.com"
   private def validUri: Uri = Uri.findOrCreate(UriSpec.validUri).get
   private def request: ReviewRequest = {
     val uri = validUri
@@ -52,8 +52,24 @@ class ReviewRequestSpec extends Specification {
       running(FakeApplication()) {
         val rr = request
         rr.open must beTrue	
-        rr.close(ClosedReason.ADMINISTRATIVE, None, Some(System.currentTimeMillis / 1000))
+        rr.close(ClosedReason.ADMINISTRATIVE, None, Some(System.currentTimeMillis / 1000)) must beTrue
         ReviewRequest.find(rr.id).get.open must beFalse
+      }
+    }
+    
+    "update status but do NOT close review request when reason is REVIEWED_CLEAN" in {
+      running(FakeApplication()) {
+        val rr = request
+        rr.open must beTrue	
+        rr.closedReason must beEmpty
+        rr.close(ClosedReason.REVIEWED_CLEAN) must beTrue
+        val updated = ReviewRequest.find(rr.id).get
+        updated.open must beTrue
+        updated.closedReason must equalTo(Some(ClosedReason.REVIEWED_CLEAN))
+        updated.close(ClosedReason.NO_PARTNERS_REPORTING) must beTrue
+        val closed = ReviewRequest.find(rr.id).get
+        closed.open must beFalse
+        closed.closedReason must equalTo(Some(ClosedReason.REVIEWED_CLEAN))
       }
     }
     

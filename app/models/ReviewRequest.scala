@@ -34,15 +34,19 @@ case class ReviewRequest(
   }
   
   def close(reason: ClosedReason, review: Option[Int]=None, closedAt: Option[Long]=None): Boolean = DB.withConnection { implicit conn =>
-  	//TODO WTSN-31 if reviewed clean update status but do not close
-    //TODO WTSN-31 if no partners reporting close but do not update status if reviewed clean
+    val updatedReason = if (closedReason.equals(Some(REVIEWED_CLEAN)) && reason.equals(NO_PARTNERS_REPORTING)) {
+      REVIEWED_CLEAN.toString
+    } else {
+      reason.toString
+    }
     val revId = if (review.isDefined) review else reviewId
     val closeTime = closedAt.getOrElse(System.currentTimeMillis / 1000)
     val closed = try {
-      SQL("""UPDATE review_requests SET open=false, closed_at={closedAt}, review_id={reviewId} 
+      SQL("""UPDATE review_requests SET open={open}, closed_at={closedAt}, review_id={reviewId} 
         , closed_reason={reason}::CLOSED_REASON WHERE id={id}""")
       	.on("id" -> id,
-    	    "reason" -> reason.toString,
+    	    "reason" -> updatedReason,
+    	    "open" -> reason.equals(REVIEWED_CLEAN),
     	    "closedAt" -> new Timestamp(closeTime * 1000), 
     	    "reviewId" -> revId)
       	.executeUpdate() > 0
