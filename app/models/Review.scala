@@ -61,8 +61,7 @@ case class Review(
         case ReviewStatus.BAD => ClosedReason.REVIEWED_BAD
         case ReviewStatus.CLEAN => ClosedReason.REVIEWED_CLEAN
       }
-      ReviewRequest.findByUri(uriId).foreach(_.close(reason, Some(id)))
-      //TODO WTSN-31 close review requests
+      ReviewRequest.findByUri(uriId).filter(_.open).foreach(_.close(reason, Some(id)))
       //TODO WTSN-12 add to Google rescan queue if blacklisted by google
     }
     return closed
@@ -116,7 +115,7 @@ object Review {
   
   def findByUri(uriId: Int): List[Review] = DB.withConnection { implicit conn =>
     return try {
-      SQL("SELECT * FROM reviews WHERE uri_id={uriId} LIMIT 1").on("uriId"->uriId)()
+      SQL("SELECT * FROM reviews WHERE uri_id={uriId} LIMIT 1").on("uriId" -> uriId)()
       	.map(mapFromRow).flatten.toList
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)

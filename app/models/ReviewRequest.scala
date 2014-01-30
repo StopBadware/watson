@@ -53,8 +53,9 @@ case class ReviewRequest(
     
     if (closed) {
       sendNotification(reason, revId)
-      //TODO WTSN-31 only close review if no other open review requests
-      revId.foreach(Review.find(_).filter(_.isOpen).foreach(_.close(ReviewStatus.CLOSED_WITHOUT_REVIEW)))
+      if (ReviewRequest.findByUri(uriId).filter(_.open).isEmpty) {
+      	revId.foreach(Review.find(_).filter(_.isOpen).foreach(_.close(ReviewStatus.CLOSED_WITHOUT_REVIEW)))
+      }
     }
     closed
   }
@@ -68,8 +69,7 @@ case class ReviewRequest(
         Mailer.sendReviewClosedBad(email, uri, notes)
       }
       case REVIEWED_CLEAN => {
-        val events = BlacklistEvent.findBlacklistedByUri(uriId)
-        if (events.size == 1 && events.head.source == Source.TTS) {
+        if (BlacklistEvent.findBlacklistedByUri(uriId).filter(_.source==Source.TTS).nonEmpty) {
           Mailer.sendReviewClosedCleanTts(email, uri)
         }
       }
