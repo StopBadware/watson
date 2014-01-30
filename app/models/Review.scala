@@ -7,7 +7,7 @@ import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
 import scala.util.Try
-import models.enums.{ClosedReason, ReviewStatus}
+import models.enums._
 import controllers.PostgreSql.rowToIntArray
 
 case class Review(
@@ -24,18 +24,18 @@ case class Review(
   
   def reviewed(verdict: ReviewStatus, reviewer: Int, reviewData: Option[Int]=None): Boolean = DB.withConnection { implicit conn =>
     val dataId = if (reviewData.isDefined) reviewData else reviewDataId
-    val newStatus = if (verdict == ReviewStatus.BAD) ReviewStatus.PENDING else verdict
+    val newStatus = if (verdict == ReviewStatus.CLOSED_BAD) ReviewStatus.PENDING_BAD else verdict
     val updated = try {
       SQL("""UPDATE reviews SET status={status}::REVIEW_STATUS, reviewed_by={reviewerId}, 
         review_data_id={dataId}, status_updated_at=NOW() WHERE id={id}""")
-        .on("id" -> id, "status" -> newStatus.toString, "reviewerId" -> reviewer, "dataId" -> dataId).executeUpdate() > 0
+        .on("id"->id, "status"->newStatus.toString, "reviewerId"->reviewer, "dataId"->dataId).executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       false
     }
     
-    if (updated && verdict == ReviewStatus.CLEAN) {
-      close(verdict)
+    if (updated && verdict == ReviewStatus.CLOSED_CLEAN) {
+      updateStatus(verdict)
     }
     
     return updated
@@ -43,28 +43,41 @@ case class Review(
   
   def reject(verifier: Int, comments: String): Boolean = DB.withConnection { implicit conn =>
     //TODO WTSN-18 add comments to review data
-    return close(ReviewStatus.REJECTED, Some(verifier))
+    return updateStatus(ReviewStatus.REJECTED, Some(verifier))
   }
   
-  def close(closeAs: ReviewStatus, verifier: Option[Int]=None): Boolean = DB.withConnection { implicit conn =>
+  def verify(verifier: Int, closeAs: ReviewStatus): Boolean = updateStatus(closeAs, Some(verifier))
+  
+  def closeNoLongerBlacklisted(): Boolean = updateStatus(ReviewStatus.CLOSED_NO_LONGER_REPORTED)
+  
+  def closeWithoutReview(): Boolean = updateStatus(ReviewStatus.CLOSED_WITHOUT_REVIEW)
+  
+  private def updateStatus(newStatus: ReviewStatus, verifier: Option[Int]=None): Boolean = DB.withConnection { implicit conn =>
     val verifierId = if (verifier.isDefined) verifier else verifiedBy
-    val closed = try {
+    val updated = try {
       SQL("""UPDATE reviews SET status={status}::REVIEW_STATUS, verified_by={verifierId}, 
-        status_updated_at=NOW() WHERE id={id} AND status<='PENDING'::REVIEW_STATUS""")
-        .on("id" -> id, "status" -> closeAs.toString, "verifierId" -> verifierId).executeUpdate() > 0
+        status_updated_at=NOW() WHERE id={id} AND status<='PENDING_BAD'::REVIEW_STATUS""")
+        .on("id" -> id, "status" -> newStatus.toString, "verifierId" -> verifierId).executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       false
     }
-    if (closed) {
-      val reason = closeAs match {
-        case ReviewStatus.BAD => ClosedReason.REVIEWED_BAD
-        case ReviewStatus.CLEAN => ClosedReason.REVIEWED_CLEAN
+    
+    if (updated && !newStatus.isOpen) {
+      val reason = newStatus match {
+        case ReviewStatus.CLOSED_BAD => ClosedReason.REVIEWED_BAD
+        case ReviewStatus.CLOSED_CLEAN => ClosedReason.REVIEWED_CLEAN
+        case ReviewStatus.CLOSED_NO_LONGER_REPORTED => ClosedReason.NO_PARTNERS_REPORTING
+        case _ => ClosedReason.ADMINISTRATIVE
       }
       ReviewRequest.findByUri(uriId).filter(_.open).foreach(_.close(reason, Some(id)))
-      //TODO WTSN-12 add to Google rescan queue if blacklisted by google
+      
+      if (newStatus==CLOSED_CLEAN && BlacklistEvent.findBlacklistedByUri(uriId, Some(Source.GOOG)).nonEmpty) {
+      	//TODO WTSN-12 add to Google rescan queue       
+      }
     }
-    return closed
+    
+    return updated
   }
   
   def reopen(): Boolean = DB.withConnection { implicit conn =>
@@ -124,7 +137,7 @@ object Review {
     //TODO WTSN-24 add to scanning queue
     return try {
       SQL("""INSERT INTO reviews (uri_id) SELECT {uriId} WHERE NOT EXISTS 
-        (SELECT 1 FROM reviews WHERE uri_id={uriId} AND status<='PENDING'::REVIEW_STATUS)""")
+        (SELECT 1 FROM reviews WHERE uri_id={uriId} AND status<='PENDING_BAD'::REVIEW_STATUS)""")
         .on("uriId" -> uriId).executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
@@ -157,7 +170,7 @@ object Review {
   def closeAllWithoutOpenReviewRequests(): Int = DB.withConnection { implicit conn =>
     return try {
       SQL("""UPDATE reviews SET status='CLOSED_WITHOUT_REVIEW'::REVIEW_STATUS, status_updated_at=NOW()  
-        WHERE reviews.status<='PENDING'::REVIEW_STATUS AND (SELECT COUNT(*) FROM review_requests  
+        WHERE reviews.status<='PENDING_BAD'::REVIEW_STATUS AND (SELECT COUNT(*) FROM review_requests  
         WHERE review_requests.open=true AND review_requests.uri_id=reviews.uri_id)=0""").executeUpdate()
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)

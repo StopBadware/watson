@@ -59,9 +59,9 @@ class ReviewSpec extends Specification {
         val rev = createAndFind
         rev.status must equalTo(ReviewStatus.NEW)
         Thread.sleep(1500)	//make sure status update time will be different w/ second precision 
-        rev.reviewed(ReviewStatus.BAD, reviewer)
+        rev.reviewed(ReviewStatus.CLOSED_BAD, reviewer)
         val findRev = Review.find(rev.id).get
-        findRev.status must equalTo(ReviewStatus.PENDING)
+        findRev.status must equalTo(ReviewStatus.PENDING_BAD)
         findRev.statusUpdatedAt must be_>(rev.statusUpdatedAt)
       }
     }
@@ -69,9 +69,9 @@ class ReviewSpec extends Specification {
     "verify a review" in {
       running(FakeApplication()) {
         val rev = createAndFind
-        rev.reviewed(ReviewStatus.BAD, reviewer) must beTrue
-        rev.close(ReviewStatus.BAD, Some(verifier)) must beTrue
-        Review.find(rev.id).get.status must equalTo(ReviewStatus.BAD)
+        rev.reviewed(ReviewStatus.CLOSED_BAD, reviewer) must beTrue
+        rev.verify(verifier, ReviewStatus.CLOSED_BAD) must beTrue
+        Review.find(rev.id).get.status must equalTo(ReviewStatus.CLOSED_BAD)
       }
     }
     
@@ -101,7 +101,7 @@ class ReviewSpec extends Specification {
     "reject a review" in {
       running(FakeApplication()) {
         val rev = createAndFind
-        rev.reviewed(ReviewStatus.BAD, reviewer) must beTrue
+        rev.reviewed(ReviewStatus.CLOSED_BAD, reviewer) must beTrue
         rev.reject(verifier, "REJECTED") must beTrue
         Review.find(rev.id).get.status must equalTo(ReviewStatus.REJECTED)
       }
@@ -110,7 +110,7 @@ class ReviewSpec extends Specification {
     "reopen a review" in {
       running(FakeApplication()) {
         val rev = createAndFind
-        rev.close(ReviewStatus.CLOSED_WITHOUT_REVIEW) must beTrue
+        rev.closeWithoutReview() must beTrue
         Review.find(rev.id).get.reopen() must beTrue
         Review.find(rev.id).get.status must equalTo(ReviewStatus.REOPENED)
       }
@@ -120,7 +120,7 @@ class ReviewSpec extends Specification {
       running(FakeApplication()) {
         val rev = createAndFind
         rev.isOpen must beTrue
-        rev.close(ReviewStatus.CLOSED_WITHOUT_REVIEW)
+        rev.closeWithoutReview()
         Review.find(rev.id).get.isOpen must beFalse
       }
     }

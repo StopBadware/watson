@@ -58,7 +58,11 @@ case class ReviewRequest(
     if (closed) {
       sendNotification(reason, revId)
       if (ReviewRequest.findByUri(uriId).filter(_.open).isEmpty) {
-      	revId.foreach(Review.find(_).filter(_.isOpen).foreach(_.close(ReviewStatus.CLOSED_WITHOUT_REVIEW)))
+        if (reason == ClosedReason.NO_PARTNERS_REPORTING) {
+          revId.foreach(Review.find(_).filter(_.isOpen).foreach(_.closeNoLongerBlacklisted()))
+        } else {
+          revId.foreach(Review.find(_).filter(_.isOpen).foreach(_.closeWithoutReview()))
+        }
       }
     }
     closed

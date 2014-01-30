@@ -10,23 +10,25 @@ protected class ReviewStatus(status: String) {
 
 object ReviewStatus {
   
-  val BAD: ReviewStatus = models.enums.BAD
-  val CLEAN: ReviewStatus = models.enums.CLEAN
+  val CLOSED_BAD: ReviewStatus = models.enums.CLOSED_BAD
+  val CLOSED_CLEAN: ReviewStatus = models.enums.CLOSED_CLEAN
+  val CLOSED_NO_LONGER_REPORTED: ReviewStatus = models.enums.CLOSED_NO_LONGER_REPORTED
   val CLOSED_WITHOUT_REVIEW: ReviewStatus = models.enums.CLOSED_WITHOUT_REVIEW
   val NEW: ReviewStatus = models.enums.NEW
-  val PENDING: ReviewStatus = models.enums.PENDING
+  val PENDING_BAD: ReviewStatus = models.enums.PENDING_BAD
   val REJECTED: ReviewStatus = models.enums.REJECTED
   val REOPENED: ReviewStatus = models.enums.REOPENED
   
   val statuses = Map(
-      "BAD" -> BAD,
-      "CLEAN" -> CLEAN,
-      "CLOSED_WITHOUT_REVIEW" -> CLOSED_WITHOUT_REVIEW,
-      "NEW" -> NEW,
-      "PENDING" -> PENDING,
-      "REJECTED" -> REJECTED,
-      "REOPENED" -> REOPENED
-    )
+    "CLOSED_BAD" -> CLOSED_BAD,
+    "CLOSED_CLEAN" -> CLOSED_CLEAN,
+    "CLOSED_NO_LONGER_REPORTED" -> CLOSED_NO_LONGER_REPORTED,
+    "CLOSED_WITHOUT_REVIEW" -> CLOSED_WITHOUT_REVIEW,
+    "NEW" -> NEW,
+    "PENDING_BAD" -> PENDING_BAD,
+    "REJECTED" -> REJECTED,
+    "REOPENED" -> REOPENED
+  )
   
   def fromStr(str: String): Option[ReviewStatus] = {
     val upper = str.toUpperCase
@@ -42,11 +44,12 @@ object ReviewStatus {
   
 }
 
-case object BAD extends ReviewStatus("BAD")
-case object CLEAN extends ReviewStatus("CLEAN")
+case object CLOSED_BAD extends ReviewStatus("CLOSED_BAD")
+case object CLOSED_CLEAN extends ReviewStatus("CLOSED_CLEAN")
+case object CLOSED_NO_LONGER_REPORTED extends ReviewStatus("CLOSED_NO_LONGER_REPORTED")
 case object CLOSED_WITHOUT_REVIEW extends ReviewStatus("CLOSED_WITHOUT_REVIEW")
 case object NEW extends ReviewStatus("NEW") with Open
-case object PENDING extends ReviewStatus("PENDING") with Open
+case object PENDING_BAD extends ReviewStatus("PENDING_BAD") with Open
 case object REJECTED extends ReviewStatus("REJECTED") with Open
 case object REOPENED extends ReviewStatus("REOPENED") with Open
 
