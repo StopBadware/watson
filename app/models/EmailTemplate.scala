@@ -11,7 +11,7 @@ case class EmailTemplate(name: String, subject: String, body: String, userId: Op
   def update(newSubject: String, newBody: String, modifiedBy: Option[Int]=None): Boolean = DB.withConnection { implicit conn =>
     return try {
     	SQL("UPDATE email_templates SET subject={subject}, body={body}, modified_by={modifiedBy} WHERE name={name}")
-      .on("name" -> name, "subject" -> newSubject, "body" -> newBody, "modifiedBy" -> modifiedBy.getOrElse(null))
+      .on("name" -> name, "subject" -> newSubject, "body" -> newBody, "modifiedBy" -> modifiedBy)
       .executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
@@ -36,7 +36,7 @@ object EmailTemplate {
     return try {
       SQL("""INSERT INTO email_templates (name, subject, body, modified_by) SELECT {name}, {subject}, {body}, 
       {modifiedBy} WHERE NOT EXISTS (SELECT 1 FROM email_templates WHERE name={name})""")
-      .on("name" -> name, "subject" -> subject, "body" -> body, "modifiedBy" -> userId.getOrElse(null)).executeUpdate() > 0
+      .on("name" -> name, "subject" -> subject, "body" -> body, "modifiedBy" -> userId).executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       false

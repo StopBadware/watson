@@ -12,7 +12,7 @@ case class ReviewTag(id: Int, name: String, description: Option[String], hexColo
   def update(description: Option[String], hexColor: String): Boolean = DB.withConnection { implicit conn =>
     return try {
       SQL("UPDATE review_tags SET description={description}, hex_color={hexColor} WHERE id={id}")
-        .on("id" -> id, "description" -> Try(description.get).getOrElse(null), "hexColor" -> hexColor)
+        .on("id" -> id, "description" -> description, "hexColor" -> hexColor)
         .executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
@@ -49,7 +49,7 @@ object ReviewTag {
     return try {
       SQL("""INSERT INTO review_tags (name, description, hex_color, active) SELECT {name}, {description}, 
         {hexColor}, true WHERE NOT EXISTS (SELECT 1 FROM review_tags WHERE name={name})""")
-        .on("name"->name.toUpperCase, "description"->Try(description.get).getOrElse(null), "hexColor"->hexColor)
+        .on("name" -> name.toUpperCase, "description" -> description, "hexColor" -> hexColor)
         .executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)

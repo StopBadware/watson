@@ -123,7 +123,7 @@ object BlacklistEvent {
   
   def update(eventIds: Set[Int], blacklistedAt: Long, unblacklistedAt: Option[Long]=None): Int = DB.withTransaction { implicit conn =>
   	val blTime = new Timestamp(blacklistedAt * 1000)
-  	val unblTime = if (unblacklistedAt.isDefined) Some(new Timestamp(unblacklistedAt.get * 1000)) else None
+  	val unblTime = if (unblacklistedAt.isDefined) new Timestamp(unblacklistedAt.get * 1000) else null
     return try {
 	    val sql = """UPDATE blacklist_events SET blacklisted=?, blacklisted_at=?, unblacklisted_at=? WHERE id=? 
 	      AND blacklisted_at>=?"""    
@@ -132,7 +132,7 @@ object BlacklistEvent {
 	      group.foreach { id =>
 	        ps.setBoolean(1, unblacklistedAt.isEmpty)
 	        ps.setTimestamp(2, blTime)
-	        ps.setTimestamp(3, unblTime.getOrElse(null))
+	        ps.setTimestamp(3, unblTime)
 	        ps.setInt(4, id)
 	        ps.setTimestamp(5, blTime)
 	        ps.addBatch()
