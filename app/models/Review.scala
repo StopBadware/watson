@@ -16,7 +16,7 @@ case class Review(
 	  reviewedBy: Option[Int],
 	  verifiedBy: Option[Int],
 	  reviewDataId: Option[Int],
-	  reviewTags: List[Int],
+	  reviewTags: Set[Int],
 	  status: ReviewStatus,
 	  createdAt: Long,
 	  statusUpdatedAt: Long
@@ -88,6 +88,33 @@ case class Review(
   
   def isOpen: Boolean = status.isOpen
   
+  def addTag(tagId: Int): Boolean = DB.withConnection { implicit conn =>
+    return try {
+      if (reviewTags.contains(tagId)) {
+        false
+      } else {
+        SQL("""UPDATE reviews SET review_tag_ids=((SELECT review_tag_ids FROM reviews WHERE id={id}) || ARRAY[{tagId}]) 
+          WHERE id={id}""").on("id" -> id, "tagId" -> tagId).executeUpdate() > 0
+      }
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      false
+    }
+  }
+  
+  def removeTag(tagId: Int): Boolean = DB.withConnection { implicit conn =>
+    try {
+      val tags = Try(SQL("SELECT review_tag_ids FROM reviews WHERE id={id}").on("id" -> id)()
+        .head[Option[Array[Int]]]("review_tag_ids").getOrElse(Array()).toSet).getOrElse(Set())
+      val newTagIds = tags.filter(_!=tagId).mkString(",")
+      SQL("UPDATE reviews SET review_tag_ids=ARRAY["+newTagIds+"] WHERE id={id}").on("id"->id).executeUpdate() > 0
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      false
+    }
+    return false
+  }
+  
 }
 
 object Review {
@@ -110,13 +137,12 @@ object Review {
   }
   
   def findByTag(tagId: Int): List[Review] = DB.withConnection { implicit conn =>
-    return List()		//TODO WTSN-31
+    return List()		//TODO WTSN-31 find by tag
   }
   
   def findByUri(uriId: Int): List[Review] = DB.withConnection { implicit conn =>
     return try {
-      SQL("SELECT * FROM reviews WHERE uri_id={uriId} LIMIT 1").on("uriId" -> uriId)()
-      	.map(mapFromRow).flatten.toList
+      SQL("SELECT * FROM reviews WHERE uri_id={uriId}").on("uriId"->uriId)().map(mapFromRow).flatten.toList
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       List()
@@ -142,7 +168,7 @@ object Review {
 			  row[Option[Int]]("reviewed_by"),
 			  row[Option[Int]]("verified_by"),
 			  row[Option[Int]]("review_data_id"),
-			  row[Option[Array[Int]]]("review_tag_ids").getOrElse(Array()).toList,
+			  row[Option[Array[Int]]]("review_tag_ids").getOrElse(Array()).toSet,
 			  row[ReviewStatus]("status"),
 			  row[Date]("created_at").getTime / 1000,
 			  row[Date]("status_updated_at").getTime / 1000

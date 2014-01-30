@@ -13,11 +13,17 @@ class ReviewSpec extends Specification {
   private val reviewer = 1	//TODO WTSN-48 get from users table (create if needed)
   private val verifier = 1	//TODO WTSN-48 get from users table (create if needed)
   private def validUri: Uri = Uri.findOrCreate(UriSpec.validUri).get
+  
   private def createAndFind: Review = {
     val uri = validUri
     Review.create(uri.id)
     Review.findByUri(uri.id).head
   }
+  
+  private def testTag: ReviewTag = {
+    ReviewTag.create("TEST")
+    ReviewTag.findByName("TEST").get
+  } 
 
   "Review" should {
     
@@ -122,14 +128,27 @@ class ReviewSpec extends Specification {
     "add a tag" in {
       running(FakeApplication()) {
         val rev = createAndFind
-        true must beFalse		//DELME WTSN-31
+        val tagId = testTag.id
+        rev.addTag(tagId) must beTrue
+        Review.find(rev.id).get.reviewTags.contains(tagId) must beTrue
       }
     }
     
     "remove a tag" in {
       running(FakeApplication()) {
         val rev = createAndFind
-        true must beFalse		//DELME WTSN-31
+        val tagId = testTag.id
+        val tagToRemoveId = {
+          val name = "TEST"+System.currentTimeMillis.toHexString
+			    ReviewTag.create(name)
+			    ReviewTag.findByName(name).get.id
+			  }
+        rev.addTag(tagId)
+        rev.addTag(tagToRemoveId)
+        Review.find(rev.id).get.reviewTags.contains(tagToRemoveId) must beTrue
+        rev.removeTag(tagToRemoveId)
+        Review.find(rev.id).get.reviewTags.contains(tagToRemoveId) must beFalse
+        Review.find(rev.id).get.reviewTags.contains(tagId) must beTrue
       }
     }
     
@@ -143,7 +162,8 @@ class ReviewSpec extends Specification {
     "find reviews by tag name" in {
       running(FakeApplication()) {
         val rev = createAndFind
-        true must beFalse		//DELME WTSN-31
+        rev.addTag(testTag.id)
+        Review.findByTag(testTag.id).contains(rev) must beTrue
       }
     }
     
