@@ -162,8 +162,9 @@ class ReviewSpec extends Specification {
     "find reviews by tag name" in {
       running(FakeApplication()) {
         val rev = createAndFind
-        rev.addTag(testTag.id)
-        Review.findByTag(testTag.id).contains(rev) must beTrue
+        val testTagId = testTag.id
+        rev.addTag(testTagId)
+        Review.findByTag(testTagId).map(_.id).contains(rev.id) must beTrue
       }
     }
     

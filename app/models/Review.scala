@@ -137,7 +137,12 @@ object Review {
   }
   
   def findByTag(tagId: Int): List[Review] = DB.withConnection { implicit conn =>
-    return List()		//TODO WTSN-31 find by tag
+    return try {
+    	SQL("SELECT * FROM reviews WHERE {tagId} = ANY (review_tag_ids)").on("tagId"->tagId)().map(mapFromRow).flatten.toList
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      List()
+    }
   }
   
   def findByUri(uriId: Int): List[Review] = DB.withConnection { implicit conn =>
