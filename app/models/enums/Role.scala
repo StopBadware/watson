@@ -2,6 +2,7 @@ package models.enums
 
 import anorm.{Column, TypeDoesNotMatch}
 import anorm.MayErr.eitherToError
+import org.postgresql.jdbc4.Jdbc4Array
 
 protected class Role(role: String) {
 	override def toString: String = role
@@ -26,12 +27,16 @@ object Role {
     return if (roles.contains(upper)) Some(roles(upper)) else None
   }
   
-  implicit def rowToSource: Column[Role] = {
-    Column.nonNull[Role] { (value, meta) =>
-      val role = Role.fromStr(value.toString)
-	    if (role.isDefined) Right(role.get) else Left(TypeDoesNotMatch(value.toString+" - "+meta))
+  implicit def rowToRoleArray: Column[Array[Role]] = {
+    Column.nonNull[Array[Role]] { (value, meta) =>
+      try {
+      	Right(value.asInstanceOf[Jdbc4Array].getArray().asInstanceOf[Array[Object]]
+    			.map(r=>Role.fromStr(r.toString)).flatten)
+      } catch {
+        case _: Exception => Left(TypeDoesNotMatch(value.toString+" - "+meta))
+      }
     }
-  }  
+  }
   
 }
 
