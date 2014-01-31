@@ -14,6 +14,7 @@ CREATE TYPE REVIEW_STATUS AS ENUM (
   'CLOSED_NO_LONGER_REPORTED',
   'CLOSED_WITHOUT_REVIEW'
 );
+CREATE TYPE ROLE AS ENUM ('USER', 'REVIEWER', 'VERIFIER', 'ADMIN');
 
 CREATE TABLE uris (
   id SERIAL PRIMARY KEY,
@@ -55,7 +56,8 @@ CREATE INDEX ON blacklist_events (source);
 CREATE INDEX ON blacklist_events (blacklisted, blacklisted_at, unblacklisted_at);
 
 CREATE TABLE users (
-  id SERIAL PRIMARY KEY
+  id SERIAL PRIMARY KEY,
+  roles ROLE ARRAY DEFAULT NULL
 );
 
 CREATE TABLE review_data (
