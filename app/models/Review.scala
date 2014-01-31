@@ -116,7 +116,7 @@ case class Review(
   }
   
   def removeTag(tagId: Int): Boolean = DB.withConnection { implicit conn =>
-    try {
+    return try {
       val tags = Try(SQL("SELECT review_tag_ids FROM reviews WHERE id={id}").on("id" -> id)()
         .head[Option[Array[Int]]]("review_tag_ids").getOrElse(Array()).toSet).getOrElse(Set())
       val newTagIds = tags.filter(_!=tagId).mkString(",")
@@ -125,7 +125,6 @@ case class Review(
       case e: PSQLException => Logger.error(e.getMessage)
       false
     }
-    return false
   }
   
 }
