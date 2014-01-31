@@ -188,11 +188,12 @@ object BlacklistEvent {
     return try {
       SQL("DROP TABLE IF EXISTS temp_uris").execute()
       SQL("CREATE TEMP TABLE temp_uris (uri_id INTEGER PRIMARY KEY)").execute()
-      uriIds.grouped(BatchSize).foreach { group =>
+      uriIds.toSet.grouped(BatchSize).foreach { group =>
         val sql = "INSERT INTO temp_uris VALUES (?)" + (",(?)"*(group.size-1))
         val ps = conn.prepareStatement(sql)
-        for (i <- 1 to group.size) {
-          ps.setInt(i, group(i-1))
+        group.foldLeft(1) { (i, id) =>
+          ps.setInt(i, id)
+          i + 1
         }
         ps.executeUpdate()
       }
@@ -249,11 +250,12 @@ object BlacklistEvent {
     val toUnblacklist = try {
       SQL("DROP TABLE IF EXISTS temp_uris").execute()
       SQL("CREATE TEMP TABLE temp_uris (uri_id INTEGER PRIMARY KEY)").execute()
-      uris.grouped(BatchSize).foreach { group =>
+      uris.toSet.grouped(BatchSize).foreach { group =>
         val sql = "INSERT INTO temp_uris VALUES (?)" + (",(?)"*(group.size-1))
         val ps = conn.prepareStatement(sql)
-        for (i <- 1 to group.size) {
-          ps.setInt(i, group(i-1))
+        group.foldLeft(1) { (i, id) =>
+          ps.setInt(i, id)
+          i + 1
         }
         ps.executeUpdate()
       }
