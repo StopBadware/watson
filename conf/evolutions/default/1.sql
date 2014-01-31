@@ -57,7 +57,10 @@ CREATE INDEX ON blacklist_events (blacklisted, blacklisted_at, unblacklisted_at)
 
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
-  roles ROLE ARRAY DEFAULT NULL
+  roles ROLE ARRAY DEFAULT NULL,
+  username VARCHAR(16) UNIQUE NOT NULL,
+  email VARCHAR(256) UNIQUE NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 );
 
 CREATE TABLE review_data (
@@ -72,7 +75,6 @@ CREATE TABLE review_tags (
   active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
-CREATE INDEX ON review_tags (name);
 CREATE INDEX ON review_tags (active);
 
 CREATE TABLE reviews (
