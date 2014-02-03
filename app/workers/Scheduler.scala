@@ -31,12 +31,11 @@ case class BlacklistQueue() extends Runnable {
     blacklists.foreach { case (source, times) =>
       times.sortWith(_ < _).foreach { time =>
         val blacklist = Redis.getBlacklist(source, time)
-        val success = Blacklist.importDifferential(blacklist, source, time)
-        if (success || blacklist.isEmpty) {
-        	Redis.dropBlacklist(source, time)
-        } else {
-        	Logger.error("Importing "+source+" blacklist "+time+" from queue failed")
+        val addUpdRem = Blacklist.importDifferential(blacklist, source, time)
+        if (addUpdRem==0 && blacklist.nonEmpty) {
+        	Logger.warn("Importing blacklist from "+source+" ("+time+") had no additions, updates, or removals")
         }
+        Redis.dropBlacklist(source, time)
       }
     }
   }
