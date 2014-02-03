@@ -3,8 +3,11 @@ package controllers
 import java.math.BigInteger
 import java.net.URI
 import java.security.MessageDigest
-import org.postgresql.jdbc4.Jdbc4Array
+import scala.util.Try
 import anorm._
+import org.postgresql.jdbc4.Jdbc4Array
+import com.fasterxml.jackson.databind.{JsonNode, JsonMappingException, ObjectMapper}
+import com.fasterxml.jackson.core.JsonParseException
 
 object Hash {
   
@@ -57,5 +60,11 @@ object PostgreSql {
       }
     }
   }
+  
+}
+
+trait JsonMapper {
+  
+  def mapJson(txt: String): Option[JsonNode] = Try(Some((new ObjectMapper).readTree(txt))).getOrElse(None)
   
 }
