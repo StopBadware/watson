@@ -30,8 +30,7 @@ object Role {
   implicit def rowToRoleArray: Column[Array[Role]] = {
     Column.nonNull[Array[Role]] { (value, meta) =>
       try {
-      	Right(value.asInstanceOf[Jdbc4Array].getArray().asInstanceOf[Array[Object]]
-    			.map(r=>Role.fromStr(r.toString)).flatten)
+        Right(value.toString.replaceAll("[{}]", "").split(",").map(Role.fromStr).flatten)
       } catch {
         case _: Exception => Left(TypeDoesNotMatch(value.toString+" - "+meta))
       }
