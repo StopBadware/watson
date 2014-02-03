@@ -84,9 +84,12 @@ class UserSpec extends Specification {
   	
   	"update on login" in {
   	  running(FakeApplication()) {
-//  	    val user = createAndGetUser
-//  	    User.find(user.id)
-  	    true must beFalse	//TODO WTSN-48
+  	    val user = createAndGetUser
+  	    val origCount = user.logins
+  	    val origTime = user.lastLogin
+  	    user.updateLoginCount() must beTrue
+  	    User.find(user.id).get.logins must be_>(origCount)
+  	    User.find(user.id).get.lastLogin must be_>(origTime)
   	  }
   	}
     

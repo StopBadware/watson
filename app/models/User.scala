@@ -45,6 +45,15 @@ case class User(
     }
   }
   
+  def updateLoginCount(): Boolean = DB.withConnection { implicit conn =>
+    return try {
+      SQL("UPDATE users SET logins=(logins+1), last_login=NOW() WHERE id={id}").on("id"->id).executeUpdate() > 0
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      false
+    }
+  }
+  
   def delete(): Boolean = DB.withConnection { implicit conn =>
     return try {
       SQL("DELETE FROM users WHERE id={id}").on("id" -> id).executeUpdate() > 0
