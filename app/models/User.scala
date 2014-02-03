@@ -63,6 +63,8 @@ case class User(
     }
   }
   
+  def hasRole(role: Role): Boolean = roles.contains(role)
+  
 }
 
 object User {

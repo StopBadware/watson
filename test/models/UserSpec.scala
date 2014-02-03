@@ -49,7 +49,10 @@ class UserSpec extends Specification {
   	    val user = createAndGetUser
   	    user.roles.contains(Role.USER) must beFalse
   	    user.addRole(Role.USER) must beTrue
-  	    User.find(user.id).get.roles.contains(Role.USER) must beTrue
+  	    val u = User.find(user.id).get
+  	    u.roles.contains(Role.USER) must beTrue
+  	    u.hasRole(Role.USER) must beTrue
+  	    u.hasRole(Role.ADMIN) must beFalse
   	  }
   	}
   	
