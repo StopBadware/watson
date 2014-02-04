@@ -8,11 +8,11 @@ import play.api.test.Helpers._
 
 @RunWith(classOf[JUnitRunner])
 class AuthAuthSpec extends Specification {
+  
+  val testEmail = sys.env("TEST_EMAIL")
+  val testPassword = sys.env("TEST_PW")
 
   "AuthAuth" should {
-    
-    //enable test account at start
-    //disable test account at end
     
     "create Stormpath account" in {
       running(FakeApplication()) {
