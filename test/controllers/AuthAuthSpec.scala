@@ -16,8 +16,12 @@ class AuthAuthSpec extends Specification {
     
     "create Stormpath account" in {
       running(FakeApplication()) {
+        val validEmail = "test"+System.nanoTime.toHexString+"@stopbadware.org"
+        val invalidEmail = "test"+System.nanoTime.toHexString+"@example.com"
+        AuthAuth.create(validEmail, testPassword) must beTrue
+        AuthAuth.create(validEmail, "") must beFalse
+        AuthAuth.create(invalidEmail, testPassword) must beFalse
       	//delete account at end of test
-        true must beFalse
       }
     }
     
