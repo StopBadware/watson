@@ -32,26 +32,27 @@ object AuthAuth extends Controller {
     }
   }
   
-  def delete(email: String): Boolean = {
-    val criteria = Accounts.where(Accounts.email.eqIgnoreCase(email))
-    app.getAccounts(criteria).foreach(_.delete())
-    return app.getAccounts(criteria).size == 0
-  }
-  
   def authenticate(unameOrEmail: String, password: String): Option[User] = {
     return None	//TODO WTSN-48
   }
   
-  private class StormpathUser() {
-    
-    def enable(): Boolean = {
-      return false	//TODO WTSN-48
-    }
-    
-    def disable(): Boolean = {
-      return false //TODO WTSN-48
-    }
-    
+  def delete(email: String): Boolean = {
+    find(email).foreach(_.delete())
+    return find(email).size == 0
   }
-
+  
+  def enable(email: String): Boolean = setStatus(email, AccountStatus.ENABLED)
+  
+  def disable(email: String): Boolean = setStatus(email, AccountStatus.DISABLED)
+  
+  private def setStatus(email: String, status: AccountStatus): Boolean = {
+    return find(email).map { account =>
+      account.setStatus(status)
+      account.save()
+      account.getStatus
+    }.forall(_.equals(status))
+  }
+  
+  private def find(email: String): AccountList = app.getAccounts(Accounts.where(Accounts.email.eqIgnoreCase(email))) 
+  
 }

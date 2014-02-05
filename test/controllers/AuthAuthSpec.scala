@@ -10,7 +10,7 @@ import play.api.test.Helpers._
 class AuthAuthSpec extends Specification {
   
   val testEmail = sys.env("TEST_EMAIL")
-  val testPassword = sys.env("TEST_PW")
+  val testPw = sys.env("TEST_PW")
 
   "AuthAuth" should {
     
@@ -18,9 +18,9 @@ class AuthAuthSpec extends Specification {
       running(FakeApplication()) {
         val validEmail = "test"+System.nanoTime.toHexString+"@stopbadware.org"
         val invalidEmail = "test"+System.nanoTime.toHexString+"@example.com"
-        AuthAuth.create(validEmail, testPassword) must beTrue
+        AuthAuth.create(validEmail, testPw) must beTrue
         AuthAuth.create(validEmail, "") must beFalse
-        AuthAuth.create(invalidEmail, testPassword) must beFalse
+        AuthAuth.create(invalidEmail, testPw) must beFalse
         AuthAuth.delete(validEmail) must beTrue
       }
     }
@@ -36,8 +36,12 @@ class AuthAuthSpec extends Specification {
     
     "enable/disable account" in {
       running(FakeApplication()) {
-      	//use test account
-        true must beFalse
+        AuthAuth.enable(testEmail) must beTrue
+        AuthAuth.authenticate(testEmail, testPw) must beSome
+        AuthAuth.disable(testEmail) must beTrue
+        AuthAuth.authenticate(testEmail, testPw) must beNone
+        AuthAuth.enable(testEmail) must beTrue
+        AuthAuth.authenticate(testEmail, testPw) must beSome
       }
     }
     
