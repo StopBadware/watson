@@ -26,9 +26,13 @@ case class Review(
     val dataId = if (reviewData.isDefined) reviewData else reviewDataId
     val newStatus = if (verdict == ReviewStatus.CLOSED_BAD) ReviewStatus.PENDING_BAD else verdict
     val updated = try {
-      SQL("""UPDATE reviews SET status={status}::REVIEW_STATUS, reviewed_by={reviewerId}, 
-        review_data_id={dataId}, status_updated_at=NOW() WHERE id={id}""")
-        .on("id"->id, "status"->newStatus.toString, "reviewerId"->reviewer, "dataId"->dataId).executeUpdate() > 0
+      if (User.find(reviewer).get.hasRole(Role.REVIEWER)) {
+	      SQL("""UPDATE reviews SET status={status}::REVIEW_STATUS, reviewed_by={reviewerId}, 
+	        review_data_id={dataId}, status_updated_at=NOW() WHERE id={id}""")
+	        .on("id"->id, "status"->newStatus.toString, "reviewerId"->reviewer, "dataId"->dataId).executeUpdate() > 0
+      } else {
+        false
+      }
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       false
@@ -42,11 +46,21 @@ case class Review(
   }
   
   def reject(verifier: Int, comments: String): Boolean = DB.withConnection { implicit conn =>
-    //TODO WTSN-18 add comments to review data
-    return updateStatus(ReviewStatus.REJECTED, Some(verifier))
+    if (User.find(verifier).get.hasRole(Role.VERIFIER)) {
+      //TODO WTSN-18 add comments to review data
+	    updateStatus(ReviewStatus.REJECTED, Some(verifier))
+	  } else {
+	    false
+	  }
   }
   
-  def verify(verifier: Int, closeAs: ReviewStatus): Boolean = updateStatus(closeAs, Some(verifier))
+  def verify(verifier: Int, closeAs: ReviewStatus): Boolean = {
+    if (User.find(verifier).get.hasRole(Role.VERIFIER)) {
+	    updateStatus(closeAs, Some(verifier))
+	  } else {
+	    false
+	  }
+	}
   
   def closeNoLongerBlacklisted(): Boolean = updateStatus(ReviewStatus.CLOSED_NO_LONGER_REPORTED)
   
