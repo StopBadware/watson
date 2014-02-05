@@ -6,8 +6,10 @@ import play.api.mvc._
 import scala.util.Try
 import models.User
 import com.stormpath.sdk.account._
-import com.stormpath.sdk.application.{Application => StormpathApp}
+import com.stormpath.sdk.authc._
 import com.stormpath.sdk.client._
+import com.stormpath.sdk.application.{Application => StormpathApp}
+import com.stormpath.sdk.resource.ResourceException
 
 object AuthAuth extends Controller {
   
@@ -33,7 +35,15 @@ object AuthAuth extends Controller {
   }
   
   def authenticate(unameOrEmail: String, password: String): Option[User] = {
-    return None	//TODO WTSN-48
+    val request = new UsernamePasswordRequest(unameOrEmail, password)
+    return try {
+      User.findByUsername(app.authenticateAccount(request).getAccount.getUsername)
+    } catch {
+      case e: ResourceException => Logger.warn("Authentication failure for '"+unameOrEmail+"': "+e.getDeveloperMessage)
+      None
+    } finally {
+      request.clear()
+    }
   }
   
   def delete(email: String): Boolean = {
