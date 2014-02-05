@@ -5,13 +5,21 @@ import org.junit.runner._
 import org.specs2.runner._
 import play.api.test._
 import play.api.test.Helpers._
-import models.enums.{ClosedReason, ReviewStatus}
+import models.enums._
 
 @RunWith(classOf[JUnitRunner])
 class ReviewSpec extends Specification {
   
-  private val reviewer = 1	//TODO WTSN-48 get from users table (create if needed)
-  private val verifier = 1	//TODO WTSN-48 get from users table (create if needed)
+  private val testUser = {
+    val testEmail = sys.env("TEST_EMAIL")
+	  if (User.findByEmail(testEmail).isEmpty) {
+	    User.create(testEmail.split("@").head, testEmail)
+	  }
+    val user = User.findByEmail(testEmail).get
+    user.addRole(Role.REVIEWER)
+    user.addRole(Role.VERIFIER)
+    user.id
+  }
   private def validUri: Uri = Uri.findOrCreate(UriSpec.validUri).get
   
   private def createAndFind: Review = {
@@ -59,7 +67,7 @@ class ReviewSpec extends Specification {
         val rev = createAndFind
         rev.status must equalTo(ReviewStatus.NEW)
         Thread.sleep(1500)	//make sure status update time will be different w/ second precision 
-        rev.reviewed(ReviewStatus.CLOSED_BAD, reviewer)
+        rev.reviewed(ReviewStatus.CLOSED_BAD, testUser)
         val findRev = Review.find(rev.id).get
         findRev.status must equalTo(ReviewStatus.PENDING_BAD)
         findRev.statusUpdatedAt must be_>(rev.statusUpdatedAt)
@@ -69,8 +77,8 @@ class ReviewSpec extends Specification {
     "verify a review" in {
       running(FakeApplication()) {
         val rev = createAndFind
-        rev.reviewed(ReviewStatus.CLOSED_BAD, reviewer) must beTrue
-        rev.verify(verifier, ReviewStatus.CLOSED_BAD) must beTrue
+        rev.reviewed(ReviewStatus.CLOSED_BAD, testUser) must beTrue
+        rev.verify(testUser, ReviewStatus.CLOSED_BAD) must beTrue
         Review.find(rev.id).get.status must equalTo(ReviewStatus.CLOSED_BAD)
       }
     }
@@ -101,8 +109,8 @@ class ReviewSpec extends Specification {
     "reject a review" in {
       running(FakeApplication()) {
         val rev = createAndFind
-        rev.reviewed(ReviewStatus.CLOSED_BAD, reviewer) must beTrue
-        rev.reject(verifier, "REJECTED") must beTrue
+        rev.reviewed(ReviewStatus.CLOSED_BAD, testUser) must beTrue
+        rev.reject(testUser, "REJECTED") must beTrue
         Review.find(rev.id).get.status must equalTo(ReviewStatus.REJECTED)
       }
     }
