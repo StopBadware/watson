@@ -21,7 +21,7 @@ class AuthAuthSpec extends Specification {
         AuthAuth.create(validEmail, testPassword) must beTrue
         AuthAuth.create(validEmail, "") must beFalse
         AuthAuth.create(invalidEmail, testPassword) must beFalse
-      	//delete account at end of test
+        AuthAuth.delete(validEmail) must beTrue
       }
     }
     

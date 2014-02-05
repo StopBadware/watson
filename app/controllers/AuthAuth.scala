@@ -1,5 +1,6 @@
 package controllers
 
+import scala.collection.JavaConversions._
 import play.api._
 import play.api.mvc._
 import scala.util.Try
@@ -29,6 +30,12 @@ object AuthAuth extends Controller {
     } else {
       false
     }
+  }
+  
+  def delete(email: String): Boolean = {
+    val criteria = Accounts.where(Accounts.email.eqIgnoreCase(email))
+    app.getAccounts(criteria).foreach(_.delete())
+    return app.getAccounts(criteria).size == 0
   }
   
   def authenticate(unameOrEmail: String, password: String): Option[User] = {
