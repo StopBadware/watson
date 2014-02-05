@@ -11,14 +11,16 @@ import models.enums._
 class ReviewSpec extends Specification {
   
   private val testUser = {
-    val testEmail = sys.env("TEST_EMAIL")
-	  if (User.findByEmail(testEmail).isEmpty) {
-	    User.create(testEmail.split("@").head, testEmail)
-	  }
-    val user = User.findByEmail(testEmail).get
-    user.addRole(Role.REVIEWER)
-    user.addRole(Role.VERIFIER)
-    user.id
+    running(FakeApplication()) {
+	    val testEmail = sys.env("TEST_EMAIL")
+		  if (User.findByEmail(testEmail).isEmpty) {
+		    User.create(testEmail.split("@").head, testEmail)
+		  }
+	    val user = User.findByEmail(testEmail).get
+	    user.addRole(Role.REVIEWER)
+	    user.addRole(Role.VERIFIER)
+	    user.id
+    }
   }
   private def validUri: Uri = Uri.findOrCreate(UriSpec.validUri).get
   

@@ -12,9 +12,10 @@ class AuthAuthSpec extends Specification {
   
   val testEmail = sys.env("TEST_EMAIL")
   val testPw = sys.env("TEST_PW")
-  
-  if (User.findByEmail(testEmail).isEmpty) {
-    User.create(testEmail.split("@").head, testEmail)
+  running(FakeApplication()) {
+	  if (User.findByEmail(testEmail).isEmpty) {
+	    User.create(testEmail.split("@").head, testEmail)
+	  }
   }
 
   "AuthAuth" should {
