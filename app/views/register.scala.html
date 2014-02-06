@@ -1,5 +1,58 @@
 @main("Register", false) {
     
-    <h1>Register</h1>
+    <div class="jumbotron text-center">
+	    <image class="inline header-image" src="@routes.Assets.at("images/stopbadware_logo_240x112.png")">
+	    <h1 class="inline">Watson Registration</h1>
+    </div>
+    
+    <h3 class="container text-center">Register below using a valid stopbadware.org email address and a password with a minimum length of 10, 
+    containing at least one each of lowercase, uppercase, numbers, and special characters.</h3>
+    
+    <div id="register-well" class="well well-lg watson-green-bg text-center container">
+		<form id="register-box">
+			<div class="control-group">
+				<label class="control-label" for="input-email">Email</label>
+				<div class="controls">
+					<input type="email" class="input-large" id="input-email" placeholder="Email">
+					<span class="glyphicon form-control-feedback"></span>
+				</div>
+			</div>
+			
+			<div class="control-group">
+				<label class="control-label" for="input-password">Password</label>
+				<div class="controls">
+					<input type="password" class="input-large" id="input-password" placeholder="Password">
+					<span class="glyphicon form-control-feedback"></span>
+				</div>
+			</div>
+			
+			<div class="control-group">
+				<label class="control-label" for="input-pw-confirm">Confirm Password</label>
+				<div class="controls">
+					<input type="password" class="input-large" id="input-pw-confirm" placeholder="Confirm Password">
+					<span class="glyphicon form-control-feedback"></span>
+				</div>
+			</div>
+
+			<div class="control-group">
+				<button type="submit" id="btn-register" class="btn btn-default">Register</button>
+			</div>
+			
+		</form>
+		
+		<div id="register-alert" class="alert alert-danger hidden">
+	        <h4 id="register-alert-msg">ERROR! Unable to create account</h4>
+        </div>
+		<div id="register-info" class="alert alert-warning hidden">
+	        <h4 id="register-info-msg">Creating account...</h4>
+	        @partials.progressbar()
+        </div> 
+		<div id="register-success" class="alert alert-success hidden">
+			<h2>Account created!</h2>
+			<h4>Please follow the instructions in the confirmation email.</h4>
+		</div>
+    </div>
+    
+    <h3 class="text-center">If you already have an account please <a href="/welcome">sign in</a>.</h3>
 
 }

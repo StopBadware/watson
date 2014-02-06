@@ -1,3 +1,41 @@
+html, body {
+	color: #394a4e;
+}
+h1,
+.sbw-red {
+	color: #E34125;
+}
+.watson-green {
+	color: #90B9C3;
+}
+.watson-green-bg {
+	background-color: #90B9C3;
+}
+.inline {
+	display: inline-block;
+}
+.hidden {
+	display: none;
+}
+.header-image {
+	margin-right: 2.5em;
+}
+label {
+	font-size: 1.2em;
+}
+.alert h2 {
+	margin-top: 0;
+}
+.alert h4 {
+	margin-bottom: 0;
+}
+.progress {
+	margin-top: 1em;
+	margin-bottom: 0;
+}
+.progress-bar {
+	width: 100%;
+}
 /* NAVBAR */
 .navbar-default {
 	background-color: #90B9C3;
@@ -6,7 +44,20 @@
 	border-color: #E7E7E7;
 	border-radius: 0;
 }
-.navbar-default
-.navbar-brand {
+.navbar-default .navbar-brand {
 	color: #000000;
+}
+/* REGISTER */
+#register-well {
+	width: 375px;
+}
+#register-well input {
+	width: 225px;
+	margin-bottom: 1.25em;
+}
+#register-box {
+	margin-bottom: 1em;
+}
+#btn-register {
+	margin-top: 1em;
 }
