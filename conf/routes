@@ -3,6 +3,8 @@
 
 # VIEWS
 GET     /                           		controllers.Application.index
+GET     /welcome                       		controllers.Application.welcome
+GET     /register                       	controllers.Application.register
 
 # AJAX ROUTES
 

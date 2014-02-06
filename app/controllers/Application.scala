@@ -9,4 +9,12 @@ object Application extends Controller {
     Ok(views.html.index("Watson"))
   }
   
+  def welcome = Action {
+    Ok(views.html.welcome())
+  }
+  
+  def register = Action {
+    Ok(views.html.register())
+  }
+  
 }
