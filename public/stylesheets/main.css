@@ -1,0 +1,12 @@
+/* NAVBAR */
+.navbar-default {
+	background-color: #90B9C3;
+	border: none;
+	border-bottom: solid;
+	border-color: #E7E7E7;
+	border-radius: 0;
+}
+.navbar-default
+.navbar-brand {
+	color: #000000;
+}
