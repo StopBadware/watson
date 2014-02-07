@@ -17,4 +17,8 @@ object Application extends Controller {
     Ok(views.html.register())
   }
   
+  def untrail(path: String) = Action {
+    MovedPermanently("/" + path)
+  }
+  
 }
