@@ -22,6 +22,7 @@ $(document).ready(function($) {
 function registerSubmit() {
 	$("#btn-register").focus().blur();
 	if ($("#register-info").is(":hidden") && regFormIsValidated()) {
+		$("#register-alert").hide();
 		$("#register-info").show();
 		var obj = {
 			"email" : $("#input-email").val(),
