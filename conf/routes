@@ -8,6 +8,8 @@ GET     /welcome                       		controllers.Application.welcome
 GET     /register                       	controllers.Application.register
 
 # AJAX ROUTES
+GET		/javascriptRoutes					controllers.Application.javascriptRoutes
+GET		/account/create						controllers.Application.createAccount
 
 # REST ENDPOINTS
 GET     /blacklists/timeoflast/:source   	controllers.Rest.timeoflast(source)

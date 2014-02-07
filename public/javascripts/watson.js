@@ -2,6 +2,7 @@ var appRoute = null;
 var jsonContentType = "application/json; charset=UTF-8";
 
 $(document).ready(function($) {
+	appRoute = jsRoutes.controllers.Application;
 	$("#register-box #input-email").blur(function() {
 		checkEmail("#"+this.id);
 	});
