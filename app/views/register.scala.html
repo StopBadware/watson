@@ -5,8 +5,8 @@
 	    <h1 class="inline">Watson Registration</h1>
     </div>
     
-    <h3 class="container text-center">Register below using a valid stopbadware.org email address and a password with a minimum length of 10, 
-    containing at least one each of lowercase, uppercase, numbers, and special characters.</h3>
+    <h3 class="container text-center">Registration requires a StopBadware email address. Passwords must have  a minimum 
+    length of 10, containing at least one each of lowercase, uppercase, numbers, and special characters.</h3>
     
     <div id="register-well" class="well well-lg watson-green-bg text-center container">
 		<form id="register-box">
@@ -37,11 +37,12 @@
 	        <h4 id="register-info-msg">Creating account...</h4>
 	        @partials.progressbar()
         </div> 
-		<div id="register-success" class="alert alert-success non-vis">
-			<h2>Account created!</h2>
-			<h4>Please follow the instructions in the confirmation email.</h4>
-		</div>
     </div>
+    
+    <div id="register-success" class="container text-center alert alert-success non-vis">
+		<h2>Account created!</h2>
+		<h4>Please follow the instructions in the confirmation email.</h4>
+	</div>
     
     <h3 class="text-center">If you already have an account please <a href="/welcome">sign in</a>.</h3>
 

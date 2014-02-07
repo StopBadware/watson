@@ -27,6 +27,22 @@ function registerSubmit() {
 			"email" : $("#input-email").val(),
 			"pw" : $("#input-password").val()
 		};
+		appRoute.createAccount().ajax({
+			contentType: jsonContentType,
+			data: JSON.stringify(obj)
+		}).done(function(res) {
+			if (res.created) {
+				$("#register-well").hide("blind", 495);
+				setTimeout(function() {$("#register-success").show("blind", 400)}, 500);
+			} else {
+				$("#register-alert").show();
+				$("#register-alert-msg").text(res.msg);
+			}
+		}).fail(function() {
+			$("#register-alert").show();
+		}).always(function() {
+			$("#register-info").hide();
+		});
 	}
 }
 

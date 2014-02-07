@@ -48,7 +48,8 @@ label {
 	color: #000000;
 }
 /* REGISTER */
-#register-well {
+#register-well,
+#register-success {
 	width: 375px;
 }
 #register-well input {
