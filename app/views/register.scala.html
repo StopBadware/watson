@@ -10,34 +10,24 @@
     
     <div id="register-well" class="well well-lg watson-green-bg text-center container">
 		<form id="register-box">
-			<div class="control-group">
+			<div id="input-email-form-group" class="form-group has-feedback">
 				<label class="control-label" for="input-email">Email</label>
-				<div class="controls">
-					<input type="email" class="input-large" id="input-email" placeholder="Email">
-					<span class="glyphicon form-control-feedback"></span>
-				</div>
+				<input type="email" class="input-large form-control" id="input-email" placeholder="Email">
+				<span id="input-email-feedback" class="glyphicon form-control-feedback"></span>
 			</div>
-			
-			<div class="control-group">
+			<div id="input-password-form-group" class="form-group has-feedback">
 				<label class="control-label" for="input-password">Password</label>
-				<div class="controls">
-					<input type="password" class="input-large" id="input-password" placeholder="Password">
-					<span class="glyphicon form-control-feedback"></span>
-				</div>
+				<input type="password" class="input-large form-control" id="input-password" placeholder="Password">
+				<span id="input-password-feedback" class="glyphicon form-control-feedback"></span>
 			</div>
-			
-			<div class="control-group">
+			<div id="input-pw-confirm-form-group" class="form-group has-feedback">
 				<label class="control-label" for="input-pw-confirm">Confirm Password</label>
-				<div class="controls">
-					<input type="password" class="input-large" id="input-pw-confirm" placeholder="Confirm Password">
-					<span class="glyphicon form-control-feedback"></span>
-				</div>
+				<input type="password" class="input-large form-control" id="input-pw-confirm" placeholder="Confirm Password">
+				<span id="input-pw-confirm-feedback" class="glyphicon form-control-feedback"></span>
 			</div>
-
 			<div class="control-group">
 				<button type="submit" id="btn-register" class="btn btn-default">Register</button>
 			</div>
-			
 		</form>
 		
 		<div id="register-alert" class="alert alert-danger hidden">

@@ -9,7 +9,7 @@ h1,
 	color: #90B9C3;
 }
 .watson-green-bg {
-	background-color: #90B9C3;
+	background-color: #C7DCE1;
 }
 .inline {
 	display: inline-block;
@@ -52,11 +52,14 @@ label {
 	width: 375px;
 }
 #register-well input {
-	width: 225px;
 	margin-bottom: 1.25em;
 }
 #register-box {
 	margin-bottom: 1em;
+}
+#register-box .glyphicon {
+	font-size: 1.2em;
+	margin-top: 0.2em;
 }
 #btn-register {
 	margin-top: 1em;
