@@ -12,7 +12,22 @@ $(document).ready(function($) {
 	$("#register-box #input-pw-confirm").blur(function() {
 		checkPasswordsMatch("#input-password", "#input-pw-confirm");
 	});
+	$("#register-box").submit(function(e) {
+		e.preventDefault();
+		registerSubmit();
+	});
 });
+
+function registerSubmit() {
+	$("#btn-register").focus().blur();
+	if ($("#register-info").is(":hidden") && regFormIsValidated()) {
+		$("#register-info").show();
+		var obj = {
+			"email" : $("#input-email").val(),
+			"pw" : $("#input-password").val()
+		};
+	}
+}
 
 function checkEmail(id) {
 	var valid = false;
@@ -24,17 +39,17 @@ function checkEmail(id) {
 }
 
 function checkPassword(id) {
-	var valid = true;
+	var valid = false;
 	var pw = $(id).val();
 	if (pw && pw.length >= 10) {
+		var validRegexes = 0;
 		var regexes = [/[a-z]+/, /[A-Z]+/, /[0-9]+/, /[!@#$%^&*()\-_=+\"':;|<>?\[\]~]+/];
 		regexes.map(function(regex) {
-			if (!regex.test(pw)) {
-				valid = false;
+			if (regex.test(pw)) {
+				validRegexes++;
 			}
 		});
-	} else {
-		valid = false;
+		valid = validRegexes == regexes.length;
 	}
 	toggleValid(id, valid);
 }
@@ -45,6 +60,17 @@ function checkPasswordsMatch(pwID, cpwID) {
 	if (pw && cpw && cpw.length > 0) {
 		(pw===cpw) ? toggleValid(cpwID, true) : toggleValid(cpwID, false);
 	}
+}
+
+function regFormIsValidated() {
+	var ids = ["#input-email-form-group", "#input-password-form-group", "#input-pw-confirm-form-group"];
+	var validIds = 0;
+	ids.map(function(id) {
+		if ($(id).hasClass("has-success")) {
+			validIds++;
+		}
+	});
+	return validIds == ids.length;
 }
 
 function toggleValid(baseId, valid) {

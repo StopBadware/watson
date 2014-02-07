@@ -14,7 +14,7 @@ h1,
 .inline {
 	display: inline-block;
 }
-.hidden {
+.non-vis {
 	display: none;
 }
 .header-image {
