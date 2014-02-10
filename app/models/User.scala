@@ -72,7 +72,7 @@ object User {
   def create(uname: String, emailAddress: String): Boolean = DB.withConnection { implicit conn =>
     return try {
       if (emailAddress.endsWith("@stopbadware.org")) {
-      	SQL("INSERT INTO users (username, email) VALUES ({username}, {email})")
+      	SQL("INSERT INTO users (username, email, roles) VALUES ({username}, {email}, ARRAY['USER'::ROLE])")
       		.on("username" -> uname.toLowerCase, "email" -> emailAddress).executeUpdate() > 0
       } else {
         false
