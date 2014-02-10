@@ -16,6 +16,17 @@ object Application extends Controller with JsonMapper {
     Ok(views.html.welcome())
   }
   
+   def login = Action(parse.json) { implicit request =>
+    val email = request.body.\("email").asOpt[String]
+    val pw = request.body.\("pw").asOpt[String]
+    if (email.isDefined && pw.isDefined) {
+      val user = AuthAuth.authenticate(email.get, pw.get)
+      if (user.isDefined) Ok(Json.obj("success" -> true)) else Unauthorized
+    } else {
+      BadRequest
+    }
+  }
+  
   def register = Action {
     Ok(views.html.register())
   }
@@ -37,18 +48,14 @@ object Application extends Controller with JsonMapper {
     }
   }
   
-  def login = Action(parse.json) { implicit request =>
-    println(request)	//DELME WTSN-52
-    Ok	//TODO WTSN-52
-  }
-  
   def untrail(path: String) = Action {
     MovedPermanently("/" + path)
   }
   
   def javascriptRoutes = Action { implicit request =>
     Ok(Routes.javascriptRouter("jsRoutes")(
-      routes.javascript.Application.createAccount
+      routes.javascript.Application.createAccount,
+      routes.javascript.Application.login
 		)).as("text/javascript")
   }
   

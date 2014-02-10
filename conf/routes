@@ -9,6 +9,7 @@ GET     /register                       	controllers.Application.register
 
 # AJAX ROUTES
 GET		/javascriptRoutes					controllers.Application.javascriptRoutes
+POST	/account/login						controllers.Application.login
 POST	/account/create						controllers.Application.createAccount
 
 # REST ENDPOINTS

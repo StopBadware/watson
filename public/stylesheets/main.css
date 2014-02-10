@@ -47,21 +47,21 @@ label {
 .navbar-default .navbar-brand {
 	color: #000000;
 }
-/* REGISTER */
-#register-well,
-#register-success {
+/* REGISTER & LOGIN */
+.form-well,
+.form-success {
 	width: 375px;
 }
-#register-well input {
+.form-well input {
 	margin-bottom: 1.25em;
 }
-#register-box {
+.form-box {
 	margin-bottom: 1em;
 }
-#register-box .glyphicon {
+.form-box .glyphicon {
 	font-size: 1.2em;
 	margin-top: 0.2em;
 }
-#btn-register {
+.form-btn {
 	margin-top: 1em;
 }

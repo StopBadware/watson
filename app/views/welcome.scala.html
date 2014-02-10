@@ -1,5 +1,35 @@
 @main("Welcome", false) {
+    <h3 class="container text-center">Sign in or <a href="/register">register</a> to continue</h3>
     
-    <h1>Sign in or <a href="/register">register</a> to continue</h1>
-
+    <div id="login-well" class="well well-lg form-well watson-green-bg text-center container">
+		<form id="login-box" class="form-box">
+			<div id="input-email-form-group" class="form-group has-feedback">
+				<label class="control-label" for="input-email">Email</label>
+				<input type="email" class="input-large form-control" id="input-email" placeholder="Email">
+				<span id="input-email-feedback" class="glyphicon form-control-feedback"></span>
+			</div>
+			<div id="input-password-form-group" class="form-group has-feedback">
+				<label class="control-label" for="input-password">Password</label>
+				<input type="password" class="input-large form-control" id="input-password" placeholder="Password">
+				<span id="input-password-feedback" class="glyphicon form-control-feedback"></span>
+			</div>
+			<div class="control-group">
+				<button type="submit" id="btn-login" class="btn btn-default form-btn">Login</button>
+			</div>
+		</form>
+		
+		<div id="login-alert" class="alert alert-danger form-alert non-vis">
+	        <h4 id="login-alert-msg">ACCESS DENIED</h4>
+        </div>
+		<div id="login-info" class="alert alert-warning form-info non-vis">
+	        <h4 id="login-info-msg">Signing in...</h4>
+	        @partials.progressbar()
+        </div> 
+    </div>
+    
+    <div id="login-success" class="form-success container text-center alert alert-success non-vis">
+		<h2>Signed in!</h2>
+		<h4>Click <a href="/">here</a> if not automatically redirected.</h4>
+	</div>
+	
 }

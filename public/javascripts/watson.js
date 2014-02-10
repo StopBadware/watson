@@ -3,6 +3,11 @@ var jsonContentType = "application/json; charset=UTF-8";
 
 $(document).ready(function($) {
 	appRoute = jsRoutes.controllers.Application;
+	$("#login-box").submit(function(e) {
+		e.preventDefault();
+		loginSubmit();
+	});
+	
 	$("#register-box #input-email").blur(function() {
 		checkEmail("#"+this.id);
 	});
@@ -19,9 +24,41 @@ $(document).ready(function($) {
 	});
 });
 
+function loginSubmit() {
+	$("#btn-login").focus().blur();
+	var email = $("#input-email").val();
+	if ($(".form-info").is(":hidden")) {
+		if (isSbwEmail(email)) {
+			$("#login-alert").hide();
+			$("#login-info").show();
+			var obj = {
+				"email" : email,
+				"pw" : $("#input-password").val()
+			};
+			appRoute.login().ajax({
+				contentType: jsonContentType,
+				data: JSON.stringify(obj)
+			}).done(function(res) {
+				if (res.success) {
+					$("#login-well").hide("blind", 495);
+					setTimeout(function() {$("#login-success").show("blind", 400)}, 500);
+				} else {
+					$("#login-alert").show();
+				}
+			}).fail(function() {
+				$("#login-alert").show();
+			}).always(function() {
+				$("#login-info").hide();
+			});
+		} else {
+			$("#login-alert").show();
+		}
+	}
+}
+
 function registerSubmit() {
-	$("#btn-register").focus().blur();
-	if ($("#register-info").is(":hidden") && regFormIsValidated()) {
+	$("#register-btn").focus().blur();
+	if ($(".form-info").is(":hidden") && regFormIsValidated()) {
 		$("#register-alert").hide();
 		$("#register-info").show();
 		var obj = {
@@ -49,10 +86,14 @@ function registerSubmit() {
 function checkEmail(id) {
 	var valid = false;
 	var email = $(id).val();
-	if (email && email.length > 0 && (/.+@stopbadware.org$/).test(email)) {
+	if (isSbwEmail(email)) {
 		valid = true;
 	}
 	toggleValid(id, valid);
+}
+
+function isSbwEmail(email) {
+	return email && email.length > 0 && (/.+@stopbadware.org$/).test(email);
 }
 
 function checkPassword(id) {
