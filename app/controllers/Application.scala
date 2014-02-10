@@ -37,6 +37,11 @@ object Application extends Controller with JsonMapper {
     }
   }
   
+  def login = Action(parse.json) { implicit request =>
+    println(request)	//DELME WTSN-52
+    Ok	//TODO WTSN-52
+  }
+  
   def untrail(path: String) = Action {
     MovedPermanently("/" + path)
   }
