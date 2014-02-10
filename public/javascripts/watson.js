@@ -37,7 +37,6 @@ function registerSubmit() {
 				setTimeout(function() {$("#register-success").show("blind", 400)}, 500);
 			} else {
 				$("#register-alert").show();
-				$("#register-alert-msg").text(res.msg);
 			}
 		}).fail(function() {
 			$("#register-alert").show();

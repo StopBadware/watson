@@ -73,7 +73,7 @@ object User {
     return try {
       if (emailAddress.endsWith("@stopbadware.org")) {
       	SQL("INSERT INTO users (username, email) VALUES ({username}, {email})")
-      		.on("username" -> uname, "email" -> emailAddress).executeUpdate() > 0
+      		.on("username" -> uname.toLowerCase, "email" -> emailAddress).executeUpdate() > 0
       } else {
         false
       }

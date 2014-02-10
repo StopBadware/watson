@@ -28,7 +28,13 @@ object AuthAuth extends Controller {
 	    account.setPassword(password)
 	    account.setSurname("STOPBADWARE")
 	    account.setUsername(username)
-	    Try(app.createAccount(account)).isSuccess
+	    try {
+	    	val created = app.createAccount(account)
+	    	created.getStatus.equals(AccountStatus.UNVERIFIED)
+	    } catch {
+	      case e: ResourceException => Logger.warn("Unable to create account for '"+email+"': "+e.getMessage)
+	      false
+	    }
     } else {
       false
     }

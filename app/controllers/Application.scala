@@ -4,6 +4,7 @@ import play.api._
 import play.api.mvc._
 import play.api.libs.json._
 import routes.javascript._
+import models.User
 
 object Application extends Controller with JsonMapper {
   
@@ -20,11 +21,16 @@ object Application extends Controller with JsonMapper {
   }
   
   def createAccount = Action(parse.json) { implicit request =>
-    val email = request.body.\("email").asOpt[String].getOrElse("")
-    val pw = request.body.\("pw").asOpt[String].getOrElse("")
-    val created = true		//TODO WTSN-52 create account
-    val msg = ""					//TODO WTSN-52 create should return Try instead of Boolean
-    Ok(Json.obj("created" -> created, "msg" -> msg))
+    val email = request.body.\("email").asOpt[String]
+    val pw = request.body.\("pw").asOpt[String]
+    if (email.isDefined && pw.isDefined) {
+      val stormpath = AuthAuth.create(email.get, pw.get)
+      val uname = email.get.split("@").headOption
+      val users = if (stormpath && uname.isDefined) User.create(uname.get, email.get) else false
+  		Ok(Json.obj("created" -> (stormpath && users)))
+    } else {
+      BadRequest
+    }
   }
   
   def untrail(path: String) = Action {
