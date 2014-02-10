@@ -8,6 +8,7 @@
   <logger name="org.apache" level="ERROR"/>
   <logger name="org.quartz" level="ERROR"/>
   <logger name="com.redis" level="INFO"/>
+  <logger name="com.stormpath" level="WARN"/>
 
   <root level="DEBUG">
     <appender-ref ref="STDOUT" />
