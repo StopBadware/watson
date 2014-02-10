@@ -24,10 +24,14 @@ object Application extends Controller with JsonMapper {
     val email = request.body.\("email").asOpt[String]
     val pw = request.body.\("pw").asOpt[String]
     if (email.isDefined && pw.isDefined) {
-      val stormpath = AuthAuth.create(email.get, pw.get)
+      val stormpathAccount = AuthAuth.create(email.get, pw.get)
       val uname = email.get.split("@").headOption
-      val users = if (stormpath && uname.isDefined) User.create(uname.get, email.get) else false
-  		Ok(Json.obj("created" -> (stormpath && users)))
+      val userModel = if (stormpathAccount && uname.isDefined) User.create(uname.get, email.get) else false
+      val created = stormpathAccount && userModel
+      if (created) {
+        Logger.info("Account created for '"+email.get+"'")
+      }
+  		Ok(Json.obj("created" -> created))
     } else {
       BadRequest
     }
