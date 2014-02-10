@@ -47,11 +47,11 @@ class UserSpec extends Specification {
   	"add a role" in {
   	  running(FakeApplication()) {
   	    val user = createAndGetUser
-  	    user.roles.contains(Role.USER) must beFalse
-  	    user.addRole(Role.USER) must beTrue
+  	    user.roles.contains(Role.REVIEWER) must beFalse
+  	    user.addRole(Role.REVIEWER) must beTrue
   	    val u = User.find(user.id).get
-  	    u.roles.contains(Role.USER) must beTrue
-  	    u.hasRole(Role.USER) must beTrue
+  	    u.roles.contains(Role.REVIEWER) must beTrue
+  	    u.hasRole(Role.REVIEWER) must beTrue
   	    u.hasRole(Role.ADMIN) must beFalse
   	  }
   	}
@@ -59,8 +59,7 @@ class UserSpec extends Specification {
   	"remove a role" in {
   	  running(FakeApplication()) {
   	    val user = createAndGetUser
-  	    user.roles.contains(Role.USER) must beFalse
-  	    user.addRole(Role.USER) must beTrue
+  	    user.addRole(Role.USER)
   	    user.addRole(Role.REVIEWER) must beTrue
   	    User.find(user.id).get.roles.contains(Role.USER) must beTrue
   	    User.find(user.id).get.removeRole(Role.USER) must beTrue
