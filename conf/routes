@@ -6,6 +6,7 @@ GET     /                           		controllers.Application.index
 GET  	/*path/								controllers.Application.untrail(path)
 GET     /welcome                       		controllers.Application.welcome
 GET     /register                       	controllers.Application.register
+GET		/logout								controllers.Application.logout
 
 # AJAX ROUTES
 GET		/javascriptRoutes					controllers.Application.javascriptRoutes

@@ -39,12 +39,10 @@ function loginSubmit() {
 				contentType: jsonContentType,
 				data: JSON.stringify(obj)
 			}).done(function(res) {
-				if (res.success) {
-					$("#login-well").hide("blind", 495);
-					setTimeout(function() {$("#login-success").show("blind", 400)}, 500);
-				} else {
-					$("#login-alert").show();
-				}
+				$("#login-well").hide("blind", 495);
+				setTimeout(function() {$("#login-success").show("blind", 400)}, 500);
+				var returnTo = (res.returnTo) ? res.returnTo : "/";
+				window.location.replace(returnTo);
 			}).fail(function() {
 				$("#login-alert").show();
 			}).always(function() {
