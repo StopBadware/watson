@@ -68,9 +68,8 @@ object Application extends Controller with JsonMapper with Secured {
     }
   }
   
-  def resetPassword = withAuth { userId => implicit request =>
-    
-    Ok	//TODO
+  def resetPassword = Action { implicit request =>
+    Ok(views.html.pwreset())
   }
   
   def untrail(path: String) = Action {

@@ -8,6 +8,7 @@ GET		/reviews							controllers.Application.reviews
 GET     /welcome                       		controllers.Application.welcome
 GET     /register                       	controllers.Application.register
 GET		/logout								controllers.Application.logout
+GET		/account/password					controllers.Application.resetPassword
 
 # AJAX ROUTES
 GET		/javascriptRoutes					controllers.Application.javascriptRoutes

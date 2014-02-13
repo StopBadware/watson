@@ -1,0 +1,28 @@
+@main("Password Reset", false) {
+	<h3 class="text-center">Enter an email address to send password reset link or <a href="/welcome">sign in</a>.</h3>
+    <div id="pwreset-well" class="well well-lg form-well watson-green-bg text-center container">
+		<form id="pwreset-box" class="form-box">
+			<div id="input-email-form-group" class="form-group has-feedback">
+				<label class="control-label" for="input-email">Email</label>
+				<input type="email" class="input-large form-control" id="input-email" placeholder="Email">
+				<span id="input-email-feedback" class="glyphicon form-control-feedback"></span>
+			</div>
+			<div class="control-group">
+				<button type="submit" id="btn-pwreset" class="btn btn-default form-btn">Send Reset Email</button>
+			</div>
+		</form>
+		
+		<div id="pwreset-alert" class="alert alert-danger form-alert non-vis">
+	        <h4 id="pwreset-alert-msg">Unable to send password reset email</h4>
+        </div>
+		<div id="pwreset-info" class="alert alert-warning form-info non-vis">
+	        <h4 id="pwreset-info-msg">Sending password reset email...</h4>
+	        @partials.progressbar()
+        </div> 
+    </div>
+    
+    <div id="pwreset-success" class="form-success container text-center alert alert-success non-vis">
+		<h2>Sent!</h2>
+		<h4>Check your email for password reset instructions.</h4>
+	</div>
+}

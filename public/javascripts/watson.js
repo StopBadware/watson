@@ -29,7 +29,7 @@ $(document).ready(function($) {
 
 function setActiveNav() {
 	var path = (window.location.pathname=="/") ? "dashboard" : window.location.pathname.substr(1);
-	var nav = path.split("\\", 1)[0];
+	var nav = path.split("/")[0];
 	if (nav) {
 		$("#li-nav-"+nav).addClass("active");
 	}
