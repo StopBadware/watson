@@ -22,7 +22,18 @@ $(document).ready(function($) {
 		e.preventDefault();
 		registerSubmit();
 	});
+	
+	setActiveNav();
+	
 });
+
+function setActiveNav() {
+	var path = (window.location.pathname=="/") ? "dashboard" : window.location.pathname.substr(1);
+	var nav = path.split("\\", 1)[0];
+	if (nav) {
+		$("#li-nav-"+nav).addClass("active");
+	}
+}
 
 function loginSubmit() {
 	$("#btn-login").focus().blur();

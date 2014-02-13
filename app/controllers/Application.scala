@@ -16,6 +16,11 @@ object Application extends Controller with JsonMapper with Secured {
     Ok(views.html.index("Watson"))
   }
   
+  def reviews = withAuth { userId => implicit request =>
+    //TODO WTSN-18
+    Ok(views.html.reviews(List()))
+  }
+  
   def welcome = Action { implicit request =>
     Ok(views.html.welcome())
   }

@@ -1,9 +1,8 @@
 html, body {
-	color: #394a4e;
+	color: #394A4E;
 }
-h1,
-.sbw-red {
-	color: #E34125;
+h1 {
+	color: #2B373A;
 }
 .watson-green {
 	color: #90B9C3;
@@ -44,8 +43,13 @@ label {
 	border-color: #E7E7E7;
 	border-radius: 0;
 }
-.navbar-default .navbar-brand {
-	color: #000000;
+.navbar-default .navbar-nav>li>a {
+	font-size: 1.4em;
+	color: #FFFFFF;
+}
+.navbar-default .navbar-nav>li>a:hover {
+	color: #FFFFFF;
+	background-color: #2B373A;
 }
 /* REGISTER & LOGIN */
 .form-well,

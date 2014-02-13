@@ -4,6 +4,7 @@
 # VIEWS
 GET     /                           		controllers.Application.index
 GET  	/*path/								controllers.Application.untrail(path)
+GET		/reviews							controllers.Application.reviews
 GET     /welcome                       		controllers.Application.welcome
 GET     /register                       	controllers.Application.register
 GET		/logout								controllers.Application.logout
