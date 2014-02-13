@@ -13,8 +13,6 @@ import models.User
 object Application extends Controller with JsonMapper with Secured {
   
   def index = withAuth { userId => implicit request =>
-    println(userId)		//DELME WTSN-52
-    println(request)	//DELME WTSN-52
     Ok(views.html.index("Watson"))
   }
   
