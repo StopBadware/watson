@@ -29,6 +29,7 @@ $(document).ready(function($) {
 	});
 	
 	setActiveNav();
+	getDatesFromUnix(".unixtime");
 	
 });
 
@@ -187,4 +188,14 @@ function toggleValid(baseId, valid) {
 		icon.removeClass("glyphicon-ok").addClass("glyphicon-remove");
 	}
 	
+}
+
+function getDatesFromUnix(selector) {
+	$(selector).each(function() {
+		$(this).text(formatDate($(this).text()));
+	});
+}
+
+function formatDate(unix) {
+	return (isNaN(unix)) ? unix : (new Date(unix * 1000)).toDateString();
 }
