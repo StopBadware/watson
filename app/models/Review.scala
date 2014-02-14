@@ -199,6 +199,7 @@ object Review {
         WHERE status<='PENDING_BAD'::REVIEW_STATUS ORDER BY reviews.created_at ASC LIMIT 1000""")()
       rows.map { row =>
       	ReviewSummary(
+    	    row[Int]("review_id"),
     			row[String]("uri"),
     			row[ReviewStatus]("status"),
     			BlacklistEvent.findBlacklistedByUri(row[Int]("uri_id")).map(_.source).toSet,
@@ -234,6 +235,7 @@ object Review {
 }
 
 case class ReviewSummary(
+  reviewId: Int,
 	uri: String,
 	status: ReviewStatus,
 	blacklistedBy: Set[Source],

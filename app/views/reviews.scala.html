@@ -1,18 +1,31 @@
-@(reviews: List[ReviewSummary])
+@(summaries: List[ReviewSummary])
 @main("Reviews") {
     <table id="reviews-table" class="table table-striped table-hover table-condensed">
     	<thead>
     		<tr>
     			<th title="Click URI to view review details">URI</th>
     			<th>Status</th>
-    			<th>Blacklisted By</th>
-    			<th>Review Requests</th>
-    			<th>Created At</th>
+    			<th>Blacklisting</th>
+    			<th>Requests</th>
+    			<th>Created</th>
     			<th>Tags</th>
     		</tr>
     	</thead>
     	<tbody>
-    	
+    	@summaries.map { summary =>
+    		<tr>
+	    		<td title="Click to view details">
+	    			<a href="/reviews/@summary.reviewId">
+	    				@(if (summary.uri.length>75) summary.uri.slice(0, 75)+"..." else summary.uri)
+	    			</a>
+	    		</td>
+	   			<td>@summary.status</td>
+	   			<td>@summary.blacklistedBy.mkString(",")</td>
+	   			<td>@summary.requests</td>
+	   			<td>@summary.createdAt</td>
+	   			<td>@summary.tags.mkString(",")</td>
+   			</tr>
+   		}
     	</tbody>
     </table>
 }

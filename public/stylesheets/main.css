@@ -35,6 +35,9 @@ label {
 .progress-bar {
 	width: 100%;
 }
+.table-hover>tbody>tr:hover>td {
+	background-color: #e8f1f3;
+}
 /* NAVBAR */
 .navbar-default {
 	background-color: #90B9C3;

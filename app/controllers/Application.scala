@@ -17,11 +17,10 @@ object Application extends Controller with JsonMapper with Secured {
   }
   
   def reviews = withAuth { userId => implicit request =>
-    //TODO WTSN-18
-    val foo = Review.openSummaries	//DELME WTSN-18
-    println(foo)	//DELME WTSN-18
-    Ok(views.html.reviews(foo))
+    Ok(views.html.reviews(Review.openSummaries))
   }
+  
+  def review(id: Int) = TODO	//TODO WTSN-18 view review
   
   def welcome = Action { implicit request =>
     Ok(views.html.welcome())
