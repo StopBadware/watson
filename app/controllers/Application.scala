@@ -8,7 +8,7 @@ import play.api.cache.Cache
 import play.api.Play.current
 import scala.util.Try
 import routes.javascript._
-import models.User
+import models._
 
 object Application extends Controller with JsonMapper with Secured {
   
@@ -18,7 +18,9 @@ object Application extends Controller with JsonMapper with Secured {
   
   def reviews = withAuth { userId => implicit request =>
     //TODO WTSN-18
-    Ok(views.html.reviews(List()))
+    val foo = Review.openSummaries	//DELME WTSN-18
+    println(foo)	//DELME WTSN-18
+    Ok(views.html.reviews(foo))
   }
   
   def welcome = Action { implicit request =>

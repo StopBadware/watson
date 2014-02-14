@@ -191,6 +191,28 @@ object Review {
     }
   }
   
+  def openSummaries: List[ReviewSummary] = DB.withConnection { implicit conn =>
+    return try {
+      val rows = SQL("""SELECT uris.id AS uri_id, reviews.id AS review_id, uri, reviews.status, 
+        (SELECT COUNT(*) AS cnt FROM review_requests WHERE review_requests.uri_id=reviews.uri_id AND open=true), 
+        reviews.created_at, reviews.review_tag_ids FROM reviews LEFT JOIN uris ON reviews.uri_id=uris.id 
+        WHERE status<='PENDING_BAD'::REVIEW_STATUS ORDER BY reviews.created_at ASC LIMIT 1000""")()
+      rows.map { row =>
+      	ReviewSummary(
+    			row[String]("uri"),
+    			row[ReviewStatus]("status"),
+    			BlacklistEvent.findBlacklistedByUri(row[Int]("uri_id")).map(_.source).toSet,
+    			row[Long]("cnt").toInt,
+    			row[Date]("created_at").getTime / 1000,
+    			ReviewTag.find(row[Option[Array[Int]]]("review_tag_ids").getOrElse(Array()).toList)
+      	)
+      }.toList
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      List()
+    }
+  }
+  
   private def mapFromRow(row: SqlRow): Option[Review] = {
     return try {
       Some(Review(
@@ -210,3 +232,12 @@ object Review {
   }
   
 }
+
+case class ReviewSummary(
+	uri: String,
+	status: ReviewStatus,
+	blacklistedBy: Set[Source],
+	requests: Int,
+	createdAt: Long,
+	tags: List[ReviewTag]
+) 
