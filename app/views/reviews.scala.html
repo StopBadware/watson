@@ -19,14 +19,14 @@
 	    				@(if (summary.uri.length>75) summary.uri.slice(0, 75)+"..." else summary.uri)
 	    			</a>
 	    		</td>
-	   			<td>@summary.status</td>
+	   			<td class="text-center">@summary.status</td>
 	   			<td>
 	   			@summary.blacklistedBy.map { source =>
    					<div class="inline source-icon icon-@source.toString.toLowerCase" title="@source.toString.toUpperCase">&nbsp;</div>
    				}
 	   			</td>
-	   			<td>@summary.requests</td>
-	   			<td class="unixtime">@summary.createdAt</td>
+	   			<td class="text-center">@summary.requests</td>
+	   			<td class="text-right unixtime">@summary.createdAt</td>
 	   			<td>@summary.tags.mkString(",")</td>
    			</tr>
    		}

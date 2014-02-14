@@ -54,6 +54,10 @@ label {
 	color: #FFFFFF;
 	background-color: #2B373A;
 }
+/* TABLES */
+th {
+	text-align: center;
+}
 /* REGISTER & LOGIN */
 .form-well,
 .form-success {
