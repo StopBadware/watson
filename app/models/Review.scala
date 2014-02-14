@@ -202,7 +202,7 @@ object Review {
     	    row[Int]("review_id"),
     			row[String]("uri"),
     			row[ReviewStatus]("status"),
-    			BlacklistEvent.findBlacklistedByUri(row[Int]("uri_id")).map(_.source).toSet,
+    			BlacklistEvent.findBlacklistedByUri(row[Int]("uri_id")).map(_.source).toList.sortBy(_.abbr),
     			row[Long]("cnt").toInt,
     			row[Date]("created_at").getTime / 1000,
     			ReviewTag.find(row[Option[Array[Int]]]("review_tag_ids").getOrElse(Array()).toList)
@@ -238,7 +238,7 @@ case class ReviewSummary(
   reviewId: Int,
 	uri: String,
 	status: ReviewStatus,
-	blacklistedBy: Set[Source],
+	blacklistedBy: List[Source],
 	requests: Int,
 	createdAt: Long,
 	tags: List[ReviewTag]

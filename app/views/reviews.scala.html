@@ -20,7 +20,11 @@
 	    			</a>
 	    		</td>
 	   			<td>@summary.status</td>
-	   			<td>@summary.blacklistedBy.mkString(",")</td>
+	   			<td>
+	   			@summary.blacklistedBy.map { source =>
+   					<div class="inline source-icon icon-@source.toString.toLowerCase" title="@source.toString.toUpperCase">&nbsp;</div>
+   				}
+	   			</td>
 	   			<td>@summary.requests</td>
 	   			<td>@summary.createdAt</td>
 	   			<td>@summary.tags.mkString(",")</td>

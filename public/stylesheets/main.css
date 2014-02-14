@@ -73,3 +73,19 @@ label {
 .form-btn {
 	margin-top: 1em;
 }
+/* IMAGES  */
+.source-icon {
+	width: 20px;
+}
+.icon-tts {
+    background: url(/assets/images/tts_20x20.png) no-repeat;
+}
+.icon-goog {
+    background: url(/assets/images/google_20x20.png) no-repeat;
+}
+.icon-nsf {
+    background: url(/assets/images/nsfocus_20x20.png) no-repeat;
+}
+.icon-sbw {
+    background: url(/assets/images/stopbadware_20x20.png) no-repeat;
+}
