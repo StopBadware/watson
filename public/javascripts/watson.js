@@ -8,7 +8,7 @@ $(document).ready(function($) {
 		loginSubmit();
 	});
 	
-	$("#register-box #input-email").blur(function() {
+	$("#register-box #input-email, #pwreset-box #input-email").blur(function() {
 		checkEmail("#"+this.id);
 	});
 	$("#register-box #input-password").blur(function() {
@@ -21,6 +21,11 @@ $(document).ready(function($) {
 	$("#register-box").submit(function(e) {
 		e.preventDefault();
 		registerSubmit();
+	});
+	
+	$("#pwreset-box").submit(function(e) {
+		e.preventDefault();
+		resetPwSubmit();
 	});
 	
 	setActiveNav();
@@ -51,7 +56,7 @@ function loginSubmit() {
 				data: JSON.stringify(obj)
 			}).done(function(res) {
 				$("#login-well").hide("blind", 495);
-				setTimeout(function() {$("#login-success").show("blind", 400)}, 500);
+				setTimeout(function() {$("#login-success").show("blind", 100)}, 500);
 				var returnTo = (res.returnTo) ? res.returnTo : "/";
 				window.location.replace(returnTo);
 			}).fail(function() {
@@ -80,7 +85,7 @@ function registerSubmit() {
 		}).done(function(res) {
 			if (res.created) {
 				$("#register-well").hide("blind", 495);
-				setTimeout(function() {$("#register-success").show("blind", 400)}, 500);
+				setTimeout(function() {$("#register-success").show("blind", 100)}, 500);
 			} else {
 				$("#register-alert").show();
 			}
@@ -89,6 +94,37 @@ function registerSubmit() {
 		}).always(function() {
 			$("#register-info").hide();
 		});
+	}
+}
+
+function resetPwSubmit() {
+	$("#btn-pwreset").focus().blur();
+	var email = $("#input-email").val();
+	if ($(".form-info").is(":hidden")) {
+		if (isSbwEmail(email)) {
+			$("#pwreset-alert").hide();
+			$("#pwreset-info").show();
+			var obj = {
+				"email" : email,
+			};
+			appRoute.sendPwResetEmail().ajax({
+				contentType: jsonContentType,
+				data: JSON.stringify(obj)
+			}).done(function(res) {
+				if (res.sent) {
+					$("#pwreset-well").hide("blind", 495);
+					setTimeout(function() {$("#pwreset-success").show("blind", 100)}, 500);
+				} else {
+					$("#pwreset-alert").show();
+				}
+			}).fail(function() {
+				$("#pwreset-alert").show();
+			}).always(function() {
+				$("#pwreset-info").hide();
+			});
+		} else {
+			$("#pwreset-alert").show();
+		}
 	}
 }
 

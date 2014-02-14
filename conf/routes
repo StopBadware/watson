@@ -14,6 +14,7 @@ GET		/account/password					controllers.Application.resetPassword
 GET		/javascriptRoutes					controllers.Application.javascriptRoutes
 POST	/account/login						controllers.Application.login
 POST	/account/create						controllers.Application.createAccount
+POST	/account/sendpwreset				controllers.Application.sendPwResetEmail
 
 # REST ENDPOINTS
 GET     /blacklists/timeoflast/:source   	controllers.Rest.timeoflast(source)

@@ -57,6 +57,8 @@ object AuthAuth extends Controller {
     return find(email).size == 0
   }
   
+  def sendResetMail(email: String): Boolean = Try(app.sendPasswordResetEmail(email)).isSuccess
+  
   def enable(email: String): Boolean = setStatus(email, AccountStatus.ENABLED)
   
   def disable(email: String): Boolean = setStatus(email, AccountStatus.DISABLED)

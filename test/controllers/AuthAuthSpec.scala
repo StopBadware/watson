@@ -10,8 +10,9 @@ import models.User
 @RunWith(classOf[JUnitRunner])
 class AuthAuthSpec extends Specification {
   
-  val testEmail = sys.env("TEST_EMAIL")
-  val testPw = sys.env("TEST_PW")
+	private val invalidEmail = "test"+System.nanoTime.toHexString+"@example.com"
+  private val testEmail = sys.env("TEST_EMAIL")
+  private val testPw = sys.env("TEST_PW")
   running(FakeApplication()) {
 	  if (User.findByEmail(testEmail).isEmpty) {
 	    User.create(testEmail.split("@").head, testEmail)
@@ -23,7 +24,6 @@ class AuthAuthSpec extends Specification {
     "create Stormpath account" in {
       running(FakeApplication()) {
         val validEmail = "test"+System.nanoTime.toHexString+"@stopbadware.org"
-        val invalidEmail = "test"+System.nanoTime.toHexString+"@example.com"
         AuthAuth.create(validEmail, testPw) must beTrue
         AuthAuth.create(validEmail, "") must beFalse
         AuthAuth.create(invalidEmail, testPw) must beFalse
@@ -48,6 +48,13 @@ class AuthAuthSpec extends Specification {
         AuthAuth.authenticate(testEmail, testPw) must beNone
         AuthAuth.enable(testEmail) must beTrue
         AuthAuth.authenticate(testEmail, testPw) must beSome
+      }
+    }
+    
+    "send password reset email" in {
+      running(FakeApplication()) {
+        AuthAuth.sendResetMail(invalidEmail) must beFalse
+        AuthAuth.sendResetMail(testEmail) must beTrue
       }
     }
     

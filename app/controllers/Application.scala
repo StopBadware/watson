@@ -72,14 +72,24 @@ object Application extends Controller with JsonMapper with Secured {
     Ok(views.html.pwreset())
   }
   
+  def sendPwResetEmail = Action(parse.json) { implicit request =>
+    val email = request.body.\("email").asOpt[String]
+    if (email.isDefined) {
+      Ok(Json.obj("sent" -> AuthAuth.sendResetMail(email.get)))
+    } else {
+      BadRequest
+    }
+  }  
+  
   def untrail(path: String) = Action {
     MovedPermanently("/" + path)
   }
   
   def javascriptRoutes = Action { implicit request =>
     Ok(Routes.javascriptRouter("jsRoutes")(
+      routes.javascript.Application.login,
       routes.javascript.Application.createAccount,
-      routes.javascript.Application.login
+      routes.javascript.Application.sendPwResetEmail
 		)).as("text/javascript")
   }
   
