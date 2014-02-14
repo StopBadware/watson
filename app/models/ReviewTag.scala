@@ -63,21 +63,25 @@ object ReviewTag {
   
   def find(ids: List[Int]): List[ReviewTag] = DB.withConnection { implicit conn =>
     return try {
-      val sql = "SELECT * FROM review_tags WHERE id in (?"+(",?"*(ids.size-1))+")"
-      val ps = conn.prepareStatement(sql)
-      for (i <- 1 to ids.size) {
-        ps.setInt(i, ids(i-1))
+      if (ids.nonEmpty) {
+	      val sql = "SELECT * FROM review_tags WHERE id in (?"+(",?"*(ids.size-1))+")"
+	      val ps = conn.prepareStatement(sql)
+	      for (i <- 1 to ids.size) {
+	        ps.setInt(i, ids(i-1))
+	      }
+	      val rs = ps.executeQuery
+	      Iterator.continually((rs, rs.next())).takeWhile(_._2).map { case (row, hasNext) =>
+	        Some(ReviewTag(
+				    row.getInt("id"),
+				    row.getString("name"),
+				    Try(Some(row.getString("description"))).getOrElse(None),
+				    row.getString("hex_color"),
+				    row.getBoolean("active")
+		  		))
+	      }.flatten.toList
+      } else {
+        List()
       }
-      val rs = ps.executeQuery
-      Iterator.continually((rs, rs.next())).takeWhile(_._2).map { case (row, hasNext) =>
-        Some(ReviewTag(
-			    row.getInt("id"),
-			    row.getString("name"),
-			    Try(Some(row.getString("description"))).getOrElse(None),
-			    row.getString("hex_color"),
-			    row.getBoolean("active")
-	  		))
-      }.flatten.toList
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       List()
