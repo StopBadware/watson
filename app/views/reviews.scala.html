@@ -29,7 +29,7 @@
 	   			<td class="text-right unixtime">@summary.createdAt</td>
 	   			<td>
 	   			@summary.tags.map { tag =>
-	   				<span class="tag" data-tagbg="@tag.hexColor">@tag</span>
+	   				<a href="/tags/@tag.name" class="no-dec"><span class="tag" data-tagbg="@tag.hexColor">@tag</span></a>
    				}
 	   			</td>
    			</tr>

@@ -16,6 +16,9 @@ h1 {
 .non-vis {
 	display: none;
 }
+.no-dec:hover {
+	text-decoration: none;
+}
 .header-image {
 	margin-right: 2.5em;
 }
