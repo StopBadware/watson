@@ -39,7 +39,8 @@ object Application extends Controller with JsonMapper with Secured {
         user.get.updateLoginCount()
         val sessionId = newSessionId
         updateSessionExpiry(sessionId, user.get.id)
-        Ok(request.session.get("returnTo").getOrElse("/")).withSession(("sessionId" -> sessionId))
+        val returnTo = Json.obj("returnTo" -> request.session.get("returnTo").getOrElse("/").toString)
+        Ok(returnTo).withSession(("sessionId" -> sessionId))
       } else {
         Unauthorized
       }
