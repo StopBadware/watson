@@ -1,5 +1,8 @@
-@(summaries: List[ReviewSummary])
+@(summaries: List[ReviewSummary], max: Int)
 @main("Reviews") {
+	@if(summaries.size >= max) {
+	<h3 class="text-center sbw-red">Limiting display to @max oldest reviews</h3>	
+	}
     <table id="reviews-table" class="table table-striped table-hover table-condensed table-sorted">
     	<thead>
     		<tr>
@@ -14,7 +17,7 @@
     	<tbody>
     	@summaries.map { summary =>
     		<tr>
-	    		<td title="Click to view details">
+	    		<td title="View details for @summary.uri">
 	    			<a href="/reviews/@summary.reviewId">
 	    				@(if (summary.uri.length>75) summary.uri.slice(0, 75)+"..." else summary.uri)
 	    			</a>

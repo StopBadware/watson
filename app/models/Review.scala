@@ -191,12 +191,12 @@ object Review {
     }
   }
   
-  def openSummaries: List[ReviewSummary] = DB.withConnection { implicit conn =>
+  def openSummaries(limit: Int=1000): List[ReviewSummary] = DB.withConnection { implicit conn =>
     return try {
       val rows = SQL("""SELECT uris.id AS uri_id, reviews.id AS review_id, uri, reviews.status, 
         (SELECT COUNT(*) AS cnt FROM review_requests WHERE review_requests.uri_id=reviews.uri_id AND open=true), 
         reviews.created_at, reviews.review_tag_ids FROM reviews LEFT JOIN uris ON reviews.uri_id=uris.id 
-        WHERE status<='PENDING_BAD'::REVIEW_STATUS ORDER BY reviews.created_at ASC LIMIT 1000""")()
+        WHERE status<='PENDING_BAD'::REVIEW_STATUS ORDER BY reviews.created_at ASC LIMIT {limit}""").on("limit"->limit)()
       rows.map { row =>
       	ReviewSummary(
     	    row[Int]("review_id"),

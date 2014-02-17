@@ -17,14 +17,14 @@ object Application extends Controller with JsonMapper with Secured {
   }
   
   def reviews = withAuth { userId => implicit request =>
-    Ok(views.html.reviews(Review.openSummaries))
+    Ok(views.html.reviews(Review.openSummaries(1000), 1000))
   }
   
   def review(id: Int) = TODO	//TODO WTSN-18 view review
   
-  def tags = TODO	//TODO WTSN-18 view review
+  def tags = TODO	//TODO WTSN-18 view/add/toggle tags
   
-  def tag(name: String) = TODO	//TODO WTSN-18 view review
+  def tag(name: String) = TODO	//TODO WTSN-18 view tag
   
   def welcome = Action { implicit request =>
     Ok(views.html.welcome())
