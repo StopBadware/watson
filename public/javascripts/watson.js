@@ -29,6 +29,7 @@ $(document).ready(function($) {
 	});
 	
 	setActiveNav();
+	$(".table-sorted").tablesorter();
 	getDatesFromUnix(".unixtime");
 	tagBgs();
 	

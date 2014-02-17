@@ -63,9 +63,33 @@ label {
 /* TABLES */
 th {
 	text-align: center;
+	color: #FFFFFF;
+	background-color: #90B9C3;
+}
+.table-condensed.table-sorted th {
+	padding-right: 1em;
+}
+.table-sorted th {
+	background-image: url(sort.png);
+	background-repeat: no-repeat;
+	background-position: center right;
+}
+.table-sorted th:hover {
+	cursor: pointer;
+	background-color: #2B373A;
+}
+.table-sorted .header-sort-up,
+.table-sorted .header-sort-down {
+	background-color: #648188;
+}
+.table-sorted .header-sort-up {
+	background-image: url(desc.png);
+}
+.table-sorted .header-sort-down {
+	background-image: url(asc.png);
 }
 .table-hover>tbody>tr:hover>td {
-	background-color: #e8f1f3;
+	background-color: #E8F1F3;
 }
 /* REGISTER & LOGIN */
 .form-well,

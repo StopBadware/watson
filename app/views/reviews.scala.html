@@ -1,6 +1,6 @@
 @(summaries: List[ReviewSummary])
 @main("Reviews") {
-    <table id="reviews-table" class="table table-striped table-hover table-condensed">
+    <table id="reviews-table" class="table table-striped table-hover table-condensed table-sorted">
     	<thead>
     		<tr>
     			<th title="Click URI to view review details">URI</th>
@@ -27,7 +27,7 @@
 	   			</td>
 	   			<td class="text-center">@summary.requests</td>
 	   			<td class="text-right unixtime">@summary.createdAt</td>
-	   			<td>
+	   			<td class="text-center">
 	   			@summary.tags.map { tag =>
 	   				<a href="/tags/@tag.name" class="no-dec"><span class="tag" data-tagbg="@tag.hexColor">@tag</span></a>
    				}
