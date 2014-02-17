@@ -22,7 +22,9 @@
 	   			<td class="text-center">@summary.status</td>
 	   			<td>
 	   			@summary.blacklistedBy.map { source =>
-   					<div class="inline source-icon icon-@source.toString.toLowerCase" title="@source.toString.toUpperCase">&nbsp;</div>
+   					<div class="inline source-icon icon-@source.toString.toLowerCase" title="@source.toString.toUpperCase">
+   						<span class="vis-hidden">@source.toString</span>
+   					</div>
    				}
 	   			</td>
 	   			<td class="text-center">@summary.requests</td>

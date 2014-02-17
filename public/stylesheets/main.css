@@ -16,6 +16,9 @@ h1 {
 .non-vis {
 	display: none;
 }
+.vis-hidden {
+	visibility: hidden;
+}
 .no-dec:hover {
 	text-decoration: none;
 }
