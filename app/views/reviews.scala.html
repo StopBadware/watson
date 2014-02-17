@@ -1,8 +1,30 @@
 @(summaries: List[ReviewSummary], max: Int)
 @main("Reviews") {
-	@if(summaries.size >= max) {
-	<h3 class="text-center sbw-red">Limiting display to @max oldest reviews</h3>	
-	}
+@if(summaries.size >= max) {
+<h3 class="text-center sbw-red">Limiting display to @max oldest reviews</h3>
+}
+<div class="panel panel-default">
+	<div class="panel-body">
+		<form id="reviews-filter" class="form-inline">
+			<label class="control-label" for="status">Status</label>
+			<select id="status" class="form-control">
+				<option>All Open</option>
+				<option>All Closed</option>
+				<option>All</option>
+				<option>New</option>
+				<option>Rejected</option>
+				<option>Reopened</option>
+				<option>Pending Bad</option>
+				<option>Closed Bad</option>
+				<option>Closed Clean</option>
+				<option>Closed No Longer Reported</option>
+				<option>Closed Without Review</option>
+			</select>
+			<div class="control-group">
+				<button type="submit" id="btn-filter" class="btn btn-default form-btn">Filter</button>
+			</div>
+		</form>
+	</div>
     <table id="reviews-table" class="table table-striped table-hover table-condensed table-sorted">
     	<thead>
     		<tr>
@@ -41,4 +63,5 @@
    		}
     	</tbody>
     </table>
+</div>
 }

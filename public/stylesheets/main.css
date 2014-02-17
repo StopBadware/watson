@@ -97,7 +97,12 @@ th {
 .table-hover>tbody>tr:hover>td {
 	background-color: #E8F1F3;
 }
-/* REGISTER & LOGIN */
+/* FORMS */
+.form-control:focus {
+	border-color: #90B9C3;
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075),0 0 8px rgba(144, 185, 195, 0.6);
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075),0 0 8px rgba(144, 185, 195, 0.6);
+}
 .form-well,
 .form-success {
 	width: 375px;
