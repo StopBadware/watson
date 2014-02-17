@@ -30,6 +30,7 @@ $(document).ready(function($) {
 	
 	setActiveNav();
 	getDatesFromUnix(".unixtime");
+	tagBgs();
 	
 });
 
@@ -39,6 +40,12 @@ function setActiveNav() {
 	if (nav) {
 		$("#li-nav-"+nav).addClass("active");
 	}
+}
+
+function tagBgs() {
+	$(".tag").each(function() {
+		$(this).css("background-color", "#"+$(this).data("tagbg"));
+	});
 }
 
 function loginSubmit() {

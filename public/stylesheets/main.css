@@ -35,8 +35,11 @@ label {
 .progress-bar {
 	width: 100%;
 }
-.table-hover>tbody>tr:hover>td {
-	background-color: #e8f1f3;
+.tag {
+	color: #FFFFFF;
+	background-color: #000000;
+	padding: 0.2em;
+	border-radius: 0.25em;
 }
 /* NAVBAR */
 .navbar-default {
@@ -57,6 +60,9 @@ label {
 /* TABLES */
 th {
 	text-align: center;
+}
+.table-hover>tbody>tr:hover>td {
+	background-color: #e8f1f3;
 }
 /* REGISTER & LOGIN */
 .form-well,

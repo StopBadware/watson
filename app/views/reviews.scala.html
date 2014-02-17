@@ -27,7 +27,11 @@
 	   			</td>
 	   			<td class="text-center">@summary.requests</td>
 	   			<td class="text-right unixtime">@summary.createdAt</td>
-	   			<td>@summary.tags.mkString(",")</td>
+	   			<td>
+	   			@summary.tags.map { tag =>
+	   				<span class="tag" data-tagbg="@tag.hexColor">@tag</span>
+   				}
+	   			</td>
    			</tr>
    		}
     	</tbody>
