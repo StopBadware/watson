@@ -32,6 +32,9 @@ $(document).ready(function($) {
 	$(".table-sorted").tablesorter();
 	getDatesFromUnix(".unixtime");
 	tagBgs();
+	if ($("#reviews-table").length) {
+		$("#reviews-table").trigger("sorton",[[[4,0]]]); 
+	}
 	
 });
 
