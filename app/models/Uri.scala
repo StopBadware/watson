@@ -249,6 +249,9 @@ class ReportedUri(uriStr: String) {
 
 object ReportedUri {
   private val schemeCheck = "^[a-zA-Z]+[a-zA-Z0-9+.\\-]+://.*"
-  private def valid(url: String): String = if (url.matches(ReportedUri.schemeCheck)) url.trim else "http://" + url.trim
+  private def valid(url: String): String = {
+    val withScheme = if (url.matches(ReportedUri.schemeCheck)) url.trim else "http://" + url.trim
+    if (withScheme.substring(withScheme.indexOf("//")+2).contains("/")) withScheme else withScheme+"/"
+  }
   def sha256(url: String): String = Hash.sha256(valid(url)).getOrElse("")
 }

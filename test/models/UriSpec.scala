@@ -8,6 +8,7 @@ import play.api.test.Helpers._
 import java.net.URISyntaxException
 import scala.util.Random
 import scala.actors.Futures.future
+import controllers.Hash
 import models.enums.Source
 
 @RunWith(classOf[JUnitRunner])
@@ -23,6 +24,19 @@ class UriSpec extends Specification {
       running(FakeApplication()) {
       	Uri.create(reportedUri) must beTrue
       	Uri.create(validUri) must beTrue
+      }
+    }
+    
+    "add slash if no explicit path in Uri" in {
+      running(FakeApplication()) {
+        val noSlash = "http://example"+Random.nextInt+".com"
+      	Uri.create(noSlash) must beTrue
+      	Uri.find(Hash.sha256(noSlash).get) must beNone
+      	Uri.find(Hash.sha256(noSlash+"/").get) must beSome
+      	val noSlashNoScheme = "example"+Random.nextInt+".com"
+      	Uri.create(noSlashNoScheme) must beTrue
+      	Uri.find(Hash.sha256("http://"+noSlashNoScheme).get) must beNone
+      	Uri.find(Hash.sha256("http://"+noSlashNoScheme+"/").get) must beSome
       }
     }
     
