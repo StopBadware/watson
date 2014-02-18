@@ -7,22 +7,32 @@
 	<div class="panel-body">
 		<form id="reviews-filter" class="form-inline">
 			<label class="control-label" for="status">Status</label>
-			<select id="status" class="form-control">
-				<option>All Open</option>
-				<option>All Closed</option>
-				<option>All</option>
-				<option>New</option>
-				<option>Rejected</option>
-				<option>Reopened</option>
-				<option>Pending Bad</option>
-				<option>Closed Bad</option>
-				<option>Closed Clean</option>
-				<option>Closed No Longer Reported</option>
-				<option>Closed Without Review</option>
+			<select id="status" name="status" class="form-control">
+				<option value="all-open">All Open</option>
+				<option value="new">New</option>
+				<option value="rejected">Rejected</option>
+				<option value="reopened">Reopened</option>
+				<option value="pending-bad">Pending Bad</option>
+				<option class="text-muted" disabled="disabled">----------------</option>
+				<option value="all-closed">All Closed</option>
+				<option value="closed-bad">Closed Bad</option>
+				<option value="closed-clean">Closed Clean</option>
+				<option value="closed-no-longer-reported">Closed No Longer Reported</option>
+				<option value="closed-without-review">Closed Without Review</option>
 			</select>
-			<div class="control-group">
-				<button type="submit" id="btn-filter" class="btn btn-default form-btn">Filter</button>
-			</div>
+			
+			<label class="control-label" for="blacklisting">Blacklisting</label>
+			<select id="blacklisting" name="blacklisting" class="form-control">
+				<option value="any">Any</option>
+				<option value="goog">Google</option>
+				<option value="nsf">NSFOCUS</option>
+				<option value="tts">ThreatTrack</option>
+			</select>
+			
+			<label class="control-label" for="created">Created</label>
+			<input type="text" class="form-control date-picker text-center" id="created" name="created">
+			
+			<button type="submit" id="btn-filter" class="btn btn-default form-btn">Filter</button>
 		</form>
 	</div>
     <table id="reviews-table" class="table table-striped table-hover table-condensed table-sorted">

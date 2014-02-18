@@ -1,8 +1,12 @@
 html, body {
 	color: #394A4E;
 }
-h1 {
+h1,
+option {
 	color: #2B373A;
+}
+label {
+	color: #566F75;
 }
 .sbw-red {
 	color: #E34125;
@@ -120,6 +124,38 @@ th {
 }
 .form-btn {
 	margin-top: 1em;
+}
+.form-inline .form-btn {
+	margin-top: 0;
+}
+.form-inline input,
+.form-inline select {
+	margin-right: 1em;
+}
+/* DATE PICKER */
+.form-inline .form-control.date-picker {
+	width: 15em;
+}
+.calendar-date th.available,
+.ranges .btn-success {
+	background-color: #648188;
+	border-color: #F9F9F9;
+	color: #FFFFFF;
+}
+.calendar-date th.available:hover,
+.ranges .btn-success:hover {
+	background-color: #2B373A;
+}
+.daterangepicker th {
+	background-color: #FFFFFF;
+	color: #2B373A;
+}
+.daterangepicker .ranges li.active, .daterangepicker .ranges li:hover {
+	background: #648188;
+	border: 1px solid #90B9C3;
+}
+.daterangepicker .ranges li {
+	color: #2B373A;
 }
 /* IMAGES  */
 .source-icon {

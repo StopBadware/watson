@@ -32,6 +32,18 @@ $(document).ready(function($) {
 	$(".table-sorted").tablesorter();
 	getDatesFromUnix(".unixtime");
 	tagBgs();
+	$(".date-picker").daterangepicker({
+		ranges: {
+			'Today': [new Date(), new Date()],
+			'Yesterday': [moment().subtract('days', 1), moment().subtract('days', 1)],
+			'Last 7 Days': [moment().subtract('days', 6), new Date()],
+			'Last 30 Days': [moment().subtract('days', 29), new Date()],
+			'This Month': [moment().startOf('month'), moment().endOf('month')],
+			'Last Month': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
+		},
+		format: "DD MMM YYYY",
+		opens: "left"
+	});
 	if ($("#reviews-table").length) {
 		$("#reviews-table").trigger("sorton",[[[4,0]]]); 
 	}
