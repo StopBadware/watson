@@ -17,13 +17,22 @@ class ApplicationSpec extends Specification {
       }
     }
     
-    "render the index page" in {
+    "redirect index to the welcome page" in {
       running(FakeApplication()) {
         val home = route(FakeRequest(GET, "/")).get
         
-        status(home) must equalTo(OK)
-        contentType(home) must beSome.which(_ == "text/html")
-        contentAsString(home) must contain ("Watson")
+        status(home) must not equalTo(OK)
+        status(home) must equalTo(SEE_OTHER)
+      }
+    }
+    
+    "render the welcome page" in {
+      running(FakeApplication()) {
+        val welcome = route(FakeRequest(GET, "/welcome")).get
+        
+        status(welcome) must equalTo(OK)
+        contentType(welcome) must beSome.which(_ == "text/html")
+        contentAsString(welcome) must contain ("Watson")
       }
     }
   }
