@@ -137,25 +137,31 @@ th {
 	width: 15em;
 }
 .calendar-date th.available,
-.ranges .btn-success {
+.ranges .btn-success,
+.daterangepicker td.active, 
+.daterangepicker td.active:hover {
 	background-color: #648188;
 	border-color: #F9F9F9;
 	color: #FFFFFF;
 }
 .calendar-date th.available:hover,
-.ranges .btn-success:hover {
+.ranges .btn-success:hover,
+.daterangepicker .ranges li:hover {
 	background-color: #2B373A;
 }
 .daterangepicker th {
 	background-color: #FFFFFF;
 	color: #2B373A;
 }
-.daterangepicker .ranges li.active, .daterangepicker .ranges li:hover {
+.daterangepicker .ranges li.active {
 	background: #648188;
 	border: 1px solid #90B9C3;
 }
 .daterangepicker .ranges li {
 	color: #2B373A;
+}
+.daterangepicker td.in-range {
+	background-color: #E8F1F3;
 }
 /* IMAGES  */
 .source-icon {
