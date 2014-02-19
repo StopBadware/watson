@@ -130,7 +130,13 @@ th {
 }
 .form-inline input,
 .form-inline select {
-	margin-right: 1em;
+	margin-right: 1.2em;
+}
+#reviews-filter label {
+	margin-right: 0.25em;
+}
+#reviews-filter .form-btn {
+	margin-left: 0.5em;
 }
 /* DATE PICKER */
 .form-inline .form-control.date-picker {
