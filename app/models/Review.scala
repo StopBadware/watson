@@ -1,6 +1,7 @@
 package models
 
 import java.util.Date
+import java.sql.Timestamp
 import anorm._
 import play.api.db._
 import play.api.Play.current
@@ -8,7 +9,7 @@ import play.api.Logger
 import org.postgresql.util.PSQLException
 import scala.util.Try
 import models.enums._
-import controllers.PostgreSql.rowToIntArray
+import controllers.PostgreSql._
 
 case class Review(
 	  id: Int, 
@@ -145,6 +146,8 @@ case class Review(
 
 object Review {
   
+  private val summaryLimit = Try(sys.env("SUMMARY_LIMIT").toInt).getOrElse(500)
+  
   def create(uriId: Int): Boolean = DB.withConnection { implicit conn =>
     //TODO WTSN-12 if blacklisted by Google add to rescan queue
     //TODO WTSN-24 add to scanning queue
@@ -191,13 +194,20 @@ object Review {
     }
   }
   
-  def openSummaries(limit: Int=1000): List[ReviewSummary] = DB.withConnection { implicit conn =>
-    return try {
-      val rows = SQL("""SELECT uris.id AS uri_id, reviews.id AS review_id, uri, reviews.status, 
-        (SELECT COUNT(*) AS cnt FROM review_requests WHERE review_requests.uri_id=reviews.uri_id AND open=true), 
-        reviews.created_at, reviews.review_tag_ids FROM reviews LEFT JOIN uris ON reviews.uri_id=uris.id 
-        WHERE status<='PENDING_BAD'::REVIEW_STATUS ORDER BY reviews.created_at ASC LIMIT {limit}""").on("limit"->limit)()
-      rows.map { row =>
+  def summaries(params: ReviewSummaryParams): (List[ReviewSummary], Int) = DB.withConnection { implicit conn =>
+    return (try {
+      val times = params.createdAt
+      val rows = SQL("SELECT uris.id AS uri_id, reviews.id AS review_id, uri, reviews.status, " +
+        "(SELECT COUNT(*) AS cnt FROM review_requests WHERE review_requests.uri_id=reviews.uri_id AND open=true), " + 
+        "reviews.created_at, reviews.review_tag_ids FROM reviews LEFT JOIN uris ON reviews.uri_id=uris.id " + 
+        "WHERE status"+params.operator+"{status}::REVIEW_STATUS AND reviews.created_at BETWEEN {start} AND {end} " +
+        "ORDER BY reviews.created_at ASC LIMIT {limit}").on(
+          "limit" -> summaryLimit, 
+          "status" -> params.reviewStatus.toString,
+          "start" -> (if (times.isDefined) times.get._1 else new Timestamp(0)),
+          "end" -> (if (times.isDefined) times.get._2 else new Timestamp(9999999999999L))
+    		)()
+      val summaries = rows.map { row =>
       	ReviewSummary(
     	    row[Int]("review_id"),
     			row[String]("uri"),
@@ -208,10 +218,11 @@ object Review {
     			ReviewTag.find(row[Option[Array[Int]]]("review_tag_ids").getOrElse(Array()).toList)
       	)
       }.toList
+      if (params.blacklistedBy.isDefined) summaries.filter(_.blacklistedBy.contains(params.blacklistedBy.get)) else summaries
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       List()
-    }
+    }, summaryLimit)
   }
   
   private def mapFromRow(row: SqlRow): Option[Review] = {
@@ -242,4 +253,25 @@ case class ReviewSummary(
 	requests: Int,
 	createdAt: Long,
 	tags: List[ReviewTag]
-) 
+)
+
+class ReviewSummaryParams(status: Option[String], blacklisted: Option[String], created: Option[String]) {
+  
+  private val parsedStatus = Try(ReviewStatus.fromStr(status.get.replaceAll("[\\- ]", "_")).get)
+  val reviewStatus = parsedStatus.getOrElse(ReviewStatus.PENDING_BAD)
+  val operator = if (parsedStatus.isSuccess) "=" else (if (status.equals(Some("all-closed"))) ">" else "<=")
+  val blacklistedBy = Source.withAbbr(blacklisted.getOrElse(""))
+  val createdAt: Option[(Timestamp, Timestamp)] = if (created.isDefined) {
+    val df = "dd MMM yyyy'T'HH:mm:ss:SSS"
+    val start = "T00:00:00:000"
+    val end = "T23:59:59:999"
+    val dates = created.get.split("-").map(_.trim)
+    dates.size match {
+      case 1 => Try(Some(toTimestamp(dates(0)+start, df).get, toTimestamp(dates(0)+end, df).get)).getOrElse(None)
+      case 2 => Try(Some(toTimestamp(dates(0)+start, df).get, toTimestamp(dates(1)+end, df).get)).getOrElse(None)
+      case _ => None
+    }
+  } else {
+    None
+  }
+}

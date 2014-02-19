@@ -17,7 +17,12 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
   }
   
   def reviews = withAuth { userId => implicit request =>
-    Ok(views.html.reviews(Review.openSummaries(1000), 1000))
+    val summaries = Review.summaries(new ReviewSummaryParams(
+      request.getQueryString("status"),
+      request.getQueryString("blacklisted"),
+      request.getQueryString("created")
+    ))
+    Ok(views.html.reviews(summaries._1, summaries._2))
     	.withCookies(cookies(request, List("status", "blacklisted", "created")):_*)
   }
   
@@ -98,21 +103,6 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
       routes.javascript.Application.createAccount,
       routes.javascript.Application.sendPwResetEmail
 		)).as("text/javascript")
-  }
-  
-}
-
-trait Cookies {
-  
-  def cookies(request: Request[AnyContent], fields: List[String]): Seq[Cookie] = { 
-    fields.map { field =>
-    	println(request.getQueryString(field))
-    	cookie(field, request.getQueryString(field).getOrElse(""))
-    }
-  }
-  
-  private def cookie(key: String, value: String): Cookie = {
-    Cookie(key, value, None, "/", None, false, false)
   }
   
 }

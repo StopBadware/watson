@@ -185,12 +185,53 @@ class ReviewSpec extends Specification {
       }
     }
     
-    "retrieve open review summaries" in {
+    "retrieve review summaries" in {
       running(FakeApplication()) {
         val rev = createAndFind
-        val summaries = Review.openSummaries(10000)
-        summaries.nonEmpty must beTrue
-        summaries.map(_.uri).contains(Uri.find(rev.uriId).get.uri) must beTrue
+        val summaries = Review.summaries(new ReviewSummaryParams(None, None, None))
+        summaries._1.nonEmpty must beTrue
+        summaries._1.map(_.uri).contains(Uri.find(rev.uriId).get.uri) must beTrue
+        summaries._1.size <= summaries._2
+      }
+    }
+    
+    "parse review summary params" in {
+      running(FakeApplication()) {
+        val allOpen = new ReviewSummaryParams(Some("all-open"), Some("any"), Some(""))
+        allOpen.reviewStatus must equalTo(ReviewStatus.PENDING_BAD)
+        allOpen.operator must equalTo("<=")
+        allOpen.blacklistedBy must beNone
+        allOpen.createdAt must beNone
+        
+        val allClosed = new ReviewSummaryParams(Some("all-closed"), Some("any"), Some(""))
+        allClosed.reviewStatus must equalTo(ReviewStatus.PENDING_BAD)
+        allClosed.operator must equalTo(">")
+        allClosed.blacklistedBy must beNone
+        allClosed.createdAt must beNone
+        
+        ReviewStatus.statuses.values.map { status =>
+          val statusParams = new ReviewSummaryParams(Some(status.toString.toLowerCase), None, None)
+          statusParams.reviewStatus must equalTo(status)
+          statusParams.operator must equalTo("=")
+          val statusWithSpacesParams = new ReviewSummaryParams(Some(status.toString.toLowerCase.replaceAll("_", " ")), None, None)
+          statusWithSpacesParams.reviewStatus must equalTo(status)
+          statusWithSpacesParams.operator must equalTo("=")
+        }
+        
+        List(Source.GOOG, Source.NSF, Source.TTS).map { source =>
+          val sourceParams = new ReviewSummaryParams(None, Some(source.abbr.toLowerCase), None)
+          sourceParams.blacklistedBy must equalTo(Some(source))
+        }
+        
+        val withDateRange = new ReviewSummaryParams(None, None, Some("01 Jan 2013 - 31 Dec 2013"))
+        withDateRange.createdAt must beSome
+        withDateRange.createdAt.get._1.toString must equalTo("2013-01-01 00:00:00.0")
+        withDateRange.createdAt.get._2.toString must equalTo("2013-12-31 23:59:59.999")
+        
+        val withDate = new ReviewSummaryParams(None, None, Some("08 Jan 2011"))
+        withDate.createdAt must beSome
+        withDate.createdAt.get._1.toString must equalTo("2011-01-08 00:00:00.0")
+        withDate.createdAt.get._2.toString must equalTo("2011-01-08 23:59:59.999")
       }
     }
     

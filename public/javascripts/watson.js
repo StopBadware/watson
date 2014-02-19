@@ -45,7 +45,11 @@ $(document).ready(function($) {
 		opens: "left"
 	});
 	if ($("#reviews-table").length) {
-		$("#reviews-table").trigger("sorton",[[[4,0]]]);
+		if ($("#reviews-table tbody tr").length) {
+			$("#reviews-table").trigger("sorton",[[[4,0]]]);
+		} else {
+			$(".no-results-msg").show();
+		}
 		setReviewFilterInputs();
 	}
 	

@@ -3,8 +3,11 @@ package controllers
 import java.math.BigInteger
 import java.net.URI
 import java.security.MessageDigest
+import java.sql.Timestamp
+import java.text.{ParseException, SimpleDateFormat}
 import scala.util.Try
 import anorm._
+import play.api.mvc._
 import org.postgresql.jdbc4.Jdbc4Array
 import com.fasterxml.jackson.databind.{JsonNode, JsonMappingException, ObjectMapper}
 import com.fasterxml.jackson.core.JsonParseException
@@ -59,6 +62,29 @@ object PostgreSql {
         case _: Exception => Left(TypeDoesNotMatch(value.toString+" - "+meta))
       }
     }
+  }
+  
+  def toTimestamp(date: String, format: String): Option[Timestamp] = {
+    val df = new SimpleDateFormat(format)
+    return try {
+      Some(new Timestamp(df.parse(date).getTime))
+    } catch {
+      case e: ParseException => None
+    }
+  }
+  
+}
+
+trait Cookies {
+  
+  def cookies(request: Request[AnyContent], fields: List[String]): Seq[Cookie] = { 
+    fields.map { field =>
+    	cookie(field, request.getQueryString(field).getOrElse(""))
+    }
+  }
+  
+  private def cookie(key: String, value: String): Cookie = {
+    Cookie(key, value, None, "/", None, false, false)
   }
   
 }

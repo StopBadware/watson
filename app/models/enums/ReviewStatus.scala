@@ -35,12 +35,12 @@ object ReviewStatus {
     return if (statuses.contains(upper)) Some(statuses(upper)) else None
   }
   
-  implicit def rowToSource: Column[ReviewStatus] = {
+  implicit def rowToReviewStatus: Column[ReviewStatus] = {
     Column.nonNull[ReviewStatus] { (value, meta) =>
       val status = ReviewStatus.fromStr(value.toString)
 	    if (status.isDefined) Right(status.get) else Left(TypeDoesNotMatch(value.toString+" - "+meta))
     }
-  }  
+  }
   
 }
 
