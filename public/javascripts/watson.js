@@ -45,7 +45,8 @@ $(document).ready(function($) {
 		opens: "left"
 	});
 	if ($("#reviews-table").length) {
-		$("#reviews-table").trigger("sorton",[[[4,0]]]); 
+		$("#reviews-table").trigger("sorton",[[[4,0]]]);
+		setReviewFilterInputs();
 	}
 	
 });
@@ -61,6 +62,17 @@ function setActiveNav() {
 function tagBgs() {
 	$(".tag").each(function() {
 		$(this).css("background-color", "#"+$(this).data("tagbg"));
+	});
+}
+
+function setReviewFilterInputs() {
+	var ck = $.cookie();
+	var fields = ["status", "blacklisted", "created"];
+	fields.map(function(field) {
+		var value = ck[field];
+		if (value && value.length > 0) {
+			$("#"+field.toLowerCase()).val(value);
+		}
 	});
 }
 

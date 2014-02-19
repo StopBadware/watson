@@ -10,7 +10,7 @@ import scala.util.Try
 import routes.javascript._
 import models._
 
-object Application extends Controller with JsonMapper with Secured {
+object Application extends Controller with JsonMapper with Secured with Cookies {
   
   def index = withAuth { userId => implicit request =>
     Ok(views.html.index("Watson"))
@@ -18,6 +18,7 @@ object Application extends Controller with JsonMapper with Secured {
   
   def reviews = withAuth { userId => implicit request =>
     Ok(views.html.reviews(Review.openSummaries(1000), 1000))
+    	.withCookies(cookies(request, List("status", "blacklisted", "created")):_*)
   }
   
   def review(id: Int) = TODO	//TODO WTSN-18 view review
@@ -85,7 +86,7 @@ object Application extends Controller with JsonMapper with Secured {
     } else {
       BadRequest
     }
-  }  
+  }
   
   def untrail(path: String) = Action {
     MovedPermanently("/" + path)
@@ -97,6 +98,21 @@ object Application extends Controller with JsonMapper with Secured {
       routes.javascript.Application.createAccount,
       routes.javascript.Application.sendPwResetEmail
 		)).as("text/javascript")
+  }
+  
+}
+
+trait Cookies {
+  
+  def cookies(request: Request[AnyContent], fields: List[String]): Seq[Cookie] = { 
+    fields.map { field =>
+    	println(request.getQueryString(field))
+    	cookie(field, request.getQueryString(field).getOrElse(""))
+    }
+  }
+  
+  private def cookie(key: String, value: String): Cookie = {
+    Cookie(key, value, None, "/", None, false, false)
   }
   
 }
