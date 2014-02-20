@@ -121,7 +121,7 @@ object ReviewRequest {
   
   def findByUri(uriId: Int): List[ReviewRequest] = DB.withConnection { implicit conn =>
     return try {
-      SQL("SELECT * FROM review_requests WHERE uri_id={uriId} ORDER BY requested_at ASC")
+      SQL("SELECT * FROM review_requests WHERE uri_id={uriId} ORDER BY requested_at DESC")
       	.on("uriId" -> uriId)().map(mapFromRow).toList.flatten
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
