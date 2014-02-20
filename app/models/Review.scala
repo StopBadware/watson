@@ -142,6 +142,17 @@ case class Review(
     }
   }
   
+  def details: ReviewDetails = {
+//  uri: Uri,
+//	currentReview: Review,
+//	pastReviews: List[Review],
+//	blacklistEvents: List[BlacklistEvent],
+//	googleRescans: List[GoogleRescan],
+//	reviewRequests: List[ReviewRequest],
+//	tags: List[ReviewTag]
+    null	//TODO
+  }
+  
 }
 
 object Review {
@@ -176,7 +187,8 @@ object Review {
   
   def findByUri(uriId: Int): List[Review] = DB.withConnection { implicit conn =>
     return try {
-      SQL("SELECT * FROM reviews WHERE uri_id={uriId}").on("uriId"->uriId)().map(mapFromRow).flatten.toList
+      SQL("SELECT * FROM reviews WHERE uri_id={uriId} ORDER BY created_at DESC")
+      	.on("uriId"->uriId)().map(mapFromRow).flatten.toList
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       List()
@@ -275,3 +287,13 @@ class ReviewSummaryParams(status: Option[String], blacklisted: Option[String], c
     None
   }
 }
+
+case class ReviewDetails(
+  uri: Uri,
+	currentReview: Review,
+	pastReviews: List[Review],
+	blacklistEvents: List[BlacklistEvent],
+	googleRescans: List[GoogleRescan],
+	reviewRequests: List[ReviewRequest],
+	tags: List[ReviewTag]	//TODO WTSN-18 id->tag map
+) {}

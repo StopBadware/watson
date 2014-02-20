@@ -1,0 +1,40 @@
+@(review: Option[Review])
+@main((if (review.isDefined) "Review "+review.get.id else "Review Not Found")) {
+	<div id="" class="">
+		<h2>summary</h2>
+		<h4>url</h4>
+		<h4>status, updated, opened</h4>
+		<h4>tags</h4>
+	</div>
+	
+	<div id="" class="">
+		<h2>actions</h2>
+		<h4>test data</h4>
+		<h4>add tags</h4>
+		<h4>change status</h4>
+	</div>
+	
+	<div id="" class="">
+		<h2>url data</h2>
+		<h4>blacklist activity</h4>
+		<h4>google rescans</h4>
+		<h4>safe browsing</h4>
+		<h4>dsp</h4>
+		<h4>vt</h4>
+		<h4>scanner results</h4>
+		<h4>cr</h4>
+		<h4>domain related</h4>
+		<h4>resolver info</h4>		
+	</div>
+	
+	<div id="" class="">
+		<h2>requests</h2>
+		<h4>current</h4>
+		<h4>historical</h4>
+	</div>
+	
+	<div id="" class="">
+		<h2>previous reviews</h2>
+		<h4>dates, status, tags</h4>
+	</div>
+}

@@ -235,6 +235,33 @@ class ReviewSpec extends Specification {
       }
     }
     
+    "get review details" in {
+      running(FakeApplication()) {
+//          uri: Uri,	//DELME WTSN-18
+//					currentReview: Review,
+//					pastReviews: List[Review],
+//					blacklistEvents: List[BlacklistEvent],
+//					googleRescans: List[GoogleRescan],
+//					reviewRequests: List[ReviewRequest],
+//					tags: List[ReviewTag]
+        val uri = validUri
+        val email = "sylvanas@example.com"
+    		BlacklistEvent.create(List(uri.id), Source.GOOG, (System.currentTimeMillis / 1000) - 10000, None) must be_>(0)
+    		ReviewRequest.create(uri.id, email, Some(0), Some("FOR THE HORDE!")) must beTrue
+    		BlacklistEvent.unBlacklist(uri.id, Source.GOOG, (System.currentTimeMillis / 1000) - 1000)
+    		ReviewRequest.findByUri(uri.id).head.close(ClosedReason.NO_PARTNERS_REPORTING, None, None) must beTrue
+    		
+    		BlacklistEvent.create(List(uri.id), Source.TTS, (System.currentTimeMillis / 1000) - 500, None) must be_>(0)
+    		BlacklistEvent.create(List(uri.id), Source.GOOG, System.currentTimeMillis / 1000, None) must be_>(0)
+    		GoogleRescan.create(uri.id, None, "TEST", "TEST", System.currentTimeMillis / 1000) must beTrue
+    		ReviewRequest.create(uri.id, email, Some(0), Some("Lok'tar!")) must beTrue
+    		val reviews = Review.findByUri(uri.id)
+    		reviews.nonEmpty must beTrue
+//    		reviews.head.addTag(tagId)		//TODO WTSN-18 add tag
+        true must beFalse		//DELME WTSN-18
+      }
+    }
+    
   }
   
 }
