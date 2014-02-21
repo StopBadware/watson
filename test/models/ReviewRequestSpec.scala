@@ -52,7 +52,7 @@ class ReviewRequestSpec extends Specification {
       running(FakeApplication()) {
         val rr = request
         rr.open must beTrue	
-        rr.close(ClosedReason.ADMINISTRATIVE, None, Some(System.currentTimeMillis / 1000)) must beTrue
+        rr.close(ClosedReason.ADMINISTRATIVE, Some(System.currentTimeMillis / 1000)) must beTrue
         ReviewRequest.find(rr.id).get.open must beFalse
       }
     }

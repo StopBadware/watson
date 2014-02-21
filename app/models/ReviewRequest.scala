@@ -33,13 +33,13 @@ case class ReviewRequest(
     }
   }
   
-  def close(reason: ClosedReason, review: Option[Int]=None, closedAt: Option[Long]=None): Boolean = DB.withConnection { implicit conn =>
+  def close(reason: ClosedReason, closedAt: Option[Long]=None): Boolean = DB.withConnection { implicit conn =>
     val updatedReason = if (closedReason.equals(Some(REVIEWED_CLEAN)) && reason.equals(NO_PARTNERS_REPORTING)) {
       REVIEWED_CLEAN.toString
     } else {
       reason.toString
     }
-    val revId = if (review.isDefined) review else reviewId
+    val revId = Try(Some(Review.findByUri(uriId).filter(_.isOpen).head.id)).getOrElse(reviewId)
     val closeTime = closedAt.getOrElse(System.currentTimeMillis / 1000)
     val closed = try {
       SQL("""UPDATE review_requests SET open={open}, closed_at={closedAt}, review_id={reviewId} 
