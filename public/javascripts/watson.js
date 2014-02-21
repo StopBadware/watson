@@ -20,6 +20,9 @@ $(document).ready(function($) {
 	});
 	$("#register-box").submit(function(e) {
 		e.preventDefault();
+		checkEmail("#input-email");
+		checkPassword("#input-password");
+		checkPasswordsMatch("#input-password", "#input-pw-confirm");
 		registerSubmit();
 	});
 	
