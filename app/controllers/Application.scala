@@ -27,7 +27,12 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
   }
   
   def review(id: Int) = withAuth { userId => implicit request =>
-    Ok(views.html.review(Review.find(id)))
+    val review = Review.find(id)
+    if (review.isDefined) {
+      Ok(views.html.review(review.get.details))
+    } else {
+    	Ok(views.html.partials.modelnotfound("Review "+id))
+    }
   }
   
   def tags = TODO	//TODO WTSN-18 view/add/toggle tags
