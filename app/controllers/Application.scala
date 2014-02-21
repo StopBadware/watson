@@ -26,10 +26,9 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
     	.withCookies(cookies(request, List("status", "blacklisted", "created")):_*)
   }
   
-//  def review(id: Int) = withAuth { userId => implicit request =>
-//    Ok(views.html.review(Review.find(id)))
-//  }
-  def review(id: Int) = TODO
+  def review(id: Int) = withAuth { userId => implicit request =>
+    Ok(views.html.review(Review.find(id)))
+  }
   
   def tags = TODO	//TODO WTSN-18 view/add/toggle tags
   

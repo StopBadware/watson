@@ -142,16 +142,7 @@ case class Review(
     }
   }
   
-  def details: ReviewDetails = {
-//  uri: Uri,
-//	currentReview: Review,
-//	pastReviews: List[Review],
-//	blacklistEvents: List[BlacklistEvent],
-//	googleRescans: List[GoogleRescan],
-//	reviewRequests: List[ReviewRequest],
-//	tags: List[ReviewTag]
-    null	//TODO
-  }
+  def details: ReviewDetails = ReviewDetails(Review.find(this.id).get)
   
 }
 
@@ -288,12 +279,15 @@ class ReviewSummaryParams(status: Option[String], blacklisted: Option[String], c
   }
 }
 
-case class ReviewDetails(
-  uri: Uri,
-	currentReview: Review,
-	pastReviews: List[Review],
-	blacklistEvents: List[BlacklistEvent],
-	googleRescans: List[GoogleRescan],
-	reviewRequests: List[ReviewRequest],
-	tags: List[ReviewTag]	//TODO WTSN-18 id->tag map
-) {}
+case class ReviewDetails(review: Review) {
+  
+  val uri = Uri.find(review.uriId).get
+	val otherReviews = Review.findByUri(uri.id).filterNot(_.id==review.id)
+	val blacklistEvents = BlacklistEvent.findByUri(uri.id)
+	val googleRescans = GoogleRescan.findByUri(uri.id)
+	val reviewRequests = ReviewRequest.findByUri(uri.id)
+	val tags = (otherReviews:+review).map(_.reviewTags).flatten.toSet.foldLeft(Map.empty[Int, ReviewTag]) { (map, tagId) =>
+	  Try(map.updated(tagId, ReviewTag.find(tagId).get)).getOrElse(map)
+  }
+  
+}
