@@ -2,6 +2,15 @@
 @import models.enums.ReviewStatus
 @import models.enums.Role
 @main("Review "+details.review.id) {
+	<div class="review-nav">
+	@defining(details.review.siblings) { sibs =>
+		@defining(if (details.review.status.isOpen) (if (details.review.status.eq(ReviewStatus.PENDING_BAD)) "Pending" else "Open") else "Closed") { desc =>
+		<a href="/reviews/@sibs("prev").getOrElse(details.review.id)" role="button" class="btn btn-default">Previous @desc</a>
+		<a href="/reviews/@sibs("next").getOrElse(details.review.id)" role="button" class="btn btn-default">Next @desc</a>
+		}
+	}
+	</div>
+	
 	<div id="review-summary" class="well well-lg">
 		<h3>URI: <a href="/uris/@details.uri.id">@details.uri.uri</a></h3>
 		<h4>Created: <span class="unixtime-full">@details.review.createdAt</span></h4>

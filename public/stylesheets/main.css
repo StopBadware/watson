@@ -55,8 +55,15 @@ label {
 	border-radius: 0.25em;
 	display: inline-block;
 }
+#review-summary h3 {
+	margin-top: 0;
+}
 #review-summary .review-status {
 	font-weight: 800;
+}
+.review-nav {
+	margin-top: -1.25em;
+	margin-bottom: .25em;
 }
 /* NAVBAR */
 .navbar-default {

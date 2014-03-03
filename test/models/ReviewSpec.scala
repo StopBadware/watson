@@ -235,6 +235,36 @@ class ReviewSpec extends Specification {
       }
     }
     
+    "find nearest open and pending reviews" in {
+      running(FakeApplication()) {
+        val prevRev = createAndFind
+        val rev = createAndFind
+        val nextRev = createAndFind
+        
+        val prevPen = createAndFind
+        val pen = createAndFind
+        val nextPen = createAndFind
+        List(prevPen, pen, nextPen).foreach(_.reviewed(ReviewStatus.PENDING_BAD, testUser))
+        
+        val prevClosed = createAndFind
+        val closed = createAndFind
+        val nextClosed = createAndFind
+        List(prevClosed, closed, nextClosed).foreach(_.closeWithoutReview())
+        
+        val revSiblings = Review.find(rev.id).get.siblings
+        revSiblings("prev").get must equalTo(prevRev.id)
+        revSiblings("next").get must equalTo(nextRev.id)
+        
+        val penSiblings = Review.find(pen.id).get.siblings
+        penSiblings("prev").get must equalTo(prevPen.id)
+        penSiblings("next").get must equalTo(nextPen.id)
+        
+        val closedSiblings = Review.find(closed.id).get.siblings
+        closedSiblings("prev").get must equalTo(prevClosed.id)
+        closedSiblings("next").get must equalTo(nextClosed.id)
+      }
+    }
+    
     "get review details" in {
       running(FakeApplication()) {
         val uriId = validUri.id
@@ -270,6 +300,7 @@ class ReviewSpec extends Specification {
     		details.reviewRequests.filter(_.email.equalsIgnoreCase(email)).nonEmpty must beTrue
     		details.tags.nonEmpty must beTrue
     		details.tags.contains(tag.id) must beTrue
+    		List("prev", "next").map(review.siblings.contains(_) must beTrue)
     		details.tags(tag.id) must equalTo(tag)
       }
     }

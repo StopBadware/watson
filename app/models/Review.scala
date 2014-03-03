@@ -144,6 +144,20 @@ case class Review(
   
   def details: ReviewDetails = ReviewDetails(Review.find(this.id).get)
   
+  def siblings: Map[String, Option[Int]] = DB.withConnection { implicit conn =>
+    return try {
+      val op = if (status.isOpen) (if (status.eq(ReviewStatus.PENDING_BAD)) "=" else "<") else ">"
+      val sql = "SELECT (SELECT id FROM reviews WHERE created_at < (SELECT created_at FROM reviews WHERE id={id}) "+ 
+  	    "AND status"+op+"'PENDING_BAD' ORDER BY created_at DESC LIMIT 1) AS prev, (SELECT id FROM reviews WHERE created_at > "+ 
+  	    "(SELECT created_at FROM reviews WHERE id={id}) AND status"+op+"'PENDING_BAD' ORDER BY created_at ASC LIMIT 1) AS next"
+	    val row = SQL(sql).on("id" -> id)().head
+      Map("prev" -> row[Option[Int]]("prev"), "next" -> row[Option[Int]]("next"))
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      Map()
+    }
+  }
+  
 }
 
 object Review {
