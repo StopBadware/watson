@@ -55,6 +55,9 @@ label {
 	border-radius: 0.25em;
 	display: inline-block;
 }
+#review-summary .review-status {
+	font-weight: 800;
+}
 /* NAVBAR */
 .navbar-default {
 	background-color: #90B9C3;
@@ -78,7 +81,7 @@ th {
 	background-color: #90B9C3;
 }
 .table-condensed.table-sorted th {
-	padding-right: 1em;
+	padding-right: 1.25em;
 }
 .table-sorted th {
 	background-image: url(sort.png);

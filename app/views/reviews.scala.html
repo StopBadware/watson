@@ -54,7 +54,7 @@
 	    				@(if (summary.uri.length>75) summary.uri.slice(0, 75)+"..." else summary.uri)
 	    			</a>
 	    		</td>
-	   			<td class="text-center">@summary.status</td>
+	   			<td class="text-center enum">@summary.status</td>
 	   			<td>
 	   			@summary.blacklistedBy.map { source =>
    					<div class="inline source-icon icon-@source.toString.toLowerCase" title="@source.toString.toUpperCase">

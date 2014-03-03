@@ -35,7 +35,9 @@ $(document).ready(function($) {
 	$(".table-sorted").tablesorter();
 	getDatesFromUnix(".unixtime", false);
 	getDatesFromUnix(".unixtime-full", true);
+	prettifyEnums(".enum");
 	tagBgs();
+	
 	$(".date-picker").daterangepicker({
 		ranges: {
 			'Today': [new Date(), new Date()],
@@ -231,6 +233,12 @@ function toggleValid(baseId, valid) {
 		icon.removeClass("glyphicon-ok").addClass("glyphicon-remove");
 	}
 	
+}
+
+function prettifyEnums(selector) {
+	$(selector).each(function() {
+		$(this).text($(this).text().replace(/_/g, " "));
+	});
 }
 
 function getDatesFromUnix(selector, withTime) {
