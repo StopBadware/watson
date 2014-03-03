@@ -12,6 +12,8 @@ GET		/logout								controllers.Application.logout
 GET		/account/password					controllers.Application.resetPassword
 GET		/tags								controllers.Application.tags
 GET		/tags/:name							controllers.Application.tag(name: String)
+GET		/uris								controllers.Application.uris
+GET		/uris/:id							controllers.Application.uri(id: Int)
 
 # AJAX ROUTES
 GET		/javascriptRoutes					controllers.Application.javascriptRoutes

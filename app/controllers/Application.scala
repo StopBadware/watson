@@ -39,6 +39,10 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
   
   def tag(name: String) = TODO	//TODO WTSN-18 view tag
   
+  def uris = TODO	//TODO WTSN-29 uris view
+  
+  def uri(id: Int) = TODO	//TODO WTSN-29 view uri
+  
   def welcome = Action { implicit request =>
     Ok(views.html.welcome())
   }

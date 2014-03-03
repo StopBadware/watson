@@ -1,12 +1,11 @@
 @(details: ReviewDetails)
 @main("Review "+details.review.id) {
-	<div id="" class="">
-		<h4>@details.uri.uri</h4>
+	<div id="review-summary" class="well well-lg">
+		<h3>URI: <a href="/uris/@details.uri.id">@details.uri.uri</a></h3>
 		<h4>@details.review.createdAt, @details.review.statusUpdatedAt, @details.review.status</h4>
 		@details.review.reviewTags.map { tagId =>
 			<h4 class="tag">@details.tags(tagId)</h4>
 		}
-		<h4>@(details.review.id + " -  " + details.uri.uri)</h4>
 	</div>
 	
 	<div id="" class="">
