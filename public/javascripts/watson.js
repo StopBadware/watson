@@ -33,7 +33,8 @@ $(document).ready(function($) {
 	
 	setActiveNav();
 	$(".table-sorted").tablesorter();
-	getDatesFromUnix(".unixtime");
+	getDatesFromUnix(".unixtime", false);
+	getDatesFromUnix(".unixtime-full", true);
 	tagBgs();
 	$(".date-picker").daterangepicker({
 		ranges: {
@@ -232,12 +233,17 @@ function toggleValid(baseId, valid) {
 	
 }
 
-function getDatesFromUnix(selector) {
+function getDatesFromUnix(selector, withTime) {
 	$(selector).each(function() {
-		$(this).text(formatDate($(this).text()));
+		$(this).text(formatDate($(this).text(), withTime));
 	});
 }
 
-function formatDate(unix) {
-	return (isNaN(unix)) ? unix : (new Date(unix * 1000)).toDateString();
+function formatDate(unix, withTime) {
+	if (isNaN(unix)) {
+		return unix;
+	} else {
+		var date = new Date(unix * 1000)
+		return (withTime) ? date.toString() : date.toDateString();
+	}
 }

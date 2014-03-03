@@ -29,7 +29,7 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
   def review(id: Int) = withAuth { userId => implicit request =>
     val review = Review.find(id)
     if (review.isDefined) {
-      Ok(views.html.review(review.get.details))
+      Ok(views.html.review(review.get.details, User.find(userId.get).get))
     } else {
     	Ok(views.html.partials.modelnotfound("Review "+id))
     }

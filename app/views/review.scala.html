@@ -1,17 +1,30 @@
-@(details: ReviewDetails)
+@(details: ReviewDetails, user: User)
+@import models.enums.Role
 @main("Review "+details.review.id) {
 	<div id="review-summary" class="well well-lg">
 		<h3>URI: <a href="/uris/@details.uri.id">@details.uri.uri</a></h3>
-		<h4>@details.review.createdAt, @details.review.statusUpdatedAt, @details.review.status</h4>
+		<h4>Created: <span class="unixtime-full">@details.review.createdAt</span></h4>
+		<h4>Status: <span id="status" class="sbw-red">@details.review.status</span> (last status change: 
+		<span id="status-updated" class="unixtime-full">@details.review.statusUpdatedAt</span>)</h4>
+		@if(user.hasRole(Role.REVIEWER)) {
+		<button type="button" class="btn btn-default">Bad</button>
+		<button type="button" class="btn btn-default">Clean</button>
+		}
+		@if(user.hasRole(Role.VERIFIER)) {
+		<button type="button" class="btn btn-default">Send Back</button>
+		<button type="button" class="btn btn-default">Close Bad</button>
+		<button type="button" class="btn btn-default">Close Without Review</button>
+		<button type="button" class="btn btn-default">Re-Open</button>
+		}
+		<div>
 		@details.review.reviewTags.map { tagId =>
 			<h4 class="tag">@details.tags(tagId)</h4>
 		}
+		</div>
 	</div>
 	
-	<div id="" class="">
-		<h4>test data</h4>
-		<h4>add tags</h4>
-		<h4>change status</h4>
+	<div id="review-test-data" class="well well-lg">
+		<h4>TODO test data</h4>
 	</div>
 	
 	<div id="" class="">
