@@ -1,11 +1,15 @@
 @(details: ReviewDetails, user: User)
+@import models.enums.ReviewStatus
 @import models.enums.Role
 @main("Review "+details.review.id) {
 	<div id="review-summary" class="well well-lg">
 		<h3>URI: <a href="/uris/@details.uri.id">@details.uri.uri</a></h3>
 		<h4>Created: <span class="unixtime-full">@details.review.createdAt</span></h4>
-		<h4>Status: <span id="status" class="sbw-red">@details.review.status</span> (last status change: 
-		<span id="status-updated" class="unixtime-full">@details.review.statusUpdatedAt</span>)</h4>
+		<h4>Status: <span id="status" class="sbw-red">@details.review.status</span> 
+		@if(details.review.status != ReviewStatus.NEW) {
+		(last status change: <span id="status-updated" class="unixtime-full">@details.review.statusUpdatedAt</span>)
+		}
+		</h4>
 		@if(user.hasRole(Role.REVIEWER)) {
 		<button type="button" class="btn btn-default">Bad</button>
 		<button type="button" class="btn btn-default">Clean</button>
