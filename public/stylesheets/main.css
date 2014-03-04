@@ -96,8 +96,10 @@ label {
 	color: #394A4E;
 }
 /* TABLES */
-th {
+th,
+.table>thead>tr>th {
 	text-align: center;
+	vertical-align: middle;
 	color: #FFFFFF;
 	background-color: #90B9C3;
 }
