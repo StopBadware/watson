@@ -29,6 +29,11 @@ label {
 .no-dec:hover {
 	text-decoration: none;
 }
+a,
+.wrap {
+	overflow-wrap: break-word;
+	word-break: break-word;
+}
 .header-image {
 	margin-right: 2.5em;
 }
@@ -94,6 +99,9 @@ label {
 .nav-pills>li>a:hover, 
 .nav-pills>li>a:focus {
 	color: #394A4E;
+}
+.tab-pane {
+	margin-bottom: 1.5em;
 }
 /* TABLES */
 th,

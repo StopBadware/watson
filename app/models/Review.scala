@@ -303,5 +303,10 @@ case class ReviewDetails(review: Review) {
 	val tags = (otherReviews:+review).map(_.reviewTags).flatten.toSet.foldLeft(Map.empty[Int, ReviewTag]) { (map, tagId) =>
 	  Try(map.updated(tagId, ReviewTag.find(tagId).get)).getOrElse(map)
   }
+  def rescanUris: Map[Int, String] = {
+    //TODO WTSN-55 get all related uris
+    Uri.find(googleRescans.map(rescan => List(rescan.uriId, rescan.relatedUriId.getOrElse(0))).flatten.toSet.toList)
+      .map(uri => (uri.id, uri.uri.toString)).toMap
+  }
   
 }

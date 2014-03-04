@@ -51,6 +51,7 @@ $(document).ready(function($) {
 		format: "DD MMM YYYY",
 		opens: "left"
 	});
+	
 	if ($("#reviews-table").length) {
 		if ($("#reviews-table tbody tr").length) {
 			$("#reviews-table").trigger("sorton",[[[4,0]]]);
@@ -68,6 +69,7 @@ $(document).ready(function($) {
 	if ($("#reviews-others-table").length && $("#reviews-others-table tbody tr").length) {
 		$("#reviews-others-table").trigger("sorton",[[[2,1]]]);
 	}
+	initSortTable("reviews-rescans-table", 3);
 	
 });
 
@@ -278,5 +280,11 @@ function formatDate(unix, withTime) {
 	} else {
 		var date = new Date(unix * 1000)
 		return (withTime) ? date.toString() : date.toDateString();
+	}
+}
+
+function initSortTable(tableId, sortCol) {
+	if ($("#"+tableId).length && $("#"+tableId+" tbody tr").length) {
+		$("#"+tableId).trigger("sorton",[[[sortCol,1]]]);
 	}
 }
