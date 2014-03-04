@@ -50,7 +50,7 @@ class SchedulerSpec extends Specification {
 	      val queueCheck = BlacklistQueue()
 	      queueCheck.blacklists.nonEmpty must beTrue
 	      queueCheck.importQueue()
-	      val uri = Uri.find(Hash.sha256(urlB).get)
+	      val uri = Uri.findBySha256(Hash.sha256(urlB).get)
 	      uri.isDefined must beTrue
 	      val events = BlacklistEvent.findByUri(uri.get.id, Some(source))
 	      events.nonEmpty must beTrue

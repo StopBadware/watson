@@ -31,12 +31,12 @@ class UriSpec extends Specification {
       running(FakeApplication()) {
         val noSlash = "http://example"+Random.nextInt+".com"
       	Uri.create(noSlash) must beTrue
-      	Uri.find(Hash.sha256(noSlash).get) must beNone
-      	Uri.find(Hash.sha256(noSlash+"/").get) must beSome
+      	Uri.findBySha256(Hash.sha256(noSlash).get) must beNone
+      	Uri.findBySha256(Hash.sha256(noSlash+"/").get) must beSome
       	val noSlashNoScheme = "example"+Random.nextInt+".com"
       	Uri.create(noSlashNoScheme) must beTrue
-      	Uri.find(Hash.sha256("http://"+noSlashNoScheme).get) must beNone
-      	Uri.find(Hash.sha256("http://"+noSlashNoScheme+"/").get) must beSome
+      	Uri.findBySha256(Hash.sha256("http://"+noSlashNoScheme).get) must beNone
+      	Uri.findBySha256(Hash.sha256("http://"+noSlashNoScheme+"/").get) must beSome
       }
     }
     
@@ -54,8 +54,20 @@ class UriSpec extends Specification {
       running(FakeApplication()) {
         val reported = reportedUri
       	Uri.create(reported) must beTrue
-      	val id = Uri.find(reported.sha256).get.id
+      	val id = Uri.findBySha256(reported.sha256).get.id
       	Uri.find(id) must beSome
+      }
+    }
+    
+    "find existing Uris by IDs" in {
+      running(FakeApplication()) {
+        val uris = (1 to 10).foldLeft(List.empty[String])((list, _) => list :+ validUri)
+        val ids = Uri.findOrCreateIds(uris)
+        ids.size must equalTo(uris.size)
+        val found = Uri.find(ids)
+        found.nonEmpty must beTrue
+        found.size must equalTo(uris.size)
+        found.map(uri => ids.contains(uri.id) must beTrue)
       }
     }
     
@@ -63,7 +75,7 @@ class UriSpec extends Specification {
       running(FakeApplication()) {
         val reported = reportedUri
       	Uri.create(reported) must beTrue
-      	Uri.find(reported.sha256) must beSome
+      	Uri.findBySha256(reported.sha256) must beSome
       }
     }
     
@@ -75,7 +87,7 @@ class UriSpec extends Specification {
           if (Uri.create(rep)) list :+ rep.sha256 else list
         }
     		shas.nonEmpty must beTrue
-    		val found = Uri.find(shas)
+    		val found = Uri.findBySha256(shas)
     		found.size must equalTo(shas.size)
       }
     }     
@@ -86,7 +98,7 @@ class UriSpec extends Specification {
       	Uri.create(reported) must beTrue
       	val foundByHp = Uri.findByHierarchicalPart(reported.hierarchicalPart)
       	foundByHp.nonEmpty must beTrue
-      	val foundBySha = Uri.find(reported.sha256)
+      	val foundBySha = Uri.findBySha256(reported.sha256)
       	foundBySha must beSome
       	foundByHp.contains(foundBySha.get) must beTrue
       }
@@ -95,26 +107,26 @@ class UriSpec extends Specification {
     "find or create a Uri" in {
       running(FakeApplication()) {
         val reported = reportedUri
-        Uri.find(reported.sha256) must beNone
+        Uri.findBySha256(reported.sha256) must beNone
       	Uri.findOrCreate(reported) must beSome
-      	Uri.find(reported.sha256) must beSome
+      	Uri.findBySha256(reported.sha256) must beSome
       	val uriStr = validUri
       	val sha = new ReportedUri(uriStr).sha256
-        Uri.find(sha) must beNone
+        Uri.findBySha256(sha) must beNone
       	Uri.findOrCreate(uriStr) must beSome
-      	Uri.find(sha) must beSome
+      	Uri.findBySha256(sha) must beSome
       }
     }
     
     "find or create a Uri concurrently" in {
       running(FakeApplication()) {
         val reported = reportedUri
-        Uri.find(reported.sha256) must beNone
+        Uri.findBySha256(reported.sha256) must beNone
         for (i <- 1 to 50) {
         	future(Uri.findOrCreate(reported) must beSome)
         }
         Thread.sleep(2000) //wait for all futures to complete
-        Uri.find(reported.sha256) must beSome
+        Uri.findBySha256(reported.sha256) must beSome
       }
     }
     
@@ -135,7 +147,7 @@ class UriSpec extends Specification {
         val uri = Uri.findOrCreate(reported)
         uri must beSome
         uri.get.delete()
-        Uri.find(reported.sha256) must beNone
+        Uri.findBySha256(reported.sha256) must beNone
       }
     }
     
@@ -143,7 +155,7 @@ class UriSpec extends Specification {
       running(FakeApplication()) {
         val reported = reportedUri
         Uri.create(reported) must beTrue
-        val found = Uri.find(reported.sha256)
+        val found = Uri.findBySha256(reported.sha256)
         found must beSome
         val uri = found.get
         uri.blacklist(source, System.currentTimeMillis/1000)
@@ -157,7 +169,7 @@ class UriSpec extends Specification {
       running(FakeApplication()) {
         val reported = reportedUri
         Uri.create(reported) must beTrue
-        val found = Uri.find(reported.sha256)
+        val found = Uri.findBySha256(reported.sha256)
         found must beSome
         val uri = found.get
         uri.blacklist(source, System.currentTimeMillis/1000)

@@ -22,7 +22,7 @@ class BlacklistSpec extends Specification {
   
   private def validUrl: String = "example" + Random.nextInt + ".com/" + (System.currentTimeMillis / 1000)
   
-  private def find(url: String): Uri = Uri.find(new ReportedUri(url).sha256).get
+  private def find(url: String): Uri = Uri.findBySha256(new ReportedUri(url).sha256).get
   
   private def blacklist: Blacklist = {
     val urls = (1 to 5).foldLeft(List.empty[String]) { (list, _) =>

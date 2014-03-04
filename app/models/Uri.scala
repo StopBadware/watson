@@ -124,12 +124,12 @@ object Uri {
   }  
   
   def findOrCreate(reported: ReportedUri): Option[Uri] = {
-    val findAttempt = find(reported.sha256)
+    val findAttempt = findBySha256(reported.sha256)
     return if (findAttempt.isDefined) {
       findAttempt
     } else {
     	create(reported)
-    	find(reported.sha256)
+    	findBySha256(reported.sha256)
     }
   }
   
@@ -137,7 +137,7 @@ object Uri {
   	val writes = create(reported)
   	Logger.info("Wrote "+writes+" new URIs")
   	return reported.grouped(10000).foldLeft(List.empty[Int]) { (ids, group) =>
-      ids ++ find(group.map(u => ReportedUri.sha256(u))).map(_.id)
+      ids ++ findBySha256(group.map(u => ReportedUri.sha256(u))).map(_.id)
     }
   } 
   
@@ -156,15 +156,45 @@ object Uri {
     return Try(mapFromRow(SQL("SELECT * FROM uris WHERE id={id} LIMIT 1").on("id"->id)().head)).getOrElse(None)
   }
   
-  def find(sha256: String): Option[Uri] = DB.withConnection { implicit conn =>
+  def find(ids: List[Int]): List[Uri] = DB.withConnection { implicit conn =>
+    return ids.size match {
+      case 0 => List()
+      case _ => try {
+        ids.grouped(BatchSize).foldLeft(List.empty[Uri]) { case (list, group) =>
+		      val sql = "SELECT * FROM uris WHERE id in (?" + (",?"*(group.size-1)) + ")"
+		      val ps = conn.prepareStatement(sql)
+		      for (i <- 1 to group.size) {
+		        ps.setInt(i, group(i-1))
+		      }
+		      val rs = ps.executeQuery
+		      Iterator.continually((rs, rs.next())).takeWhile(_._2).map { case (row, hasNext) =>
+				    Some(Uri(
+					    row.getInt("id"),
+					    row.getString("uri"),
+					    row.getString("reversed_host"),
+					    row.getString("hierarchical_part"),
+					    Option(row.getString("path")).getOrElse(""),
+					    row.getString("sha2_256"),
+					    row.getTimestamp("created_at").getTime / 1000
+			  		))	
+		      }.flatten.toList ++ list
+        }
+	    } catch {
+	      case e: PSQLException => Logger.error(e.getMessage)
+	      List()
+	    }
+    }
+  }
+  
+  def findBySha256(sha256: String): Option[Uri] = DB.withConnection { implicit conn =>
     return Try(mapFromRow(SQL("SELECT * FROM uris WHERE sha2_256={sha256} LIMIT 1")
       .on("sha256"->sha256)().head)).getOrElse(None)
   }
   
-  def find(sha256s: List[String]): List[Uri] = DB.withTransaction { implicit conn =>
+  def findBySha256(sha256s: List[String]): List[Uri] = DB.withTransaction { implicit conn =>
     return sha256s.size match {
       case 0 => List()
-      case 1 => List(find(sha256s.head)).flatten
+      case 1 => List(findBySha256(sha256s.head)).flatten
       case _ => try {
         sha256s.grouped(BatchSize).foldLeft(List.empty[Uri]) { case (list, group) =>
 		      val sql = "SELECT * FROM uris WHERE sha2_256 in (?" + (",?"*(group.size-1)) + ")"
