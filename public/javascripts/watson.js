@@ -36,6 +36,7 @@ $(document).ready(function($) {
 	getDatesFromUnix(".unixtime", false);
 	getDatesFromUnix(".unixtime-full", true);
 	prettifyEnums(".enum");
+	ip4sToDots(".ipv4");
 	tagBgs();
 	
 	$(".date-picker").daterangepicker({
@@ -57,6 +58,12 @@ $(document).ready(function($) {
 			$(".no-results-msg").show();
 		}
 		setReviewFilterInputs();
+	}
+	if ($("#reviews-blacklist-table").length && $("#reviews-blacklist-table tbody tr").length) {
+		$("#reviews-blacklist-table").trigger("sorton",[[[1,1]]]);
+	}
+	if ($("#reviews-requests-table").length && $("#reviews-requests-table tbody tr").length) {
+		$("#reviews-requests-table").trigger("sorton",[[[4,1]]]);
 	}
 	
 });
@@ -239,6 +246,21 @@ function prettifyEnums(selector) {
 	$(selector).each(function() {
 		$(this).text($(this).text().replace(/_/g, " "));
 	});
+}
+
+function ip4sToDots(selector) {
+	$(selector).each(function() {
+		$(this).text(longToDots($(this).text()));
+	});
+}
+
+function longToDots(ip) {
+	var d = ip%256;
+	for (var i = 3; i > 0; i--) { 
+		ip = Math.floor(ip/256);
+		d = ip%256 + '.' + d;
+	}
+	return d;
 }
 
 function getDatesFromUnix(selector, withTime) {

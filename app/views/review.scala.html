@@ -48,38 +48,93 @@
 		</div>
 	</div>
 	
-	<div id="review-test-data" class="well well-lg">
-		<h4>TODO test data</h4>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h3 class="panel-title">Blacklist Events</h3>
+		</div>
+	    <table id="reviews-blacklist-table" class="table table-striped table-hover table-condensed table-sorted">
+	    	<thead>
+	    		<tr>
+	    			<th>Blacklisted By</th>
+	    			<th>Blacklisted From</th>
+	    			<th>Blacklisted To</th>
+	    		</tr>
+	    	</thead>
+	    	<tbody>
+	    	@details.blacklistEvents.map { event =>
+				<tr class="text-right">
+					<td>@event.source
+						<div class="inline source-icon icon-@event.source.toString.toLowerCase">
+							<span class="vis-hidden">@event.source.toString</span>
+						</div>
+					</td>
+					<td class="unixtime-full">@event.blacklistedAt</td>
+					@if(event.unblacklistedAt.nonEmpty){<td class="unixtime-full">@event.unblacklistedAt.get</td>}else{<td></td>}
+				</tr>			
+			}
+	    	</tbody>
+    	</table>
 	</div>
 	
-	<div id="" class="">
-		<h2>url data</h2>
-		@details.blacklistEvents.map { event =>
-			<h4>@event</h4>			
-		}
-		@details.googleRescans.map { rescan =>
-			<h4>@rescan</h4>			
-		}
-		<h4>safe browsing</h4>
-		<h4>dsp</h4>
-		<h4>vt</h4>
-		<h4>scanner results</h4>
-		<h4>cr</h4>
-		<h4>domain related</h4>
-		<h4>resolver info</h4>		
-	</div>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h3 class="panel-title">Review Requests</h3>
+		</div>
+	    <table id="reviews-requests-table" class="table table-striped table-hover table-condensed table-sorted">
+	    	<thead>
+	    		<tr>
+	    			<th title="click to view full Review Request">ID</th>
+	    			<th>Requester Email</th>
+	    			<th>Requester IP</th>
+	    			<th>Requester Notes</th>
+	    			<th>Requested At</th>
+	    			<th>Closed At</th>
+	    			<th>Closed Reason</th>
+	    			<th>Review</th>
+	    		</tr>
+	    	</thead>
+	    	<tbody>
+	    	@details.reviewRequests.map { request =>
+				<tr class="text-center">
+					<td><a href="/requests/@request.id">@request.id</a></td>
+					<td class="text-right">@request.email</td>
+					@if(request.ip.nonEmpty){<td class="ipv4 text-right" title="@request.ip.get">@request.ip.get</td>}else{<td></td>}
+					<td class="text-left">@request.requesterNotes.getOrElse("")</td>
+					<td class="unixtime text-right">@request.requestedAt</td>
+					@if(request.closedAt.nonEmpty){<td class="unixtime text-right">@request.closedAt.get</td>}else{<td></td>}
+					@if(request.closedReason.nonEmpty){<td class="enum">@request.closedReason.get</td>}else{<td></td>}
+					@if(request.reviewId.nonEmpty){
+						<td><a href="/reviews/@request.reviewId.get">@request.reviewId.get</a></td>
+					} else {
+						<td></td>
+					}
+				</tr>			
+			}
+	    	</tbody>
+    	</table>
+	</div>	
 	
-	<div id="" class="">
-		@details.reviewRequests.map { request =>
-			<h4>@request</h4>			
-		}
-		<h4>current</h4>
-		<h4>historical</h4>
-	</div>
-	
-	<div id="" class="">
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h3 class="panel-title">Other Reviews</h3>
+		</div>
+		<div class="panel-body">
 		@details.otherReviews.map { review =>
 			<h4>@review</h4>			
 		}
-	</div>
+		</div>
+	</div>	
+	
+	<div id="review-test-data" class="well well-lg watson-green-bg">
+		<h4>TODO test data</h4>
+	</div>	
+	
+	<ul class="nav nav-pills panel">
+		<li class="active"><a href="#">Google</a></li>
+		<li><a href="#">VirusTotal</a></li>
+		<li><a href="#">DSP</a></li>
+		<li><a href="#">Community Reports</a></li>
+		<li><a href="#">Resolver</a></li>
+	</ul>	
+	
 }
