@@ -55,6 +55,9 @@ label {
 	border-radius: 0.25em;
 	display: inline-block;
 }
+#review-summary .tag {
+	margin-top: 0.75em;
+}
 #review-summary h3 {
 	margin-top: 0;
 }

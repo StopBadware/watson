@@ -65,6 +65,9 @@ $(document).ready(function($) {
 	if ($("#reviews-requests-table").length && $("#reviews-requests-table tbody tr").length) {
 		$("#reviews-requests-table").trigger("sorton",[[[4,1]]]);
 	}
+	if ($("#reviews-others-table").length && $("#reviews-others-table tbody tr").length) {
+		$("#reviews-others-table").trigger("sorton",[[[2,1]]]);
+	}
 	
 });
 
