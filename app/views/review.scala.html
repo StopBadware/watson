@@ -178,7 +178,7 @@
 		    	@details.googleRescans.map { rescan =>
 					<tr class="text-center">
 						<td class="text-left"><a href="/uris/@rescan.uriId">@(details.rescanUris(rescan.uriId))</a></td>
-						<td><a href="https://www.google.com/safebrowsing/diagnostic?site=@(details.rescanUris(rescan.uriId))">SBD</a></td>
+						<td><a href="https://www.google.com/safebrowsing/diagnostic?site=@(details.rescanUris(rescan.uriId))" target="_blank">SBD</a></td>
 						<td>@rescan.status</td>
 						<td class="unixtime-full text-right">@rescan.rescannedAt</td>
 						<td>@rescan.requestedVia</td>
