@@ -151,7 +151,18 @@
 	</div>	
 	
 	<div id="review-test-data" class="well well-lg watson-green-bg">
-		<h4>TODO test data</h4>
+		<form id="login-box" class="form-box">
+			<textarea class="form-control" rows="5"></textarea>
+			@if(user.hasRole(Role.REVIEWER)) {
+			<div class="text-right">
+				@defining(if (details.review.isOpen) "" else "disabled") { disabled =>
+				<button type="button" class="btn btn-default" @disabled title="Saves the test data for this review">Save</button>
+				<button type="button" class="btn btn-default" @disabled title="Saves the test data for this review, marks it BAD, 
+				and moves to the next OPEN review">Save -> Bad -> Next</button>
+				}
+			</div>
+		}
+		</form>
 	</div>	
 	
 	<ul class="nav nav-pills panel">
