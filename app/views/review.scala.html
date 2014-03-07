@@ -154,7 +154,7 @@
 		@defining(if (user.hasRole(Role.REVIEWER)) "" else "readonly") { readonly =>
 		<form id="review-test-data-box">
 			<textarea id="badcode" name="badcode" class="form-control keepwhite" rows="5" placeholder="Bad Code" maxlength="4096" spellcheck="false" @readonly></textarea>
-			<div class="text-right" title="used / max characters">
+			<div class="text-right help-block" title="used / max characters">
 				<label class="control-label no-margin" for="badcode">
 					<div id="badcode-used-char-ctr" class="inline">0</div>
 					<div class="inline">/</div>
