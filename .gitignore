@@ -18,3 +18,4 @@ dist
 .cache
 *.class
 /bin
+.module-cache/
