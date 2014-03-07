@@ -151,6 +151,7 @@
 	</div>	
 	
 	<div id="review-test-data" class="well well-lg watson-green-bg">
+	<div id="example"></div>
 		@defining(if (user.hasRole(Role.REVIEWER)) "" else "readonly") { readonly =>
 		<form id="review-test-data-box">
 			<textarea id="badcode" name="badcode" class="form-control keepwhite" rows="5" placeholder="Bad Code" maxlength="4096" spellcheck="false" @readonly></textarea>
