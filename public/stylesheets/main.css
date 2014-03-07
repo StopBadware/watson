@@ -7,6 +7,7 @@ option {
 }
 label {
 	color: #566F75;
+	font-size: 1.2em;
 }
 .sbw-red {
 	color: #E34125;
@@ -29,6 +30,9 @@ label {
 .no-dec:hover {
 	text-decoration: none;
 }
+.no-margin {
+	margin: 0;
+}
 a,
 .wrap {
 	overflow-wrap: break-word;
@@ -36,9 +40,6 @@ a,
 }
 .header-image {
 	margin-right: 2.5em;
-}
-label {
-	font-size: 1.2em;
 }
 .alert h2 {
 	margin-top: 0;
@@ -172,6 +173,9 @@ th,
 }
 #reviews-filter .form-btn {
 	margin-left: 0.5em;
+}
+.keepwhite.form-control[readonly] {
+	background-color: #FFFFFF;
 }
 textarea.form-control {
 	max-width: 100%;

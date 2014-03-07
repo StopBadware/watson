@@ -151,18 +151,27 @@
 	</div>	
 	
 	<div id="review-test-data" class="well well-lg watson-green-bg">
-		<form id="login-box" class="form-box">
-			<textarea class="form-control" rows="5"></textarea>
+		@defining(if (user.hasRole(Role.REVIEWER)) "" else "readonly") { readonly =>
+		<form id="review-test-data-box">
+			<textarea id="badcode" name="badcode" class="form-control keepwhite" rows="5" placeholder="Bad Code" maxlength="4096" spellcheck="false" @readonly></textarea>
+			<div class="text-right" title="used / max characters">
+				<label class="control-label no-margin" for="badcode">
+					<div id="badcode-used-char-ctr" class="inline">0</div>
+					<div class="inline">/</div>
+					<div class="inline">4096</div>
+				</label>
+			</div>
 			@if(user.hasRole(Role.REVIEWER)) {
 			<div class="text-right">
+				<h5>Snapshot: <span>@details.review.id - @details.uri.uri</span></h5>
 				@defining(if (details.review.isOpen) "" else "disabled") { disabled =>
 				<button type="button" class="btn btn-default" @disabled title="Saves the test data for this review">Save</button>
-				<button type="button" class="btn btn-default" @disabled title="Saves the test data for this review, marks it BAD, 
-				and moves to the next OPEN review">Save -> Bad -> Next</button>
+				<button type="button" class="btn btn-default" @disabled title="Saves the test data for this review, marks it BAD, and moves to the next OPEN review">Save -> Bad -> Next</button>
 				}
 			</div>
 		}
 		</form>
+		}
 	</div>	
 	
 	<ul class="nav nav-pills panel">

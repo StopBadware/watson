@@ -52,6 +52,10 @@ $(document).ready(function($) {
 		opens: "left"
 	});
 	
+	$("textarea").keyup(function() {
+		$("#"+this.id+"-used-char-ctr").text($(this).val().length);
+	});
+	
 	if ($("#reviews-table").length) {
 		if ($("#reviews-table tbody tr").length) {
 			$("#reviews-table").trigger("sorton",[[[4,0]]]);
