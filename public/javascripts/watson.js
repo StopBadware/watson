@@ -39,6 +39,18 @@ $(document).ready(function($) {
 	ip4sToDots(".ipv4");
 	tagBgs();
 	
+	if ($("#associated-uris").length) {
+		addAssociatedUriInput("#associated-uris");
+	}
+//	$("#associated-uris li").focusout(function() {
+//		$("#associated-uris li").each(function() {
+//			console.log(this);	//DELME WTSN-18
+//		});
+//		if ($("#"+this.id+" input[type=\"url\"]").val()) {
+//			addAssociatedUriInput("#associated-uris");
+//		}
+//	});
+	
 	$(".date-picker").daterangepicker({
 		ranges: {
 			'Today': [new Date(), new Date()],
@@ -64,16 +76,13 @@ $(document).ready(function($) {
 		}
 		setReviewFilterInputs();
 	}
-	if ($("#reviews-blacklist-table").length && $("#reviews-blacklist-table tbody tr").length) {
-		$("#reviews-blacklist-table").trigger("sorton",[[[1,1]]]);
-	}
-	if ($("#reviews-requests-table").length && $("#reviews-requests-table tbody tr").length) {
-		$("#reviews-requests-table").trigger("sorton",[[[4,1]]]);
-	}
-	if ($("#reviews-others-table").length && $("#reviews-others-table tbody tr").length) {
-		$("#reviews-others-table").trigger("sorton",[[[2,1]]]);
-	}
-	initSortTable("reviews-rescans-table", 3);
+	var tables = [{id:"#reviews-blacklist-table",sortOn:1},
+	              {id:"#reviews-requests-table",sortOn:4},
+	              {id:"#reviews-others-table",sortOn:2},
+	              {id:"#reviews-rescans-table",sortOn:3}];
+	tables.map(function(table) {
+		initSortTable(table.id, table.sortOn);
+	});
 	
 });
 
@@ -89,6 +98,39 @@ function tagBgs() {
 	$(".tag").each(function() {
 		$(this).css("background-color", "#"+$(this).data("tagbg"));
 	});
+}
+
+function addAssociatedUriInput(id) {
+	var selector = id + " li .uri";
+	var index = ($(id+" li").last().data("index")==null) ? 0 : $(id+" li").last().data("index") + 1;
+	if (emptyCount(selector) == 0) {
+		$(id).append('<li id="associated-'+index+'" data-index="'+index+'">'+
+			'<input type="url" name="associated-uri-'+index+'" class="input-large form-control uri inline" placeholder="Associated URI">'+
+//			'<label class="checkbox-inline">'+
+//			'<input type="checkbox" name="associated-resolves-'+index+'" class="inline input-large form-control" value="true" checked="checked">'+
+//			'<span>Resolves</span></label>'+
+			'</li>');
+	}
+	
+	$(selector).focusout(function() {
+		if (emptyCount(selector) > 1) {
+			$(selector).each(function() {
+				if (!$(this).val()) {
+					$(this.parentElement).addClass("remove");
+				}
+			});
+		}
+		$(".remove").remove();
+		addAssociatedUriInput(id);
+	});
+}
+
+function emptyCount(selector) {
+	var empty = 0;
+	$(selector).each(function() {
+		empty = ($(this).val()) ? empty : empty+=1;
+	});
+	return empty;
 }
 
 function setReviewFilterInputs() {
@@ -288,7 +330,7 @@ function formatDate(unix, withTime) {
 }
 
 function initSortTable(tableId, sortCol) {
-	if ($("#"+tableId).length && $("#"+tableId+" tbody tr").length) {
-		$("#"+tableId).trigger("sorton",[[[sortCol,1]]]);
+	if ($(tableId).length && $(tableId+" tbody tr").length) {
+		$(tableId).trigger("sorton",[[[sortCol,1]]]);
 	}
 }
