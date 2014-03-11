@@ -104,12 +104,7 @@ function addAssociatedUriInput(id) {
 	var selector = id + " li .uri";
 	var index = ($(id+" li").last().data("index")==null) ? 0 : $(id+" li").last().data("index") + 1;
 	if (emptyCount(selector) == 0) {
-		$(id).append('<li id="associated-'+index+'" data-index="'+index+'">'+
-			'<input type="url" name="associated-uri-'+index+'" class="input-large form-control uri inline" placeholder="Associated URI">'+
-//			'<label class="checkbox-inline">'+
-//			'<input type="checkbox" name="associated-resolves-'+index+'" class="inline input-large form-control" value="true" checked="checked">'+
-//			'<span>Resolves</span></label>'+
-			'</li>');
+		$(id).append(associatedUriInput(index));
 	}
 	
 	$(selector).focusout(function() {
@@ -123,6 +118,26 @@ function addAssociatedUriInput(id) {
 		$(".remove").remove();
 		addAssociatedUriInput(id);
 	});
+}
+
+function associatedUriInput(index) {
+	return '<li id="associated-'+index+'" data-index="'+index+'">'+
+	'<input type="url" name="associated-uri-'+index+'" class="input-large form-control uri inline" placeholder="Associated URI">'+
+	'<select name="associated-resolved-'+index+'" class="inline form-control auto-width">'+
+	'<option value="resolved">Resolved</option>'+
+	'<option value="dnr">Did Not Resolve</option>'+
+	'<option value="unknown">Unknown</option>'+
+	'</select>'+
+	'<select name="associated-type-'+index+'" class="inline form-control auto-width">'+
+	'<option value="payload">Payload</option>'+
+	'<option value="intermediary">Intermediary</option>'+
+	'<option value="unknown">Unknown</option>'+
+	'</select>'+
+	'<select name="associated-intent-'+index+'" class="inline form-control auto-width">'+
+	'<option value="hacked">Hacked</option>'+
+	'<option value="malicious">Malicious</option>'+
+	'<option value="unknown">Unknown</option>'+
+	'</select>';
 }
 
 function emptyCount(selector) {

@@ -21,6 +21,9 @@ label {
 .inline {
 	display: inline-block;
 }
+.auto-width {
+	width: auto;
+}
 .non-vis {
 	display: none;
 }
@@ -179,17 +182,22 @@ th,
 }
 textarea.form-control {
 	max-width: 100%;
+	width: 100%;
 }
 #associated-uris {
 	padding-left: 0;
 	list-style-type: none;
 }
-#associated-uris li input[type=url] {
-	max-width: 50%;	
+#associated-uris li {
+	margin-bottom: 0.2em;
 }
-#associated-uris input[type=checkbox] {
-	width: 1.75em;
-	margin-top: 0;
+#associated-uris li input[type=url] {
+	/* min-width: 50%; */
+	width: calc(100% - 425px);
+}
+#associated-uris li input,
+#associated-uris li select {
+	margin-right: 0.25em;
 }
 input[type=radio], 
 input[type=checkbox],
