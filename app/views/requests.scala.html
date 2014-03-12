@@ -37,7 +37,9 @@
     	@requests.map { request =>
     		<tr class="text-center">
     		@defining(uris(request.uriId)) { uri =>
-    			<td class="text-left"><a href="/requests/@request.id">@(if (uri.length>50) uri.slice(0, 50)+"..." else uri)</a></td>
+    			<td class="text-left nowrap" title="View details for @uri">
+    				<a href="/requests/@request.id">@(if (uri.length>40) uri.slice(0, 40)+"..." else uri)</a>
+   				</td>
    			}
     			<td class="text-right">@request.email</td>
     			@if(request.ip.nonEmpty){<td class="ipv4 text-right" title="@request.ip.get">@request.ip.get</td>}else{<td></td>}

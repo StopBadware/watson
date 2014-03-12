@@ -60,28 +60,24 @@ $(document).ready(function($) {
 		$("#"+this.id+"-used-char-ctr").text($(this).val().length);
 	});
 	
-	if ($("#reviews-table").length) {
-		if ($("#reviews-table tbody tr").length == 0) {
-			$("#reviews-table").trigger("sorton",[[[4,0]]]);
-		} else {
-			$(".no-results-msg").show();
+	var tableFilters = [{id:"#reviews-table",fields:["status", "blacklisted", "created"]},
+	                    {id:"#requests-table",fields:["status", "requested"]}];
+	tableFilters.map(function(table) {
+		if ($(table.id).length) {
+			if ($(table.id+" tbody tr").length == 0) {
+				$(".no-results-msg").show();
+			}
+			setFilterInputs(table.fields);
 		}
-		setReviewFilterInputs();
-	}
-	if ($("#requests-table").length) {
-		if ($("#requests-table tbody tr").length == 0) {
-			$(".no-results-msg").show();
-		}
-		setRequestFilterInputs();
-	}
+	});
 	
-	var tables = [{id:"#reviews-blacklist-table",sortOn:1},
+	var tableSorts = [{id:"#reviews-blacklist-table",sortOn:1},
 	              {id:"#reviews-requests-table",sortOn:4},
 	              {id:"#reviews-others-table",sortOn:2},
 	              {id:"#reviews-rescans-table",sortOn:3},
 	              {id:"#reviews-table",sortOn:4},
 	              {id:"#requests-table",sortOn:3}];
-	tables.map(function(table) {
+	tableSorts.map(function(table) {
 		initSortTable(table.id, table.sortOn);
 	});
 	
@@ -149,20 +145,8 @@ function emptyCount(selector) {
 	return empty;
 }
 
-function setReviewFilterInputs() {
+function setFilterInputs(fields) {
 	var ck = $.cookie();
-	var fields = ["status", "blacklisted", "created"];
-	fields.map(function(field) {
-		var value = ck[field];
-		if (value && value.length > 0) {
-			$("#"+field.toLowerCase()).val(value);
-		}
-	});
-}
-
-function setRequestFilterInputs() {
-	var ck = $.cookie();
-	var fields = ["status", "requested"];
 	fields.map(function(field) {
 		var value = ck[field];
 		if (value && value.length > 0) {

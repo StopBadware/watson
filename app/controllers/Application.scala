@@ -52,9 +52,7 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
     } else {
       ReviewRequest.findByClosedReason(ClosedReason.fromStr(status), times)
     }
-    val uris = requests.foldLeft(Map.empty[Int, String]) { (map, request) =>
-      Try(map.updated(request.uriId, Uri.find(request.uriId).get.uri.toString)).getOrElse(map)
-    }
+    val uris = Uri.find(requests.map(_.uriId)).map(uri => (uri.id, uri.uri.toString)).toMap
     Ok(views.html.requests(requests, uris, User.find(userId.get).get))
     	.withCookies(cookies(request, List("status", "requested")):_*)
   }
