@@ -89,6 +89,8 @@ case class ReviewRequest(
 
 object ReviewRequest {
   
+  private val summaryLimit = Try(sys.env("SUMMARY_LIMIT").toInt).getOrElse(500)
+  
   def create(uriId: Int,
     email: String,
     ip: Option[Long]=None,
@@ -123,6 +125,25 @@ object ReviewRequest {
     return try {
       SQL("SELECT * FROM review_requests WHERE uri_id={uriId} ORDER BY requested_at DESC")
       	.on("uriId" -> uriId)().map(mapFromRow).toList.flatten
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      List()
+    }
+  }
+  
+  def findByClosedReason(reason: ClosedReason): List[ReviewRequest] = DB.withConnection { implicit conn =>
+    return try {
+      SQL("SELECT * FROM review_requests WHERE closed_reason={closedReason}::CLOSED_REASON ORDER BY requested_at DESC LIMIT {limit}")
+      	.on("closedReason" -> reason.toString, "limit" -> summaryLimit)().map(mapFromRow).toList.flatten
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      List()
+    }
+  }  
+  
+  def allOpen(): List[ReviewRequest] = DB.withConnection { implicit conn =>
+    return try {
+      SQL("SELECT * FROM review_requests WHERE open=true ORDER BY requested_at DESC")().map(mapFromRow).toList.flatten
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       List()

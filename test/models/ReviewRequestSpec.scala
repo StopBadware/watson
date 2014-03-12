@@ -120,6 +120,26 @@ class ReviewRequestSpec extends Specification {
       }
     }
     
+    "find all open review requests" in {
+      running(FakeApplication()) {
+        val rr = request
+        rr.open must beTrue
+        val open = ReviewRequest.allOpen()
+        open.nonEmpty must beTrue
+        open.map(_.id).contains(rr.id) must beTrue
+      }
+    }
+        
+    "find review request by closed reason" in {
+      running(FakeApplication()) {
+        val rr = request
+        rr.close(ClosedReason.ADMINISTRATIVE)
+        val closed = ReviewRequest.findByClosedReason(ClosedReason.ADMINISTRATIVE)
+        closed.nonEmpty must beTrue
+        closed.map(_.id).contains(rr.id) must beTrue
+      }
+    }
+    
   }
 
 }
