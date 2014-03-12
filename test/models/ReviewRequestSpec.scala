@@ -6,6 +6,7 @@ import org.specs2.runner._
 import play.api.test._
 import play.api.test.Helpers._
 import models.enums.{ClosedReason, Source}
+import controllers.PostgreSql
 
 @RunWith(classOf[JUnitRunner])
 class ReviewRequestSpec extends Specification {
@@ -124,7 +125,7 @@ class ReviewRequestSpec extends Specification {
       running(FakeApplication()) {
         val rr = request
         rr.open must beTrue
-        val open = ReviewRequest.allOpen()
+        val open = ReviewRequest.findOpen(None)
         open.nonEmpty must beTrue
         open.map(_.id).contains(rr.id) must beTrue
       }
@@ -134,7 +135,7 @@ class ReviewRequestSpec extends Specification {
       running(FakeApplication()) {
         val rr = request
         rr.close(ClosedReason.ADMINISTRATIVE)
-        val closed = ReviewRequest.findByClosedReason(ClosedReason.ADMINISTRATIVE)
+        val closed = ReviewRequest.findByClosedReason(Some(ClosedReason.ADMINISTRATIVE), PostgreSql.parseTimes(""))
         closed.nonEmpty must beTrue
         closed.map(_.id).contains(rr.id) must beTrue
       }

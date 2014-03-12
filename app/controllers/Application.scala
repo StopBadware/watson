@@ -9,6 +9,7 @@ import play.api.Play.current
 import scala.util.Try
 import routes.javascript._
 import models._
+import models.enums.ClosedReason
 
 object Application extends Controller with JsonMapper with Secured with Cookies {
   
@@ -35,17 +36,33 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
     }
   }
   
-  def tags = TODO	//TODO WTSN-18 view/add/toggle tags
+  def tags = TODO	//TODO WTSN-56 view/add/toggle tags
   
-  def tag(name: String) = TODO	//TODO WTSN-18 view tag
+  def tag(name: String) = TODO	//TODO WTSN-56 view tag
   
-  def uris = TODO	//TODO WTSN-29 uris view
+  def uris = TODO	//TODO WTSN-57 uris view
   
-  def uri(id: Int) = TODO	//TODO WTSN-29 view uri
+  def uri(id: Int) = TODO	//TODO WTSN-57 view uri
   
-  def requests = TODO	//TODO WTSN-29 requests view
+  def requests = withAuth { userId => implicit request =>
+    val status = request.getQueryString("status").getOrElse("open")
+    val times = PostgreSql.parseTimes(request.getQueryString("requested").getOrElse(""))
+    val requests = if (status.matches("open")) {
+      ReviewRequest.findOpen(Some(times))
+    } else {
+      ReviewRequest.findByClosedReason(ClosedReason.fromStr(status), times)
+    }
+    val uris = requests.foldLeft(Map.empty[Int, String]) { (map, request) =>
+      Try(map.updated(request.uriId, Uri.find(request.uriId).get.uri.toString)).getOrElse(map)
+    }
+    Ok(views.html.requests(requests, uris, User.find(userId.get).get))
+    	.withCookies(cookies(request, List("status", "requested")):_*)
+  }
   
-  def request(id: Int) = TODO	//TODO WTSN-29 view requests
+  def request(id: Int) = withAuth { userId => implicit request =>
+    //TODO WTSN-58 view requests
+    Ok(views.html.request(User.find(userId.get).get))
+  }
   
   def welcome = Action { implicit request =>
     Ok(views.html.welcome())

@@ -115,6 +115,9 @@ th,
 	color: #FFFFFF;
 	background-color: #90B9C3;
 }
+td a {
+	word-break: break-all;
+}
 .table-condensed.table-sorted th {
 	padding-right: 1.25em;
 }
@@ -192,7 +195,6 @@ textarea.form-control {
 	margin-bottom: 0.2em;
 }
 #associated-uris li input[type=url] {
-	/* min-width: 50%; */
 	width: calc(100% - 425px);
 }
 #associated-uris li input,

@@ -131,19 +131,38 @@ object ReviewRequest {
     }
   }
   
-  def findByClosedReason(reason: ClosedReason): List[ReviewRequest] = DB.withConnection { implicit conn =>
+  def findByClosedReason(reason: Option[ClosedReason], times: (Timestamp, Timestamp)): List[ReviewRequest] = DB.withConnection { implicit conn =>
     return try {
-      SQL("SELECT * FROM review_requests WHERE closed_reason={closedReason}::CLOSED_REASON ORDER BY requested_at DESC LIMIT {limit}")
-      	.on("closedReason" -> reason.toString, "limit" -> summaryLimit)().map(mapFromRow).toList.flatten
+      val sql = if (reason.isDefined) {
+        SQL("SELECT * FROM review_requests WHERE closed_reason={closedReason}::CLOSED_REASON AND requested_at BETWEEN {start} AND {end} "+
+        "ORDER BY requested_at DESC LIMIT {limit}")
+      	.on("closedReason" -> reason.toString, 
+      	    "start" -> times._1, 
+      	    "end" -> times._2,
+      	    "limit" -> summaryLimit)
+      } else {
+        SQL("SELECT * FROM review_requests WHERE open=false AND requested_at BETWEEN {start} AND {end} "+
+        "ORDER BY requested_at DESC LIMIT {limit}")
+      	.on("start" -> times._1, 
+      	    "end" -> times._2,
+      	    "limit" -> summaryLimit)
+      }
+      sql().map(mapFromRow).toList.flatten
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       List()
     }
   }  
   
-  def allOpen(): List[ReviewRequest] = DB.withConnection { implicit conn =>
+  def findOpen(times: Option[(Timestamp, Timestamp)]=None): List[ReviewRequest] = DB.withConnection { implicit conn =>
     return try {
-      SQL("SELECT * FROM review_requests WHERE open=true ORDER BY requested_at DESC")().map(mapFromRow).toList.flatten
+      val sql = if (times.isDefined) {
+        SQL("SELECT * FROM review_requests WHERE open=true AND requested_at BETWEEN {start} AND {end} "+
+          "ORDER BY requested_at DESC").on("start" -> times.get._1, "end" -> times.get._2)
+      } else {
+        SQL("SELECT * FROM review_requests WHERE open=true ORDER BY requested_at DESC")
+      }
+      sql().map(mapFromRow).toList.flatten
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       List()

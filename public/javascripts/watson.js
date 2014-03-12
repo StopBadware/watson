@@ -42,14 +42,6 @@ $(document).ready(function($) {
 	if ($("#associated-uris").length) {
 		addAssociatedUriInput("#associated-uris");
 	}
-//	$("#associated-uris li").focusout(function() {
-//		$("#associated-uris li").each(function() {
-//			console.log(this);	//DELME WTSN-18
-//		});
-//		if ($("#"+this.id+" input[type=\"url\"]").val()) {
-//			addAssociatedUriInput("#associated-uris");
-//		}
-//	});
 	
 	$(".date-picker").daterangepicker({
 		ranges: {
@@ -69,17 +61,26 @@ $(document).ready(function($) {
 	});
 	
 	if ($("#reviews-table").length) {
-		if ($("#reviews-table tbody tr").length) {
+		if ($("#reviews-table tbody tr").length == 0) {
 			$("#reviews-table").trigger("sorton",[[[4,0]]]);
 		} else {
 			$(".no-results-msg").show();
 		}
 		setReviewFilterInputs();
 	}
+	if ($("#requests-table").length) {
+		if ($("#requests-table tbody tr").length == 0) {
+			$(".no-results-msg").show();
+		}
+		setRequestFilterInputs();
+	}
+	
 	var tables = [{id:"#reviews-blacklist-table",sortOn:1},
 	              {id:"#reviews-requests-table",sortOn:4},
 	              {id:"#reviews-others-table",sortOn:2},
-	              {id:"#reviews-rescans-table",sortOn:3}];
+	              {id:"#reviews-rescans-table",sortOn:3},
+	              {id:"#reviews-table",sortOn:4},
+	              {id:"#requests-table",sortOn:3}];
 	tables.map(function(table) {
 		initSortTable(table.id, table.sortOn);
 	});
@@ -151,6 +152,17 @@ function emptyCount(selector) {
 function setReviewFilterInputs() {
 	var ck = $.cookie();
 	var fields = ["status", "blacklisted", "created"];
+	fields.map(function(field) {
+		var value = ck[field];
+		if (value && value.length > 0) {
+			$("#"+field.toLowerCase()).val(value);
+		}
+	});
+}
+
+function setRequestFilterInputs() {
+	var ck = $.cookie();
+	var fields = ["status", "requested"];
 	fields.map(function(field) {
 		var value = ck[field];
 		if (value && value.length > 0) {
