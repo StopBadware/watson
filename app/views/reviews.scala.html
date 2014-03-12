@@ -49,7 +49,7 @@
     	<tbody>
     	@summaries.map { summary =>
     		<tr>
-	    		<td title="View details for @summary.uri">
+	    		<td title="View details for @summary.uri" class="nowrap">
 	    			<a href="/reviews/@summary.reviewId">
 	    				@(if (summary.uri.length>75) summary.uri.slice(0, 75)+"..." else summary.uri)
 	    			</a>

@@ -24,6 +24,9 @@ label {
 .auto-width {
 	width: auto;
 }
+.nowrap {
+	white-space: nowrap;
+}
 .non-vis {
 	display: none;
 }
