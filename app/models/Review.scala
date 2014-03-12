@@ -162,8 +162,6 @@ case class Review(
 
 object Review {
   
-  private val summaryLimit = Try(sys.env("SUMMARY_LIMIT").toInt).getOrElse(500)
-  
   def create(uriId: Int): Boolean = DB.withConnection { implicit conn =>
     //TODO WTSN-12 if blacklisted by Google add to rescan queue
     //TODO WTSN-24 add to scanning queue
@@ -211,15 +209,15 @@ object Review {
     }
   }
   
-  def summaries(params: ReviewSummaryParams): (List[ReviewSummary], Int) = DB.withConnection { implicit conn =>
-    return (try {
+  def summaries(params: ReviewSummaryParams, limit: Int=5000): List[ReviewSummary] = DB.withConnection { implicit conn =>
+    return try {
       val times = params.createdAt
       val rows = SQL("SELECT uris.id AS uri_id, reviews.id AS review_id, uri, reviews.status, " +
         "(SELECT COUNT(*) AS cnt FROM review_requests WHERE review_requests.uri_id=reviews.uri_id AND open=true), " + 
         "reviews.created_at, reviews.review_tag_ids FROM reviews LEFT JOIN uris ON reviews.uri_id=uris.id " + 
         "WHERE status"+params.operator+"{status}::REVIEW_STATUS AND reviews.created_at BETWEEN {start} AND {end} " +
         "ORDER BY reviews.created_at ASC LIMIT {limit}").on(
-          "limit" -> summaryLimit, 
+          "limit" -> limit, 
           "status" -> params.reviewStatus.toString,
           "start" -> times._1,
           "end" -> times._2
@@ -239,7 +237,7 @@ object Review {
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       List()
-    }, summaryLimit)
+    }
   }
   
   private def mapFromRow(row: SqlRow): Option[Review] = {

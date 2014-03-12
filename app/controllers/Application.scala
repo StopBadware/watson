@@ -13,6 +13,8 @@ import models.enums.ClosedReason
 
 object Application extends Controller with JsonMapper with Secured with Cookies {
   
+  private val limit = Try(sys.env("FILTER_LIMIT").toInt).getOrElse(500)
+  
   def index = withAuth { userId => implicit request =>
     Ok(views.html.index("Watson"))
   }
@@ -22,8 +24,8 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
       request.getQueryString("status"),
       request.getQueryString("blacklisted"),
       request.getQueryString("created")
-    ))
-    Ok(views.html.reviews(summaries._1, summaries._2))
+    ), limit)
+    Ok(views.html.reviews(summaries, limit))
     	.withCookies(cookies(request, List("status", "blacklisted", "created")):_*)
   }
   
@@ -50,10 +52,10 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
     val requests = if (status.matches("open")) {
       ReviewRequest.findOpen(Some(times))
     } else {
-      ReviewRequest.findByClosedReason(ClosedReason.fromStr(status), times)
+      ReviewRequest.findByClosedReason(ClosedReason.fromStr(status), times, limit)
     }
     val uris = Uri.find(requests.map(_.uriId)).map(uri => (uri.id, uri.uri.toString)).toMap
-    Ok(views.html.requests(requests, uris, User.find(userId.get).get))
+    Ok(views.html.requests(requests, uris, limit, User.find(userId.get).get))
     	.withCookies(cookies(request, List("status", "requested")):_*)
   }
   

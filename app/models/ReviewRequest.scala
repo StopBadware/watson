@@ -89,8 +89,6 @@ case class ReviewRequest(
 
 object ReviewRequest {
   
-  private val summaryLimit = Try(sys.env("SUMMARY_LIMIT").toInt).getOrElse(500)
-  
   def create(uriId: Int,
     email: String,
     ip: Option[Long]=None,
@@ -131,7 +129,7 @@ object ReviewRequest {
     }
   }
   
-  def findByClosedReason(reason: Option[ClosedReason], times: (Timestamp, Timestamp)): List[ReviewRequest] = DB.withConnection { implicit conn =>
+  def findByClosedReason(reason: Option[ClosedReason], times: (Timestamp, Timestamp), limit: Int=5000): List[ReviewRequest] = DB.withConnection { implicit conn =>
     return try {
       val sql = if (reason.isDefined) {
         SQL("SELECT * FROM review_requests WHERE closed_reason={closedReason}::CLOSED_REASON AND requested_at BETWEEN {start} AND {end} "+
@@ -139,13 +137,13 @@ object ReviewRequest {
       	.on("closedReason" -> reason.toString, 
       	    "start" -> times._1, 
       	    "end" -> times._2,
-      	    "limit" -> summaryLimit)
+      	    "limit" -> limit)
       } else {
         SQL("SELECT * FROM review_requests WHERE open=false AND requested_at BETWEEN {start} AND {end} "+
         "ORDER BY requested_at DESC LIMIT {limit}")
       	.on("start" -> times._1, 
       	    "end" -> times._2,
-      	    "limit" -> summaryLimit)
+      	    "limit" -> limit)
       }
       sql().map(mapFromRow).toList.flatten
     } catch {

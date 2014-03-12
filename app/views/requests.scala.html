@@ -1,5 +1,8 @@
-@(requests: List[ReviewRequest], uris: Map[Int, String], user: User)
+@(requests: List[ReviewRequest], uris: Map[Int, String], max: Int, user: User)
 @main("Requests") {
+@if(requests.size >= max) {
+<h3 class="text-center sbw-red">Limiting display to @max most recent requests</h3>
+}
 <div class="panel panel-default">
 	<div class="panel-body">
 		<form id="requests-filter" class="form-inline text-center">

@@ -189,9 +189,8 @@ class ReviewSpec extends Specification {
       running(FakeApplication()) {
         val rev = createAndFind
         val summaries = Review.summaries(new ReviewSummaryParams(None, None, None))
-        summaries._1.nonEmpty must beTrue
-        summaries._1.map(_.uri).contains(Uri.find(rev.uriId).get.uri) must beTrue
-        summaries._1.size <= summaries._2
+        summaries.nonEmpty must beTrue
+        summaries.map(_.uri).contains(Uri.find(rev.uriId).get.uri) must beTrue
       }
     }
     
