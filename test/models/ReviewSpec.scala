@@ -201,13 +201,13 @@ class ReviewSpec extends Specification {
         allOpen.reviewStatus must equalTo(ReviewStatus.PENDING_BAD)
         allOpen.operator must equalTo("<=")
         allOpen.blacklistedBy must beNone
-        allOpen.createdAt must beNone
+        allOpen.createdAt._1 must equalTo(new java.sql.Timestamp(0))
         
         val allClosed = new ReviewSummaryParams(Some("all-closed"), Some("any"), Some(""))
         allClosed.reviewStatus must equalTo(ReviewStatus.PENDING_BAD)
         allClosed.operator must equalTo(">")
         allClosed.blacklistedBy must beNone
-        allClosed.createdAt must beNone
+        allClosed.createdAt._1 must equalTo(new java.sql.Timestamp(0))
         
         ReviewStatus.statuses.values.map { status =>
           val statusParams = new ReviewSummaryParams(Some(status.toString.toLowerCase), None, None)
@@ -224,14 +224,12 @@ class ReviewSpec extends Specification {
         }
         
         val withDateRange = new ReviewSummaryParams(None, None, Some("01 Jan 2013 - 31 Dec 2013"))
-        withDateRange.createdAt must beSome
-        withDateRange.createdAt.get._1.toString must equalTo("2013-01-01 00:00:00.0")
-        withDateRange.createdAt.get._2.toString must equalTo("2013-12-31 23:59:59.999")
+        withDateRange.createdAt._1.toString must equalTo("2013-01-01 00:00:00.0")
+        withDateRange.createdAt._2.toString must equalTo("2013-12-31 23:59:59.999")
         
         val withDate = new ReviewSummaryParams(None, None, Some("08 Jan 2011"))
-        withDate.createdAt must beSome
-        withDate.createdAt.get._1.toString must equalTo("2011-01-08 00:00:00.0")
-        withDate.createdAt.get._2.toString must equalTo("2011-01-08 23:59:59.999")
+        withDate.createdAt._1.toString must equalTo("2011-01-08 00:00:00.0")
+        withDate.createdAt._2.toString must equalTo("2011-01-08 23:59:59.999")
       }
     }
     

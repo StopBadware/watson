@@ -64,13 +64,31 @@ object PostgreSql {
     }
   }
   
-  def toTimestamp(date: String, format: String): Option[Timestamp] = {
-    val df = new SimpleDateFormat(format)
+  def toTimestamp(date: String): Option[Timestamp] = {
+    val df = new SimpleDateFormat(Consts.FromStrFormat)
     return try {
       Some(new Timestamp(df.parse(date).getTime))
     } catch {
       case e: ParseException => None
     }
+  }
+  
+  def parseTimes(datesStr: String): (Timestamp, Timestamp) = {
+    val dates = datesStr.split("-").map(_.trim)
+    val timestamps = dates.size match {
+      case 1 => Try(Some(toTimestamp(dates(0)+Consts.StartOfDayTime).get, toTimestamp(dates(0)+Consts.EndOfDayTime).get)).getOrElse(None)
+      case 2 => Try(Some(toTimestamp(dates(0)+Consts.StartOfDayTime).get, toTimestamp(dates(1)+Consts.EndOfDayTime).get)).getOrElse(None)
+      case _ => None
+    }
+    return timestamps.getOrElse((Consts.TimeZero, Consts.TimeFuture))
+  }
+  
+  private object Consts {
+    val TimeZero = new Timestamp(0)
+    val TimeFuture = new Timestamp(9999999999999L)
+    val StartOfDayTime = "T00:00:00:000"
+    val EndOfDayTime = "T23:59:59:999"
+    val FromStrFormat = "dd MMM yyyy'T'HH:mm:ss:SSS"
   }
   
 }

@@ -221,8 +221,8 @@ object Review {
         "ORDER BY reviews.created_at ASC LIMIT {limit}").on(
           "limit" -> summaryLimit, 
           "status" -> params.reviewStatus.toString,
-          "start" -> (if (times.isDefined) times.get._1 else new Timestamp(0)),
-          "end" -> (if (times.isDefined) times.get._2 else new Timestamp(9999999999999L))
+          "start" -> times._1,
+          "end" -> times._2
     		)()
       val summaries = rows.map { row =>
       	ReviewSummary(
@@ -278,19 +278,7 @@ class ReviewSummaryParams(status: Option[String], blacklisted: Option[String], c
   val reviewStatus = parsedStatus.getOrElse(ReviewStatus.PENDING_BAD)
   val operator = if (parsedStatus.isSuccess) "=" else (if (status.equals(Some("all-closed"))) ">" else "<=")
   val blacklistedBy = Source.withAbbr(blacklisted.getOrElse(""))
-  val createdAt: Option[(Timestamp, Timestamp)] = if (created.isDefined) {
-    val df = "dd MMM yyyy'T'HH:mm:ss:SSS"
-    val start = "T00:00:00:000"
-    val end = "T23:59:59:999"
-    val dates = created.get.split("-").map(_.trim)
-    dates.size match {
-      case 1 => Try(Some(toTimestamp(dates(0)+start, df).get, toTimestamp(dates(0)+end, df).get)).getOrElse(None)
-      case 2 => Try(Some(toTimestamp(dates(0)+start, df).get, toTimestamp(dates(1)+end, df).get)).getOrElse(None)
-      case _ => None
-    }
-  } else {
-    None
-  }
+  val createdAt = parseTimes(created.getOrElse(""))
 }
 
 case class ReviewDetails(review: Review) {
