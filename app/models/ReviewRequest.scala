@@ -134,7 +134,7 @@ object ReviewRequest {
       val sql = if (reason.isDefined) {
         SQL("SELECT * FROM review_requests WHERE closed_reason={closedReason}::CLOSED_REASON AND requested_at BETWEEN {start} AND {end} "+
         "ORDER BY requested_at DESC LIMIT {limit}")
-      	.on("closedReason" -> reason.toString, 
+      	.on("closedReason" -> reason.get.toString, 
       	    "start" -> times._1, 
       	    "end" -> times._2,
       	    "limit" -> limit)
