@@ -60,8 +60,14 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
   }
   
   def request(id: Int) = withAuth { userId => implicit request =>
-    //TODO WTSN-58 view requests
-    Ok(views.html.request(User.find(userId.get).get))
+    val revReq = ReviewRequest.find(id)
+    if (revReq.isDefined) {
+    	val others = ReviewRequest.findByUri(revReq.get.uriId).filterNot(_.id==revReq.get.id)
+    	val uri = Try(Uri.find(revReq.get.uriId).get.uri.toString).getOrElse("")
+    	Ok(views.html.request(revReq, others, uri, User.find(userId.get).get))
+    } else {
+      Ok(views.html.partials.modelnotfound("Request "+id))
+    }
   }
   
   def welcome = Action { implicit request =>
