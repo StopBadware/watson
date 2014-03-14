@@ -226,6 +226,9 @@ input[type=checkbox]:focus {
 .selectable .glyphicon {
 	font-size: 1.15em;
 }
+.selectable .glyphicon:hover {
+	cursor: default;
+}
 /* DATE PICKER */
 .form-inline .form-control.date-picker {
 	width: 15em;
