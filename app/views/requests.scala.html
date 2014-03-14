@@ -1,4 +1,5 @@
 @(requests: List[ReviewRequest], uris: Map[Int, String], max: Int, user: User)
+@import models.enums.Role
 @main("Requests") {
 @if(requests.size >= max) {
 <h3 class="text-center sbw-red">Limiting display to @max most recent requests</h3>
@@ -27,6 +28,11 @@
 	<table id="requests-table" class="table table-striped table-hover table-condensed table-sorted">
     	<thead>
     		<tr>
+    			<th id="selectable-toggle-all" class="sorter-false selectable">
+    				<span class="glyphicon glyphicon-unchecked true-inline"></span>
+    				<span class="glyphicon glyphicon-check non-vis"></span>
+    				<input id="toggle-all" type="checkbox" value="all" class="non-vis">
+    			</th>
     			<th title="Click URI to view request">URI</th>
     			<th>Email</th>
     			<th>IP</th>
@@ -39,11 +45,18 @@
     	<tbody>
     	@requests.map { request =>
     		<tr class="text-center">
-    		@defining(uris(request.uriId)) { uri =>
+    			@defining(request.id) { id =>
+    			<td id="selectable-@id" class="selectable">
+    				<span class="glyphicon glyphicon-unchecked true-inline"></span>
+    				<span class="glyphicon glyphicon-check non-vis"></span>
+    				<input type="checkbox" value="@id" class="non-vis">
+   				</td>
+    			}
+    			@defining(uris(request.uriId)) { uri =>
     			<td class="text-left nowrap" title="View details for @uri">
     				<a href="/requests/@request.id">@(if (uri.length>40) uri.slice(0, 40)+"..." else uri)</a>
    				</td>
-   			}
+   				}
     			<td class="text-right">@request.email</td>
     			@if(request.ip.nonEmpty){<td class="ipv4 text-right" title="@request.ip.get">@request.ip.get</td>}else{<td></td>}
     			<td class="unixtime text-right">@request.requestedAt</td>
@@ -52,8 +65,22 @@
     			@if(request.reviewId.nonEmpty){<td><a href="/reviews/@request.reviewId.get">@request.reviewId.get</a></td>}else{<td></td>}
     		</tr>
     	}
-    	</tbody>	
+    	</tbody>
 	</table>
+	<div class="panel-body hide-on-no-results with-top-border">
+	@defining(if (user.hasRole(Role.VERIFIER)) "" else "disabled") { disabled =>
+		<form class="form-inline text-center">
+			<fieldset @disabled>
+				<label class="control-label" for="close-as">Close selected as</label>
+				<select id="close-as" name="close-as" class="form-control">
+					<option value="absuive">Abusive</option>
+					<option value="administrative">Administrative</option>
+				</select>
+				<button type="submit" id="btn-close-as" class="btn btn-default form-btn">Close</button>	
+			</fieldset>
+		</form>
+	}
+	</div>
 	@partials.noresults()
 </div>	
 }

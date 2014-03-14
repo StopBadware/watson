@@ -32,7 +32,10 @@ $(document).ready(function($) {
 	});
 	
 	setActiveNav();
-	$(".table-sorted").tablesorter();
+	$(".table-sorted").tablesorter({
+		cssAsc: "header-sort-up",
+		cssDesc: "header-sort-down"
+	});
 	getDatesFromUnix(".unixtime", false);
 	getDatesFromUnix(".unixtime-full", true);
 	prettifyEnums(".enum");
@@ -60,12 +63,39 @@ $(document).ready(function($) {
 		$("#"+this.id+"-used-char-ctr").text($(this).val().length);
 	});
 	
+	$("th.sorter-false").click(function() {
+		var wasChecked = $("#"+this.id+" input").is(":checked");
+		$("td.selectable").each(function() {
+			if (wasChecked) {
+				$("#"+this.id+" input").prop("checked", false);
+				$("#"+this.id+" .glyphicon-unchecked").show();
+				$("#"+this.id+" .glyphicon-check").hide();
+			} else {
+				$("#"+this.id+" input").prop("checked", true);
+				$("#"+this.id+" .glyphicon-unchecked").hide();
+				$("#"+this.id+" .glyphicon-check").show();
+			}
+		});
+	});
+	
+	$("td.selectable, th.selectable").click(function() {
+		var checkbox = $("#"+this.id+" input");
+		if (checkbox.is(":checked")) {
+			checkbox.prop("checked", false);
+		} else {
+			checkbox.prop("checked", true);
+		}
+		$("#"+this.id+" .glyphicon-unchecked").toggle();
+		$("#"+this.id+" .glyphicon-check").toggle();
+	});
+	
 	var tableFilters = [{id:"#reviews-table",fields:["status", "blacklisted", "created"]},
 	                    {id:"#requests-table",fields:["status", "requested"]}];
 	tableFilters.map(function(table) {
 		if ($(table.id).length) {
 			if ($(table.id+" tbody tr").length == 0) {
 				$(".no-results-msg").show();
+				$(".hide-on-no-results").hide();
 			}
 			setFilterInputs(table.fields);
 		}
@@ -76,7 +106,7 @@ $(document).ready(function($) {
 	              {id:"#reviews-others-table",sortOn:2},
 	              {id:"#reviews-rescans-table",sortOn:3},
 	              {id:"#reviews-table",sortOn:4},
-	              {id:"#requests-table",sortOn:3}];
+	              {id:"#requests-table",sortOn:4}];
 	tableSorts.map(function(table) {
 		initSortTable(table.id, table.sortOn);
 	});

@@ -21,6 +21,9 @@ label {
 .inline {
 	display: inline-block;
 }
+.true-inline {
+	display: inline;
+}
 .auto-width {
 	width: auto;
 }
@@ -52,6 +55,11 @@ a,
 }
 .alert h4 {
 	margin-bottom: 0;
+}
+.with-top-border {
+	border-top-style: solid;
+	border-top-width: thin;
+	border-top-color: inherit;
 }
 .progress {
 	margin-top: 1em;
@@ -133,6 +141,10 @@ td a {
 	cursor: pointer;
 	background-color: #2B373A;
 }
+.table-sorted th.sorter-false {
+	background-image: none;
+	padding-right: 5px;
+}
 .table-sorted .header-sort-up,
 .table-sorted .header-sort-down {
 	background-color: #648188;
@@ -210,6 +222,9 @@ input[type=radio]:focus,
 input[type=checkbox]:focus {
 	-webkit-box-shadow: none;
 	box-shadow: none;
+}
+.selectable .glyphicon {
+	font-size: 1.15em;
 }
 /* DATE PICKER */
 .form-inline .form-control.date-picker {
