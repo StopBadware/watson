@@ -64,7 +64,7 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
     if (revReq.isDefined) {
     	val others = ReviewRequest.findByUri(revReq.get.uriId).filterNot(_.id==revReq.get.id)
     	val uri = Try(Uri.find(revReq.get.uriId).get.uri.toString).getOrElse("")
-    	Ok(views.html.request(revReq, others, uri, User.find(userId.get).get))
+    	Ok(views.html.request(revReq.get, others, uri, User.find(userId.get).get))
     } else {
       Ok(views.html.partials.modelnotfound("Request "+id))
     }

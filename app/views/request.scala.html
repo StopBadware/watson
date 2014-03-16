@@ -1,6 +1,9 @@
-@(request: Option[ReviewRequest], otherRequests: List[ReviewRequest], uri: String, user: User)
-@main("Request TODO") {
+@(request: ReviewRequest, otherRequests: List[ReviewRequest], uri: String, user: User)
+@main("Request "+request.id) {
 	<div id="request-summary" class="well well-lg">
-	
+		<h3>URI: <a href="/uris/@request.uriId">@uri</a></h3>
+		<h4>Requested: <span class="unixtime-full">@request.requestedAt</span></h4>
 	</div>
+	
+	@tables.requestSummaries(otherRequests, "Other Requests for URI")
 }
