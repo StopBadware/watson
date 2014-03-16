@@ -213,7 +213,7 @@ object Review {
     return try {
       val times = params.createdAt
       val rows = SQL("SELECT uris.id AS uri_id, reviews.id AS review_id, uri, reviews.status, " +
-        "(SELECT COUNT(*) AS cnt FROM review_requests WHERE review_requests.uri_id=reviews.uri_id AND open=true), " + 
+        "(SELECT COUNT(*) FROM review_requests WHERE review_requests.uri_id=reviews.uri_id AND open=true) AS cnt, " + 
         "reviews.created_at, reviews.review_tag_ids FROM reviews LEFT JOIN uris ON reviews.uri_id=uris.id " + 
         "WHERE status"+params.operator+"{status}::REVIEW_STATUS AND reviews.created_at BETWEEN {start} AND {end} " +
         "ORDER BY reviews.created_at ASC LIMIT {limit}").on(
