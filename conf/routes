@@ -6,6 +6,8 @@ GET     /                           		controllers.Application.index
 GET  	/*path/								controllers.Application.untrail(path)
 GET		/reviews							controllers.Application.reviews
 GET		/reviews/:id						controllers.Application.review(id: Int)
+GET		/requests							controllers.Application.requests
+GET		/requests/:id						controllers.Application.request(id: Int)
 GET     /welcome                       		controllers.Application.welcome
 GET     /register                       	controllers.Application.register
 GET		/logout								controllers.Application.logout
@@ -14,8 +16,9 @@ GET		/tags								controllers.Application.tags
 GET		/tags/:name							controllers.Application.tag(name: String)
 GET		/uris								controllers.Application.uris
 GET		/uris/:id							controllers.Application.uri(id: Int)
-GET		/requests							controllers.Application.requests
-GET		/requests/:id						controllers.Application.request(id: Int)
+GET		/ips								controllers.Application.ips
+GET		/ips/:ip							controllers.Application.ip(ip: Long)
+
 
 # AJAX ROUTES
 GET		/javascriptRoutes					controllers.Application.javascriptRoutes

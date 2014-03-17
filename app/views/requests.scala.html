@@ -58,11 +58,11 @@
    				</td>
    				}
     			<td class="text-right">@request.email</td>
-    			@if(request.ip.nonEmpty){<td class="ipv4 text-right" title="@request.ip.get">@request.ip.get</td>}else{<td></td>}
+    			@if(request.ip.nonEmpty){<td class="text-right" title="@request.ip"><a href="/ips/@request.ip" class="ipv4">@request.ip</a></td>}else{<td></td>}
     			<td class="unixtime text-right">@request.requestedAt</td>
-    			@if(request.closedAt.nonEmpty){<td class="unixtime text-right">@request.closedAt.get</td>}else{<td></td>}
-    			@if(request.closedReason.nonEmpty){<td class="enum">@request.closedReason.get</td>}else{<td></td>}
-    			@if(request.reviewId.nonEmpty){<td><a href="/reviews/@request.reviewId.get">@request.reviewId.get</a></td>}else{<td></td>}
+    			@if(request.closedAt.nonEmpty){<td class="unixtime text-right">@request.closedAt</td>}else{<td></td>}
+    			@if(request.closedReason.nonEmpty){<td class="enum">@request.closedReason</td>}else{<td></td>}
+    			@if(request.reviewId.nonEmpty){<td><a href="/reviews/@request.reviewId">@request.reviewId</a></td>}else{<td></td>}
     		</tr>
     	}
     	</tbody>

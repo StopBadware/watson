@@ -38,14 +38,6 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
     }
   }
   
-  def tags = TODO	//TODO WTSN-56 view/add/toggle tags
-  
-  def tag(name: String) = TODO	//TODO WTSN-56 view tag
-  
-  def uris = TODO	//TODO WTSN-57 uris view
-  
-  def uri(id: Int) = TODO	//TODO WTSN-57 view uri
-  
   def requests = withAuth { userId => implicit request =>
     val status = request.getQueryString("status").getOrElse("open")
     val times = PostgreSql.parseTimes(request.getQueryString("requested").getOrElse(""))
@@ -69,6 +61,18 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
       Ok(views.html.partials.modelnotfound("Request "+id))
     }
   }
+  
+  def tags = TODO	//TODO WTSN-56 view/add/toggle tags
+  
+  def tag(name: String) = TODO	//TODO WTSN-56 view tag
+  
+  def uris = TODO	//TODO WTSN-57 uris view
+  
+  def uri(id: Int) = TODO	//TODO WTSN-57 view uri
+  
+  def ips = TODO	//TODO WTSN-59 ips view
+  
+  def ip(ip: Long) = TODO	//TODO WTSN-59 view ip  
   
   def welcome = Action { implicit request =>
     Ok(views.html.welcome())
