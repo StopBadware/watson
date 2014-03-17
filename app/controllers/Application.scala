@@ -41,14 +41,16 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
   def requests = withAuth { userId => implicit request =>
     val status = request.getQueryString("status").getOrElse("open")
     val times = PostgreSql.parseTimes(request.getQueryString("requested").getOrElse(""))
-    val requests = if (status.matches("open")) {
+    val email = request.getQueryString("email").getOrElse("")
+    val find = if (status.matches("open")) {
       ReviewRequest.findOpen(Some(times))
     } else {
       ReviewRequest.findByClosedReason(ClosedReason.fromStr(status), times, limit)
     }
+    val requests = if (email.nonEmpty) find.filter(_.email.equalsIgnoreCase(email)) else find
     val uris = Uri.find(requests.map(_.uriId)).map(uri => (uri.id, uri.uri.toString)).toMap
     Ok(views.html.requests(requests, uris, limit, User.find(userId.get).get))
-    	.withCookies(cookies(request, List("status", "requested")):_*)
+    	.withCookies(cookies(request, List("status", "email", "requested")):_*)
   }
   
   def request(id: Int) = withAuth { userId => implicit request =>

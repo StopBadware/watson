@@ -90,7 +90,7 @@ $(document).ready(function($) {
 	});
 	
 	var tableFilters = [{id:"#reviews-table",fields:["status", "blacklisted", "created"]},
-	                    {id:"#requests-table",fields:["status", "requested"]}];
+	                    {id:"#requests-table",fields:["status", "email", "requested"]}];
 	tableFilters.map(function(table) {
 		if ($(table.id).length) {
 			if ($(table.id+" tbody tr").length == 0) {

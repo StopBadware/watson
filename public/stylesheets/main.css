@@ -194,6 +194,9 @@ td a {
 .form-inline select {
 	margin-right: 1.2em;
 }
+input[type=email] {
+	min-width: 15em;
+}
 #reviews-filter label {
 	margin-right: 0.25em;
 }
