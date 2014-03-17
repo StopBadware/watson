@@ -1,14 +1,14 @@
 @(request: ReviewRequest, otherRequests: List[ReviewRequest], uri: String, user: User)
 @main("Request "+request.id) {
 	<div id="request-summary" class="well well-lg">
-		<h3>URI: <a href="/uris/@request.uriId">@uri</a></h3>
-		<h4>Requested: <span class="unixtime-full">@request.requestedAt</span></h4>
-		<h4>Closed: @if(request.closedAt.nonEmpty){<span class="unixtime-full">@request.closedAt</span>}</h4>
-		<h4>Closed Reason: <span id="reason" class="sbw-red request-reason enum">@request.closedReason</span>
-		<h4>Review: @if(request.reviewId.nonEmpty){<a href="/reviews/@request.reviewId">@request.reviewId</a>}</h4>
-		<h4>Email: @request.email</h4>
-		<h4>IP: @if(request.ip.nonEmpty){<a href="/ips/@request.ip" class="ipv4">@request.ip</a>}else{Unknown}</h4>
-		<h4>Notes: @request.requesterNotes</h4>
+		<h3><label>URI:</label><a href="/uris/@request.uriId">@uri</a></h3>
+		<h4><label>Requested:</label><span class="unixtime-full">@request.requestedAt</span></h4>
+		<h4><label>Closed:</label>@if(request.closedAt.nonEmpty){<span class="unixtime-full">@request.closedAt</span>}</h4>
+		<h4><label>Closed Reason:</label><span id="reason" class="sbw-red request-reason enum">@request.closedReason</span>
+		<h4><label>Review:</label>@if(request.reviewId.nonEmpty){<a href="/reviews/@request.reviewId">@request.reviewId</a>}</h4>
+		<h4><label>Email:</label>@request.email</h4>
+		<h4><label>IP:</label>@if(request.ip.nonEmpty){<a href="/ips/@request.ip" class="ipv4">@request.ip</a>}</h4>
+		<h4><label>Notes:</label>@request.requesterNotes</h4>
 	</div>
 	
 	@tables.requestSummaries(otherRequests, "Other Requests for URI")

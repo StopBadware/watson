@@ -16,9 +16,9 @@
 	</div>
 	
 	<div id="review-summary" class="well well-lg">
-		<h3>URI: <a href="/uris/@details.uri.id">@details.uri.uri</a></h3>
-		<h4>Created: <span class="unixtime-full">@details.review.createdAt</span></h4>
-		<h4>Status: <span id="status" class="sbw-red review-status enum">@details.review.status</span> 
+		<h3><label>URI:</label><a href="/uris/@details.uri.id">@details.uri.uri</a></h3>
+		<h4><label>Created:</label><span class="unixtime-full">@details.review.createdAt</span></h4>
+		<h4><label>Status:</label><span id="status" class="sbw-red review-status enum">@details.review.status</span> 
 		@if(details.review.status != ReviewStatus.NEW) {
 		(<span id="status-updated" class="unixtime-full">@details.review.statusUpdatedAt</span>)
 		}
