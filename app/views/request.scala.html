@@ -3,6 +3,8 @@
 	<div id="request-summary" class="well well-lg">
 		<h3>URI: <a href="/uris/@request.uriId">@uri</a></h3>
 		<h4>Requested: <span class="unixtime-full">@request.requestedAt</span></h4>
+		<h4>Closed: @if(request.closedAt.isDefined){<span class="unixtime-full">@request.closedAt</span>}</h4>
+		<h4>Closed Reason: <span id="reason" class="sbw-red request-reason enum">@request.closedReason</span> 
 	</div>
 	
 	@tables.requestSummaries(otherRequests, "Other Requests for URI")
