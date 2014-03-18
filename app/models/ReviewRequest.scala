@@ -33,6 +33,16 @@ case class ReviewRequest(
     }
   }
   
+  def reopen(): Boolean = DB.withConnection { implicit conn =>
+    return try {
+      SQL("UPDATE review_requests SET open=TRUE, closed_at=NULL, closed_reason=NULL WHERE id={id}")
+      	.on("id"->id).executeUpdate() > 0
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      false
+    }
+  }
+  
   def close(reason: ClosedReason, closedAt: Option[Long]=None): Boolean = DB.withConnection { implicit conn =>
     val updatedReason = if (closedReason.equals(Some(REVIEWED_CLEAN)) && reason.equals(NO_PARTNERS_REPORTING)) {
       REVIEWED_CLEAN.toString

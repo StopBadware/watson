@@ -58,6 +58,17 @@ class ReviewRequestSpec extends Specification {
       }
     }
     
+    "reopen a review request" in {
+      running(FakeApplication()) {
+        val rr = request
+        rr.open must beTrue	
+        rr.close(ClosedReason.ADMINISTRATIVE, Some(System.currentTimeMillis / 1000)) must beTrue
+        ReviewRequest.find(rr.id).get.open must beFalse
+        rr.reopen() must beTrue
+        ReviewRequest.find(rr.id).get.open must beTrue
+      }
+    }
+    
     "update status but do NOT close review request when reason is REVIEWED_CLEAN" in {
       running(FakeApplication()) {
         val rr = request

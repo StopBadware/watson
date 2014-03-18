@@ -119,9 +119,13 @@ class ReviewSpec extends Specification {
     
     "reopen a review" in {
       running(FakeApplication()) {
-        val rev = createAndFind
+        val uriId = validUri.id
+        ReviewRequest.create(uriId, "voljin@example.com", Some(4294967295L), None)
+        val rev = Review.findByUri(uriId).head
         rev.closeWithoutReview() must beTrue
+        ReviewRequest.findByUri(uriId).head.open must beFalse
         Review.find(rev.id).get.reopen() must beTrue
+        ReviewRequest.findByUri(uriId).head.open must beTrue
         Review.find(rev.id).get.status must equalTo(ReviewStatus.REOPENED)
       }
     }

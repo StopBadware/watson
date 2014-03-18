@@ -85,7 +85,7 @@ case class Review(
         case ReviewStatus.CLOSED_NO_LONGER_REPORTED => ClosedReason.NO_PARTNERS_REPORTING
         case _ => ClosedReason.ADMINISTRATIVE
       }
-      ReviewRequest.findByUri(uriId).filter(_.open).foreach(_.close(reason, Some(id)))
+      ReviewRequest.findByUri(uriId).filter(_.open).foreach(_.close(reason))
       
       if (newStatus==CLOSED_CLEAN && BlacklistEvent.findBlacklistedByUri(uriId, Some(Source.GOOG)).nonEmpty) {
       	//TODO WTSN-12 add to Google rescan queue       
@@ -97,8 +97,15 @@ case class Review(
   
   def reopen(): Boolean = DB.withConnection { implicit conn =>
     return try {
-      SQL("""UPDATE reviews SET status='REOPENED'::REVIEW_STATUS, status_updated_at=NOW() WHERE id={id}""")
+      val reopened = SQL("UPDATE reviews SET status='REOPENED'::REVIEW_STATUS, status_updated_at=NOW() WHERE id={id}")
       	.on("id" -> id).executeUpdate() > 0
+    	if (reopened) {
+        ReviewRequest.findByUri(uriId)
+        	.filter(_.closedAt.getOrElse(0L) >= this.createdAt)
+        	.filter(_.closedAt.getOrElse(this.statusUpdatedAt) < this.statusUpdatedAt)
+        	.foreach(_.reopen())
+      }
+    	reopened
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       false
