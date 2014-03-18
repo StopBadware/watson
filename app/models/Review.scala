@@ -100,10 +100,7 @@ case class Review(
       val reopened = SQL("UPDATE reviews SET status='REOPENED'::REVIEW_STATUS, status_updated_at=NOW() WHERE id={id}")
       	.on("id" -> id).executeUpdate() > 0
     	if (reopened) {
-        ReviewRequest.findByUri(uriId)
-        	.filter(_.closedAt.getOrElse(0L) >= this.createdAt)
-        	.filter(_.closedAt.getOrElse(this.statusUpdatedAt) < this.statusUpdatedAt)
-        	.foreach(_.reopen())
+        ReviewRequest.findByReview(id).filterNot(_.open).foreach(_.reopen())
       }
     	reopened
     } catch {

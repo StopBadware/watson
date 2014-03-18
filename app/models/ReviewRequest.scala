@@ -139,6 +139,15 @@ object ReviewRequest {
     }
   }
   
+  def findByReview(reviewId: Int): List[ReviewRequest] = DB.withConnection { implicit conn =>
+    return try {
+      SQL("SELECT * FROM review_requests WHERE review_id={id}").on("id" -> reviewId)().map(mapFromRow).toList.flatten
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      List()
+    }
+  }
+  
   def findByClosedReason(reason: Option[ClosedReason], times: (Timestamp, Timestamp), limit: Int=5000): List[ReviewRequest] = DB.withConnection { implicit conn =>
     return try {
       val sql = if (reason.isDefined) {

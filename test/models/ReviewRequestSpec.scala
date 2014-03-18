@@ -132,6 +132,12 @@ class ReviewRequestSpec extends Specification {
       }
     }
     
+    "find review request by review id" in {
+      running(FakeApplication()) {
+        ReviewRequest.findByReview(request.reviewId.get).nonEmpty must beTrue
+      }
+    }
+    
     "find all open review requests" in {
       running(FakeApplication()) {
         val rr = request
