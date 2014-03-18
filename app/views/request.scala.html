@@ -1,4 +1,5 @@
 @(request: ReviewRequest, otherRequests: List[ReviewRequest], uri: String, user: User)
+@import models.enums.Role
 @main("Request "+request.id) {
 	<div id="request-summary" class="well well-lg">
 		<h3><label>URI:</label><a href="/uris/@request.uriId">@uri</a></h3>
@@ -9,6 +10,12 @@
 		<h4><label>Email:</label>@request.email</h4>
 		<h4><label>IP:</label>@if(request.ip.nonEmpty){<a href="/ips/@request.ip" class="ipv4">@request.ip</a>}</h4>
 		<h4><label>Notes:</label>@request.requesterNotes</h4>
+		@if(user.hasRole(Role.VERIFIER)) {
+			@defining(if (request.open) "" else "disabled") { disabled =>
+			<button type="button" class="btn btn-default" @disabled>Close Abusive</button>
+			<button type="button" class="btn btn-default" @disabled>Close Administrative</button>
+			}
+		}
 	</div>
 	
 	@tables.requestSummaries(otherRequests, "Other Requests for URI")
