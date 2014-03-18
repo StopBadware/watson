@@ -6,7 +6,7 @@
 		<h4><label>Requested:</label><span class="unixtime-full">@request.requestedAt</span></h4>
 		<h4><label>Closed:</label>@if(request.closedAt.nonEmpty){<span class="unixtime-full">@request.closedAt</span>}</h4>
 		<h4><label>Closed Reason:</label><span id="reason" class="sbw-red request-reason enum">@request.closedReason</span>
-		<h4><label>Review:</label>@if(request.reviewId.nonEmpty){<a href="/reviews/@request.reviewId">@request.reviewId</a>}</h4>
+		<h4><label>Review:</label><a href="/reviews/@request.reviewId">@request.reviewId</a></h4>
 		<h4><label>Email:</label>@request.email</h4>
 		<h4><label>IP:</label>@if(request.ip.nonEmpty){<a href="/ips/@request.ip" class="ipv4">@request.ip</a>}</h4>
 		<h4><label>Notes:</label>@request.requesterNotes</h4>

@@ -126,15 +126,15 @@ class ReviewRequestSpec extends Specification {
       }
     }
     
-    "find review request by uri" in {
+    "find review requests by uri" in {
       running(FakeApplication()) {
         ReviewRequest.findByUri(request.uriId).nonEmpty must beTrue
       }
     }
     
-    "find review request by review id" in {
+    "find review requests by review id" in {
       running(FakeApplication()) {
-        ReviewRequest.findByReview(request.reviewId.get).nonEmpty must beTrue
+        ReviewRequest.findByReview(request.reviewId).nonEmpty must beTrue
       }
     }
     

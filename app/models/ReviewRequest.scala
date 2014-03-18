@@ -21,7 +21,7 @@ case class ReviewRequest(
     requestedAt: Long,
     closedAt: Option[Long],
     closedReason: Option[ClosedReason],
-    reviewId: Option[Int]
+    reviewId: Int
     ) {
   
   def delete(): Boolean = DB.withConnection { implicit conn =>
@@ -49,16 +49,13 @@ case class ReviewRequest(
     } else {
       reason.toString
     }
-    val revId = Try(Some(Review.findByUri(uriId).filter(_.isOpen).head.id)).getOrElse(reviewId)
     val closeTime = closedAt.getOrElse(System.currentTimeMillis / 1000)
     val closed = try {
-      SQL("""UPDATE review_requests SET open={open}, closed_at={closedAt}, review_id={reviewId} 
-        , closed_reason={reason}::CLOSED_REASON WHERE id={id}""")
+      SQL("UPDATE review_requests SET open={open}, closed_at={closedAt}, closed_reason={reason}::CLOSED_REASON WHERE id={id}")
       	.on("id" -> id,
     	    "reason" -> updatedReason,
     	    "open" -> reason.equals(REVIEWED_CLEAN),
-    	    "closedAt" -> new Timestamp(closeTime * 1000), 
-    	    "reviewId" -> revId)
+    	    "closedAt" -> new Timestamp(closeTime * 1000))
       	.executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
@@ -66,19 +63,19 @@ case class ReviewRequest(
     }
     
     if (closed) {
-      sendNotification(reason, revId)
-      if (ReviewRequest.findByUri(uriId).filter(_.open).isEmpty) {
+      sendNotification(reason, reviewId)
+      if (ReviewRequest.findByReview(reviewId).filter(_.open).isEmpty) {
         if (reason == ClosedReason.NO_PARTNERS_REPORTING) {
-          revId.foreach(Review.find(_).filter(_.isOpen).foreach(_.closeNoLongerBlacklisted()))
+          Review.find(reviewId).get.closeNoLongerBlacklisted()
         } else {
-          revId.foreach(Review.find(_).filter(_.isOpen).foreach(_.closeWithoutReview()))
+          Review.find(reviewId).get.closeWithoutReview()
         }
       }
     }
     closed
   }
   
-  private def sendNotification(reason: ClosedReason, reviewId: Option[Int]=None) = {
+  private def sendNotification(reason: ClosedReason, reviewId: Int) = {
     val uri = Try(Uri.find(uriId).get.uri).getOrElse("")
     reason match {
       case NO_PARTNERS_REPORTING => Mailer.sendNoLongerBlacklisted(email, uri)
@@ -103,11 +100,12 @@ object ReviewRequest {
     email: String,
     ip: Option[Long]=None,
     notes: Option[String]=None): Boolean = DB.withConnection { implicit conn =>
+    val review = Review.findOpenOrCreate(uriId)
     val created = try {
-      if (Email.isValid(email)) {
-	      SQL("""INSERT INTO review_requests (uri_id, email, ip, requester_notes) 
-	        VALUES({uriId}, {email}, {ip}, {notes})""")
-	        .on("uriId" -> uriId, "email" -> email, "ip" -> ip, "notes" -> notes)
+      if (Email.isValid(email) && review.isDefined) {
+	      SQL("""INSERT INTO review_requests (uri_id, email, ip, requester_notes, review_id) 
+	        VALUES({uriId}, {email}, {ip}, {notes}, {reviewId})""")
+	        .on("uriId" -> uriId, "email" -> email, "ip" -> ip, "notes" -> notes, "reviewId" -> review.get.id)
 	        .executeUpdate() > 0
       } else {
         false
@@ -120,7 +118,6 @@ object ReviewRequest {
     if (created) {
       val uri = Try(Uri.find(uriId).get.uri).getOrElse("")
       Mailer.sendReviewRequestReceived(email, uri)
-      Review.create(uriId)
     }
     created
   }
@@ -245,7 +242,7 @@ object ReviewRequest {
 		    row[Date]("requested_at").getTime / 1000,
 		    closedAt,
 		    row[Option[ClosedReason]]("closed_reason"),
-		    row[Option[Int]]("review_id")
+		    row[Int]("review_id")
   		))
     } catch {
       case e: Exception => None

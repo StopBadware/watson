@@ -179,6 +179,11 @@ object Review {
     }
   }
   
+  def findOpenOrCreate(uriId: Int): Option[Review] = DB.withConnection { implicit conn =>
+    create(uriId)
+    return findByUri(uriId).filter(_.isOpen).headOption
+  }
+  
   def find(id: Int): Option[Review] = DB.withConnection { implicit conn =>
     return Try(mapFromRow(SQL("SELECT * FROM reviews WHERE id={id} LIMIT 1").on("id"->id)().head)).getOrElse(None)
   }

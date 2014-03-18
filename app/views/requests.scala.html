@@ -65,7 +65,7 @@
     			<td class="unixtime text-right">@request.requestedAt</td>
     			@if(request.closedAt.nonEmpty){<td class="unixtime text-right">@request.closedAt</td>}else{<td></td>}
     			@if(request.closedReason.nonEmpty){<td class="enum">@request.closedReason</td>}else{<td></td>}
-    			@if(request.reviewId.nonEmpty){<td><a href="/reviews/@request.reviewId">@request.reviewId</a></td>}else{<td></td>}
+    			<td><a href="/reviews/@request.reviewId">@request.reviewId</a></td>
     		</tr>
     	}
     	</tbody>
