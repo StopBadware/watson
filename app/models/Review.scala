@@ -295,9 +295,10 @@ case class ReviewDetails(review: Review) {
 	val blacklistEvents = BlacklistEvent.findByUri(uri.id)
 	val googleRescans = GoogleRescan.findByUri(uri.id)
 	val reviewRequests = ReviewRequest.findByUri(uri.id)
-	val tags = (otherReviews:+review).map(_.reviewTags).flatten.toSet.foldLeft(Map.empty[Int, ReviewTag]) { (map, tagId) =>
-	  Try(map.updated(tagId, ReviewTag.find(tagId).get)).getOrElse(map)
-  }
+	val tags = ReviewTag.find((review+:otherReviews).map(_.reviewTags).flatten.distinct).map(t => (t.id, t)).toMap
+	
+  def tagsWithoutOpenOnly: Map[Int, ReviewTag] = tags.filterNot(_._2.openOnly)
+  
   def rescanUris: Map[Int, String] = {
     //TODO WTSN-55 get all related uris
     Uri.find(googleRescans.map(rescan => List(rescan.uriId, rescan.relatedUriId.getOrElse(0))).flatten.toSet.toList)

@@ -66,7 +66,8 @@ CREATE TABLE users (
 );
 
 CREATE TABLE review_data (
-  id SERIAL PRIMARY KEY
+  id SERIAL PRIMARY KEY,
+  bad_code VARCHAR(4096) DEFAULT NULL
 );
 
 CREATE TABLE review_tags (
@@ -74,6 +75,7 @@ CREATE TABLE review_tags (
   name VARCHAR(16) UNIQUE NOT NULL,
   description VARCHAR(64) DEFAULT NULL,
   hex_color CHAR(6) NOT NULL DEFAULT '000000',
+  open_only BOOLEAN NOT NULL DEFAULT FALSE,
   active BOOLEAN NOT NULL DEFAULT TRUE
 );
 

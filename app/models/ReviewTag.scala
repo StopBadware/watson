@@ -7,7 +7,13 @@ import play.api.Logger
 import org.postgresql.util.PSQLException
 import scala.util.Try
 
-case class ReviewTag(id: Int, name: String, description: Option[String], hexColor: String, active: Boolean) {
+case class ReviewTag(
+    id: Int, 
+    name: String, 
+    description: Option[String], 
+    hexColor: String,
+    openOnly: Boolean,
+    active: Boolean) {
 
   def update(description: Option[String], hexColor: String): Boolean = DB.withConnection { implicit conn =>
     return try {
@@ -45,11 +51,15 @@ case class ReviewTag(id: Int, name: String, description: Option[String], hexColo
 
 object ReviewTag {
   
-  def create(name: String, description: Option[String]=None, hexColor: String="000000"): Boolean = DB.withConnection { implicit conn =>
+  def create(
+      name: String, 
+      description: Option[String]=None, 
+      hexColor: String="000000", 
+      openOnly: Boolean=false): Boolean = DB.withConnection { implicit conn =>
     return try {
-      SQL("""INSERT INTO review_tags (name, description, hex_color, active) SELECT {name}, {description}, 
-        {hexColor}, true WHERE NOT EXISTS (SELECT 1 FROM review_tags WHERE name={name})""")
-        .on("name" -> name.toUpperCase, "description" -> description, "hexColor" -> hexColor)
+      SQL("""INSERT INTO review_tags (name, description, hex_color, open_only, active) SELECT {name}, {description}, 
+        {hexColor}, {openOnly}, true WHERE NOT EXISTS (SELECT 1 FROM review_tags WHERE name={name})""")
+        .on("name" -> name.toUpperCase, "description" -> description, "hexColor" -> hexColor, "openOnly" -> openOnly)
         .executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
@@ -76,6 +86,7 @@ object ReviewTag {
 				    row.getString("name"),
 				    Try(Some(row.getString("description"))).getOrElse(None),
 				    row.getString("hex_color"),
+				    row.getBoolean("open_only"),
 				    row.getBoolean("active")
 		  		))
 	      }.flatten.toList
@@ -104,6 +115,7 @@ object ReviewTag {
 		    row[String]("name"),
 		    row[Option[String]]("description"),
 		    row[String]("hex_color"),
+		    row[Boolean]("open_only"),
 		    row[Boolean]("active")
   		))
     } catch {

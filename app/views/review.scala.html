@@ -44,7 +44,9 @@
 		<div>
 		@details.review.reviewTags.map { tagId =>
 			@defining(details.tags(tagId)) { tag =>
-			<a href="/tags/@tag.name" class="no-dec"><span class="tag" data-tagbg="@tag.hexColor">@tag</span></a>
+				@if((!details.review.isOpen && !tag.openOnly) || details.review.isOpen) {
+				<a href="/tags/@tag.name" class="no-dec"><span class="tag" data-tagbg="@tag.hexColor">@tag</span></a>
+				}
 			}
 		}
 		</div>
