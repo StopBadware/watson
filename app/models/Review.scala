@@ -16,21 +16,19 @@ case class Review(
 	  uriId: Int,
 	  reviewedBy: Option[Int],
 	  verifiedBy: Option[Int],
-	  reviewDataId: Option[Int],
 	  reviewTags: Set[Int],
 	  status: ReviewStatus,
 	  createdAt: Long,
 	  statusUpdatedAt: Long
   ) {
   
-  def reviewed(verdict: ReviewStatus, reviewer: Int, reviewData: Option[Int]=None): Boolean = DB.withConnection { implicit conn =>
-    val dataId = if (reviewData.isDefined) reviewData else reviewDataId
+  def reviewed(verdict: ReviewStatus, reviewer: Int): Boolean = DB.withConnection { implicit conn =>
     val newStatus = if (verdict == ReviewStatus.CLOSED_BAD) ReviewStatus.PENDING_BAD else verdict
     val updated = try {
       if (User.find(reviewer).get.hasRole(Role.REVIEWER)) {
 	      SQL("""UPDATE reviews SET status={status}::REVIEW_STATUS, reviewed_by={reviewerId}, 
 	        review_data_id={dataId}, status_updated_at=NOW() WHERE id={id}""")
-	        .on("id"->id, "status"->newStatus.toString, "reviewerId"->reviewer, "dataId"->dataId).executeUpdate() > 0
+	        .on("id"->id, "status"->newStatus.toString, "reviewerId"->reviewer).executeUpdate() > 0
       } else {
         false
       }
@@ -256,7 +254,6 @@ object Review {
 			  row[Int]("uri_id"),
 			  row[Option[Int]]("reviewed_by"),
 			  row[Option[Int]]("verified_by"),
-			  row[Option[Int]]("review_data_id"),
 			  row[Option[Array[Int]]]("review_tag_ids").getOrElse(Array()).toSet,
 			  row[ReviewStatus]("status"),
 			  row[Date]("created_at").getTime / 1000,

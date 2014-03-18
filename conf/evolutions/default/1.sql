@@ -65,11 +65,6 @@ CREATE TABLE users (
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE review_data (
-  id SERIAL PRIMARY KEY,
-  bad_code VARCHAR(4096) DEFAULT NULL
-);
-
 CREATE TABLE review_tags (
   id SERIAL PRIMARY KEY,
   name VARCHAR(16) UNIQUE NOT NULL,
@@ -86,16 +81,48 @@ CREATE TABLE reviews (
   uri_id INTEGER NOT NULL REFERENCES uris (id) ON DELETE RESTRICT,
   reviewed_by INTEGER DEFAULT NULL REFERENCES users (id) ON DELETE RESTRICT,
   verified_by INTEGER DEFAULT NULL REFERENCES users (id) ON DELETE RESTRICT,
-  review_data_id INTEGER DEFAULT NULL REFERENCES review_data (id) ON DELETE RESTRICT,
   review_tag_ids INTEGER ARRAY DEFAULT NULL,
   status REVIEW_STATUS NOT NULL DEFAULT 'NEW',
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   status_updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX ON reviews (uri_id, review_data_id);
+CREATE INDEX ON reviews (uri_id);
 CREATE INDEX ON reviews (status, created_at, status_updated_at);
 CREATE INDEX ON reviews (reviewed_by, verified_by);
+
+CREATE TABLE associated_uris (
+  id SERIAL PRIMARY KEY,
+  review_id INTEGER NOT NULL REFERENCES reviews (id) ON DELETE CASCADE,
+  uri_id INTEGER NOT NULL REFERENCES uris (id) ON DELETE RESTRICT,
+  resolved BOOLEAN DEFAULT NULL,
+  uri_type VARCHAR(32) DEFAULT NULL,
+  intent VARCHAR(32) DEFAULT NULL,
+  associated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX ON associated_uris (review_id);
+CREATE INDEX ON associated_uris (uri_id);
+
+CREATE TABLE review_notes (
+  id SERIAL PRIMARY KEY,
+  review_id INTEGER NOT NULL REFERENCES reviews (id) ON DELETE CASCADE,
+  author INTEGER NOT NULL REFERENCES users (id) ON DELETE RESTRICT,
+  note VARCHAR(2048) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX ON review_notes (review_id);
+CREATE INDEX ON review_notes (author);
+
+CREATE TABLE review_code (
+  id SERIAL PRIMARY KEY,
+  review_id INTEGER NOT NULL REFERENCES reviews (id) ON DELETE CASCADE,
+  bad_code VARCHAR(4096) DEFAULT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX ON review_code (review_id);
 
 CREATE TABLE review_requests (
   id SERIAL PRIMARY KEY,
@@ -123,7 +150,9 @@ DROP TABLE blacklist_events CASCADE;
 DROP TABLE users CASCADE;
 DROP TABLE reviews CASCADE;
 DROP TABLE review_tags CASCADE;
-DROP TABLE review_data CASCADE;
+DROP TABLE review_code CASCADE;
+DROP TABLE review_notes CASCADE;
+DROP TABLE associated_uris CASCADE;
 DROP TABLE review_requests CASCADE;
 DROP TYPE ROLE;
 DROP TYPE SOURCE;
