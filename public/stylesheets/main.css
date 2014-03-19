@@ -155,10 +155,10 @@ td a {
 	background-color: #648188;
 }
 .table-sorted .header-sort-up {
-	background-image: url(images/desc.png);
+	background-image: url(images/asc.png);
 }
 .table-sorted .header-sort-down {
-	background-image: url(images/asc.png);
+	background-image: url(images/desc.png);
 }
 .table-hover>tbody>tr:hover>td {
 	background-color: #E8F1F3;
