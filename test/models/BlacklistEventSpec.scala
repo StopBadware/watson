@@ -10,7 +10,7 @@ import models.enums.Source
 @RunWith(classOf[JUnitRunner])
 class BlacklistEventSpec extends Specification {
   
-  private val source = Source.SBW
+  private val source = Source.NSF
   private val numInBulk = 20
   private def validUri: Uri = Uri.findOrCreate(UriSpec.validUri).get
   private def blacklistedEvent: ReportedEvent = {

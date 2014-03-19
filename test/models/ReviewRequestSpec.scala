@@ -88,7 +88,7 @@ class ReviewRequestSpec extends Specification {
     "close all review requests for uris no longer blacklisted" in {
       running(FakeApplication()) {
         val now = System.currentTimeMillis / 1000
-        val sourceA = Source.SBW
+        val sourceA = Source.NSF
         val sourceB = Source.GOOG
         val overlap = validUri.id
         val shouldClose = {

@@ -16,7 +16,7 @@ class UriSpec extends Specification {
   
   def validUri = UriSpec.validUri
   def reportedUri = new ReportedUri(validUri)
-  private val source = Source.SBW
+  private val source = Source.NSF
   
   "Uri" should {
     
