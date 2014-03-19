@@ -34,6 +34,11 @@ class ReviewSpec extends Specification {
     ReviewTag.create("TEST")
     ReviewTag.findByName("TEST").get
   } 
+  
+  private def testOpenOnlyTag: ReviewTag = {
+    ReviewTag.create("OOTEST", openOnly=true)
+    ReviewTag.findByName("OOTEST").get
+  } 
 
   "Review" should {
     
@@ -148,6 +153,15 @@ class ReviewSpec extends Specification {
       }
     }
     
+    "add an open only tag" in {
+      running(FakeApplication()) {
+        val rev = createAndFind
+        val tagId = testOpenOnlyTag.id
+        rev.addTag(tagId) must beTrue
+        Review.find(rev.id).get.openOnlyTags.contains(tagId) must beTrue
+      }
+    }    
+    
     "remove a tag" in {
       running(FakeApplication()) {
         val rev = createAndFind
@@ -166,6 +180,24 @@ class ReviewSpec extends Specification {
       }
     }
     
+    "remove an open only tag" in {
+      running(FakeApplication()) {
+        val rev = createAndFind
+        val tagId = testOpenOnlyTag.id
+        val tagToRemoveId = {
+          val name = "TEST"+System.currentTimeMillis.toHexString
+			    ReviewTag.create(name, openOnly=true)
+			    ReviewTag.findByName(name).get.id
+			  }
+        rev.addTag(tagId)
+        rev.addTag(tagToRemoveId)
+        Review.find(rev.id).get.openOnlyTags.contains(tagToRemoveId) must beTrue
+        rev.removeTag(tagToRemoveId)
+        Review.find(rev.id).get.openOnlyTags.contains(tagToRemoveId) must beFalse
+        Review.find(rev.id).get.openOnlyTags.contains(tagId) must beTrue
+      }
+    }    
+    
     "find a review" in {
       running(FakeApplication()) {
         val rev = createAndFind
@@ -173,10 +205,19 @@ class ReviewSpec extends Specification {
       }
     }
     
-    "find reviews by tag name" in {
+    "find reviews by tag" in {
       running(FakeApplication()) {
         val rev = createAndFind
         val testTagId = testTag.id
+        rev.addTag(testTagId)
+        Review.findByTag(testTagId).map(_.id).contains(rev.id) must beTrue
+      }
+    }
+    
+    "find reviews by openOnlyTag" in {
+      running(FakeApplication()) {
+        val rev = createAndFind
+        val testTagId = testOpenOnlyTag.id
         rev.addTag(testTagId)
         Review.findByTag(testTagId).map(_.id).contains(rev.id) must beTrue
       }

@@ -16,18 +16,25 @@ case class Review(
 	  uriId: Int,
 	  reviewedBy: Option[Int],
 	  verifiedBy: Option[Int],
-	  reviewTags: Set[Int],
+	  openOnlyTags: Set[Int],
 	  status: ReviewStatus,
 	  createdAt: Long,
 	  statusUpdatedAt: Long
   ) {
   
+  lazy val reviewTags = DB.withConnection { implicit conn =>
+    try {
+	    SQL("SELECT review_tag_id FROM review_taggings WHERE review_id={id}").on("id" -> id)().map(_[Int]("review_tag_id")).toSet
+	  } catch {
+	    case e: PSQLException => Set.empty[Int]
+	  }
+  }  
+  
   def reviewed(verdict: ReviewStatus, reviewer: Int): Boolean = DB.withConnection { implicit conn =>
     val newStatus = if (verdict == ReviewStatus.CLOSED_BAD) ReviewStatus.PENDING_BAD else verdict
     val updated = try {
       if (User.find(reviewer).get.hasRole(Role.REVIEWER)) {
-	      SQL("""UPDATE reviews SET status={status}::REVIEW_STATUS, reviewed_by={reviewerId}, 
-	        review_data_id={dataId}, status_updated_at=NOW() WHERE id={id}""")
+	      SQL("UPDATE reviews SET status={status}::REVIEW_STATUS, reviewed_by={reviewerId}, status_updated_at=NOW() WHERE id={id}")
 	        .on("id"->id, "status"->newStatus.toString, "reviewerId"->reviewer).executeUpdate() > 0
       } else {
         false
@@ -118,12 +125,28 @@ case class Review(
   
   def isOpen: Boolean = status.isOpen
   
-  def addTag(tagId: Int): Boolean = DB.withConnection { implicit conn =>
+  def addTag(tagId: Int): Boolean = {
+  		val tag = ReviewTag.find(tagId)
+    return if (tag.isDefined) {
+      if (tag.get.openOnly) addOpenOnlyTag(tag.get.id) else addReviewTag(tag.get.id) 
+    } else {
+      false
+    }
+  }
+  
+  private def addReviewTag(tagId: Int): Boolean = DB.withConnection { implicit conn =>
+    return Try {
+      SQL("INSERT INTO review_taggings(review_id, review_tag_id) VALUES({id}, {tagId})")
+      	.on("id" -> id, "tagId" -> tagId).executeUpdate()
+    }.isSuccess
+  }
+  
+  private def addOpenOnlyTag(tagId: Int): Boolean = DB.withConnection { implicit conn =>
     return try {
-      if (reviewTags.contains(tagId)) {
+      if (openOnlyTags.contains(tagId)) {
         false
       } else {
-        SQL("""UPDATE reviews SET review_tag_ids=((SELECT review_tag_ids FROM reviews WHERE id={id}) || ARRAY[{tagId}]) 
+        SQL("""UPDATE reviews SET open_only_tag_ids=((SELECT open_only_tag_ids FROM reviews WHERE id={id}) || ARRAY[{tagId}]) 
           WHERE id={id}""").on("id" -> id, "tagId" -> tagId).executeUpdate() > 0
       }
     } catch {
@@ -132,17 +155,33 @@ case class Review(
     }
   }
   
-  def removeTag(tagId: Int): Boolean = DB.withConnection { implicit conn =>
+  def removeTag(tagId: Int): Boolean = {
+    val tag = ReviewTag.find(tagId)
+    return if (tag.isDefined) {
+      if (tag.get.openOnly) removeOpenOnlyTag(tag.get.id) else removeReviewTag(tag.get.id) 
+    } else {
+      false
+    }
+  }
+  
+  private def removeReviewTag(tagId: Int): Boolean = DB.withConnection { implicit conn =>
+    return Try {
+      SQL("DELETE FROM review_taggings WHERE review_id={id} AND review_tag_id={tagId}")
+      	.on("id" -> id, "tagId" -> tagId).executeUpdate()
+    }.isSuccess
+  }
+  
+  private def removeOpenOnlyTag(tagId: Int): Boolean = DB.withConnection { implicit conn =>
     return try {
-      val tags = Try(SQL("SELECT review_tag_ids FROM reviews WHERE id={id}").on("id" -> id)()
-        .head[Option[Array[Int]]]("review_tag_ids").getOrElse(Array()).toSet).getOrElse(Set())
-      val newTagIds = tags.filter(_!=tagId).mkString(",")
-      SQL("UPDATE reviews SET review_tag_ids=ARRAY["+newTagIds+"] WHERE id={id}").on("id"->id).executeUpdate() > 0
+      val tags = Try(SQL("SELECT open_only_tag_ids FROM reviews WHERE id={id}").on("id" -> id)()
+        .head[Option[Array[Int]]]("open_only_tag_ids").getOrElse(Array()).toSet).getOrElse(Set())
+      val newTagIds = tags.filterNot(_ == tagId).mkString(",")
+      SQL("UPDATE reviews SET open_only_tag_ids=ARRAY["+newTagIds+"] WHERE id={id}").on("id"->id).executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       false
     }
-  }
+  }  
   
   def details: ReviewDetails = ReviewDetails(Review.find(this.id).get)
   
@@ -186,14 +225,34 @@ object Review {
     return Try(mapFromRow(SQL("SELECT * FROM reviews WHERE id={id} LIMIT 1").on("id"->id)().head)).getOrElse(None)
   }
   
-  def findByTag(tagId: Int): List[Review] = DB.withConnection { implicit conn =>
+  def findByTag(tagId: Int): List[Review] = {
+    val tag = ReviewTag.find(tagId)
+    return if (tag.isDefined) {
+      if (tag.get.openOnly) findByOpenOnlyTag(tag.get.id) else findByReviewTag(tag.get.id) 
+    } else {
+      List.empty[Review]
+    }
+  }
+  
+  private def findByReviewTag(tagId: Int): List[Review] = DB.withConnection { implicit conn =>
     return try {
-    	SQL("SELECT * FROM reviews WHERE {tagId} = ANY (review_tag_ids)").on("tagId"->tagId)().map(mapFromRow).flatten.toList
+    	SQL("""SELECT reviews.* FROM review_taggings JOIN reviews ON review_taggings.review_id=reviews.id 
+  	    WHERE review_taggings.review_tag_id={tagId}""").on("tagId"->tagId)().map(mapFromRow).flatten.toList
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       List()
     }
   }
+  
+  private def findByOpenOnlyTag(tagId: Int): List[Review] = DB.withConnection { implicit conn =>
+    return try {
+    	SQL("SELECT * FROM reviews WHERE {tagId} = ANY (open_only_tag_ids)")
+    		.on("tagId" -> tagId)().map(mapFromRow).flatten.toList
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      List()
+    }
+  }  
   
   def findByUri(uriId: Int): List[Review] = DB.withConnection { implicit conn =>
     return try {
@@ -221,7 +280,7 @@ object Review {
       val times = params.createdAt
       val rows = SQL("SELECT uris.id AS uri_id, reviews.id AS review_id, uri, reviews.status, " +
         "(SELECT COUNT(*) FROM review_requests WHERE review_requests.uri_id=reviews.uri_id AND open=true) AS cnt, " + 
-        "reviews.created_at, reviews.review_tag_ids FROM reviews LEFT JOIN uris ON reviews.uri_id=uris.id " + 
+        "reviews.created_at, reviews.open_only_tag_ids FROM reviews LEFT JOIN uris ON reviews.uri_id=uris.id " + 
         "WHERE status"+params.operator+"{status}::REVIEW_STATUS AND reviews.created_at BETWEEN {start} AND {end} " +
         "ORDER BY reviews.created_at ASC LIMIT {limit}").on(
           "limit" -> limit, 
@@ -237,7 +296,7 @@ object Review {
     			BlacklistEvent.findBlacklistedByUri(row[Int]("uri_id")).map(_.source).toList.sortBy(_.abbr),
     			row[Long]("cnt").toInt,
     			row[Date]("created_at").getTime / 1000,
-    			ReviewTag.find(row[Option[Array[Int]]]("review_tag_ids").getOrElse(Array()).toList)
+    			ReviewTag.find(row[Option[Array[Int]]]("open_only_tag_ids").getOrElse(Array()).toList)
       	)
       }.toList
       if (params.blacklistedBy.isDefined) summaries.filter(_.blacklistedBy.contains(params.blacklistedBy.get)) else summaries
@@ -254,7 +313,7 @@ object Review {
 			  row[Int]("uri_id"),
 			  row[Option[Int]]("reviewed_by"),
 			  row[Option[Int]]("verified_by"),
-			  row[Option[Array[Int]]]("review_tag_ids").getOrElse(Array()).toSet,
+			  row[Option[Array[Int]]]("open_only_tag_ids").getOrElse(Array()).toSet,
 			  row[ReviewStatus]("status"),
 			  row[Date]("created_at").getTime / 1000,
 			  row[Date]("status_updated_at").getTime / 1000
@@ -273,7 +332,7 @@ case class ReviewSummary(
 	blacklistedBy: List[Source],
 	requests: Int,
 	createdAt: Long,
-	tags: List[ReviewTag]
+	openOnlyTags: List[ReviewTag]
 )
 
 class ReviewSummaryParams(status: Option[String], blacklisted: Option[String], created: Option[String]) {

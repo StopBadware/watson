@@ -81,7 +81,7 @@ CREATE TABLE reviews (
   uri_id INTEGER NOT NULL REFERENCES uris (id) ON DELETE RESTRICT,
   reviewed_by INTEGER DEFAULT NULL REFERENCES users (id) ON DELETE RESTRICT,
   verified_by INTEGER DEFAULT NULL REFERENCES users (id) ON DELETE RESTRICT,
-  review_tag_ids INTEGER ARRAY DEFAULT NULL,
+  open_only_tag_ids INTEGER ARRAY DEFAULT NULL,
   status REVIEW_STATUS NOT NULL DEFAULT 'NEW',
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   status_updated_at TIMESTAMP NOT NULL DEFAULT NOW()
@@ -90,6 +90,13 @@ CREATE TABLE reviews (
 CREATE INDEX ON reviews (uri_id);
 CREATE INDEX ON reviews (status, created_at, status_updated_at);
 CREATE INDEX ON reviews (reviewed_by, verified_by);
+
+CREATE TABLE review_taggings (
+  review_id INTEGER NOT NULL REFERENCES reviews (id) ON DELETE CASCADE,
+  review_tag_id INTEGER NOT NULL REFERENCES review_tags (id) ON DELETE CASCADE,
+  associated_at TIMESTAMP NOT NULL DEFAULT NOW(), 
+  PRIMARY KEY (review_id, review_tag_id)
+);
 
 CREATE TABLE associated_uris (
   id SERIAL PRIMARY KEY,
@@ -108,7 +115,7 @@ CREATE TABLE review_notes (
   id SERIAL PRIMARY KEY,
   review_id INTEGER NOT NULL REFERENCES reviews (id) ON DELETE CASCADE,
   author INTEGER NOT NULL REFERENCES users (id) ON DELETE RESTRICT,
-  note VARCHAR(2048) NOT NULL,
+  note VARCHAR(512) NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
@@ -119,7 +126,8 @@ CREATE TABLE review_code (
   id SERIAL PRIMARY KEY,
   review_id INTEGER NOT NULL REFERENCES reviews (id) ON DELETE CASCADE,
   bad_code VARCHAR(4096) DEFAULT NULL,
-  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX ON review_code (review_id);
@@ -150,6 +158,7 @@ DROP TABLE blacklist_events CASCADE;
 DROP TABLE users CASCADE;
 DROP TABLE reviews CASCADE;
 DROP TABLE review_tags CASCADE;
+DROP TABLE review_taggings CASCADE;
 DROP TABLE review_code CASCADE;
 DROP TABLE review_notes CASCADE;
 DROP TABLE associated_uris CASCADE;

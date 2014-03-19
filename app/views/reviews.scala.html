@@ -65,8 +65,8 @@
 	   			<td class="text-center">@summary.requests</td>
 	   			<td class="text-right unixtime">@summary.createdAt</td>
 	   			<td class="text-center">
-	   			@defining(if(summary.status.isOpen){summary.tags}else{summary.tags.filterNot(_.openOnly)}) { tags =>
-	   				@tags.map { tag =>
+	   			@if(summary.status.isOpen) {
+	   				@summary.openOnlyTags.map { tag =>
 	   				<a href="/tags/@tag.name" class="no-dec"><span class="tag" data-tagbg="@tag.hexColor">@tag</span></a>
 	   				}
    				}
