@@ -31,6 +31,15 @@ $(document).ready(function($) {
 		resetPwSubmit();
 	});
 	
+	$(".review-request-box").submit(function(e) {
+		e.preventDefault();
+		var uris = $("#"+this.id+" .rr-uri").val();
+		var email = $("#"+this.id+" .rr-email").val();
+		var notes = $("#"+this.id+" .rr-notes").val();
+		$("#"+this.id+" button").focus().blur();
+		requestReview(uris, email, notes);
+	});
+	
 	setActiveNav();
 	$(".table-sorted").tablesorter({
 		cssAsc: "header-sort-up",
@@ -183,6 +192,34 @@ function setFilterInputs(fields) {
 			$("#"+field.toLowerCase()).val(value);
 		}
 	});
+}
+
+function requestReview(uris, email, notes) {
+	if ($(".form-info").is(":hidden")) {
+		if (isSbwEmail(email)) {
+			$("#login-alert").hide();
+			$("#login-info").show();
+			var obj = {
+				"email" : email,
+				"pw" : $("#input-password").val()
+			};
+			appRoute.login().ajax({
+				contentType: jsonContentType,
+				data: JSON.stringify(obj)
+			}).done(function(res) {
+				$("#login-well").hide("blind", 495);
+				setTimeout(function() {$("#login-success").show("blind", 100)}, 500);
+				var returnTo = (res.returnTo) ? res.returnTo : "/";
+				window.location.replace(returnTo);
+			}).fail(function() {
+				$("#login-alert").show();
+			}).always(function() {
+				$("#login-info").hide();
+			});
+		} else {
+			$("#login-alert").show();
+		}
+	}
 }
 
 function loginSubmit() {
