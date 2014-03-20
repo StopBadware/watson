@@ -65,7 +65,7 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
   }
   
   def newReviewRequest = withAuth { userId => implicit request =>
-    Ok("TODO WTSN-58")
+    Ok(views.html.newrequest())
   }
   
   def requestReview = withAuth { userId => implicit request =>
@@ -153,7 +153,8 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
     Ok(Routes.javascriptRouter("jsRoutes")(
       routes.javascript.Application.login,
       routes.javascript.Application.createAccount,
-      routes.javascript.Application.sendPwResetEmail
+      routes.javascript.Application.sendPwResetEmail,
+      routes.javascript.Application.requestReview
 		)).as("text/javascript")
   }
   

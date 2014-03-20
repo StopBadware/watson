@@ -59,7 +59,7 @@ $(document).ready(function($) {
 		opens: "left"
 	});
 	
-	$("textarea").keyup(function() {
+	$(".has-char-counter").keyup(function() {
 		$("#"+this.id+"-used-char-ctr").text($(this).val().length);
 	});
 	

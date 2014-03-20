@@ -7,6 +7,7 @@ GET  	/*path/								controllers.Application.untrail(path)
 GET		/reviews							controllers.Application.reviews
 GET		/reviews/:id						controllers.Application.review(id: Int)
 GET		/requests							controllers.Application.requests
+GET		/requests/new						controllers.Application.newReviewRequest
 GET		/requests/:id						controllers.Application.request(id: Int)
 GET     /welcome                       		controllers.Application.welcome
 GET     /register                       	controllers.Application.register
@@ -25,6 +26,7 @@ GET		/javascriptRoutes					controllers.Application.javascriptRoutes
 POST	/account/login						controllers.Application.login
 POST	/account/create						controllers.Application.createAccount
 POST	/account/sendpwreset				controllers.Application.sendPwResetEmail
+POST	/requests/request					controllers.Application.requestReview
 
 # REST ENDPOINTS
 GET     /blacklists/timeoflast/:source   	controllers.Rest.timeoflast(source)
