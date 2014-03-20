@@ -1,6 +1,6 @@
 @main("Password Reset", false) {
 	<h3 class="text-center">Enter an email address to send password reset link or <a href="/welcome">sign in</a>.</h3>
-    <div id="pwreset-well" class="well well-lg form-well watson-green-bg text-center container">
+    <div id="pwreset-well" class="well well-lg form-well width-375px watson-green-bg text-center container">
 		<form id="pwreset-box" class="form-box">
 			<div id="input-email-form-group" class="form-group has-feedback">
 				<label class="control-label" for="input-email">Email</label>
@@ -20,6 +20,8 @@
 	        @partials.progressbar()
         </div> 
     </div>
+    
+    @partials.ajaxstatus("Unable to request review", "Submitting review request", "Review requested!", "width-375px")
     
     <div id="pwreset-success" class="form-success container text-center alert alert-success non-vis">
 		<h2>Sent!</h2>

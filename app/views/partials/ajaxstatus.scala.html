@@ -1,0 +1,13 @@
+@(alertMsg: String, infoMsg: String, successMsg: String, classes: String="")
+<div class="@classes auto-margin">
+	<div class="form-alert alert alert-danger text-center znon-vis">
+		<h4 id="rr-alert-msg">@alertMsg</h4>
+	</div>
+	<div class="form-info alert alert-warning znon-vis">
+		<h4 id="rr-info-msg">@infoMsg...</h4>
+	    @partials.progressbar()
+	</div>
+	<div class="form-success text-center alert alert-success znon-vis">
+		<h3>@successMsg</h3>
+	</div>
+</div>

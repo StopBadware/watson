@@ -62,15 +62,6 @@
 		</div>
 	</div>
 	
-	<div id="rr-alert" class="alert alert-danger form-alert text-center znon-vis">
-        <h4 id="rr-alert-msg">Unable to request review</h4>
-       </div>
-	<div id="rr-info" class="alert alert-warning form-info znon-vis">
-        <h4 id="rr-info-msg">Submitting review request...</h4>
-        @partials.progressbar()
-    </div>
-    <div id="rr-success" class="form-success container text-center alert alert-success znon-vis">
-		<h3>Review requested!</h3>
-	</div>
+	@partials.ajaxstatus("Unable to request review", "Submitting review request", "Review requested!")
 </div>
 }

@@ -1,7 +1,7 @@
 @main("Welcome", false) {
     <h3 class="container text-center">Sign in or <a href="/register">register</a> to continue</h3>
     
-    <div id="login-well" class="well well-lg form-well watson-green-bg text-center container">
+    <div id="login-well" class="well well-lg form-well width-375px watson-green-bg text-center container">
 		<form id="login-box" class="form-box">
 			<div id="input-email-form-group" class="form-group has-feedback">
 				<label class="control-label" for="input-email">Email</label>
@@ -26,11 +26,12 @@
 	        <h4 id="login-info-msg">Signing in...</h4>
 	        @partials.progressbar()
         </div> 
-    </div>
-    
-    <div id="login-success" class="form-success container text-center alert alert-success non-vis">
+        <div id="login-success" class="form-success container text-center alert alert-success non-vis">
 		<h2>Signed in!</h2>
 		<h4>Click <a href="/">here</a> if not automatically redirected.</h4>
-	</div>
-	
+		</div>
+    </div>
+    
+    @partials.ajaxstatus("ACCESS DENIED", "Signing in", "Signed in!", "width-375px")
+    
 }

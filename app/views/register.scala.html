@@ -2,7 +2,7 @@
     <h3 class="container text-center">Registration requires a StopBadware email address. Passwords must have  a minimum 
     length of 10, containing at least one each of lowercase, uppercase, numbers, and special characters.</h3>
     
-    <div id="register-well" class="well well-lg form-well watson-green-bg text-center container">
+    <div id="register-well" class="well well-lg form-well width-375px watson-green-bg text-center container">
 		<form id="register-box" class="form-box">
 			<div id="input-email-form-group" class="form-group has-feedback">
 				<label class="control-label" for="input-email">Email</label>
@@ -37,6 +37,7 @@
 		<h2>Account created!</h2>
 		<h4>Please follow the instructions in the confirmation email.</h4>
 	</div>
+	@partials.ajaxstatus("Unable to request review", "Submitting review request", "Review requested!", "width-375px")
     
     <h3 class="text-center">If you already have an account please <a href="/welcome">sign in</a>.</h3>
 

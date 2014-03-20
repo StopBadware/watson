@@ -29,9 +29,6 @@ h4 label {
 .true-inline {
 	display: inline;
 }
-.auto-width {
-	width: auto;
-}
 .nowrap {
 	white-space: nowrap;
 }
@@ -66,8 +63,14 @@ a,
 	border-top-width: thin;
 	border-top-color: inherit;
 }
+.auto-width {
+	width: auto;
+}
 .width-50 {
 	width: 50%;
+}
+.width-375px {
+	width: 375px;
 }
 .auto-margin {
 	margin-left: auto;
@@ -178,10 +181,6 @@ td a {
 	border-color: #90B9C3;
 	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075),0 0 8px rgba(144, 185, 195, 0.6);
 	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075),0 0 8px rgba(144, 185, 195, 0.6);
-}
-.form-well,
-.form-success {
-	width: 375px;
 }
 .form-well input {
 	margin-bottom: 1.25em;
