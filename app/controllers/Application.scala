@@ -64,6 +64,14 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
     }
   }
   
+  def newReviewRequest = withAuth { userId => implicit request =>
+    Ok("TODO WTSN-58")
+  }
+  
+  def requestReview = withAuth { userId => implicit request =>
+    Ok("TODO WTSN-58")
+  }
+  
   def tags = TODO	//TODO WTSN-56 view/add/toggle tags
   
   def tag(name: String) = TODO	//TODO WTSN-56 view tag
