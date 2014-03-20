@@ -26,7 +26,7 @@ GET		/javascriptRoutes					controllers.Application.javascriptRoutes
 POST	/account/login						controllers.Application.login
 POST	/account/create						controllers.Application.createAccount
 POST	/account/sendpwreset				controllers.Application.sendPwResetEmail
-POST	/requests/request					controllers.Application.requestReview
+POST	/requests/requestreview				controllers.Application.requestReview
 
 # REST ENDPOINTS
 GET     /blacklists/timeoflast/:source   	controllers.Rest.timeoflast(source)
