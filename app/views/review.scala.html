@@ -119,14 +119,8 @@
 	<div id="review-test-data" class="well well-lg watson-green-bg">
 		@defining(if (user.hasRole(Role.REVIEWER)) "" else "readonly") { readonly =>
 		<form id="review-test-data-box">
-			<textarea id="badcode" name="badcode" class="form-control keepwhite" rows="5" placeholder="Bad Code" maxlength="4096" spellcheck="false" @readonly></textarea>
-			<div class="text-right help-block no-margin" title="used / max characters">
-				<label class="control-label no-margin" for="badcode">
-					<div id="badcode-used-char-ctr" class="inline">0</div>
-					<div class="inline">/</div>
-					<div class="inline">4096</div>
-				</label>
-			</div>
+			<textarea id="badcode" name="badcode" class="form-control keepwhite has-char-counter" rows="5" placeholder="Bad Code" maxlength="4096" spellcheck="false" @readonly></textarea>
+			@partials.charcounter("badcode", 4096)
 			<ul id="associated-uris"></ul>
 			@if(user.hasRole(Role.REVIEWER)) {
 			<div class="text-right">

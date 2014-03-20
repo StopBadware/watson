@@ -1,0 +1,8 @@
+@(inputId: String, maxChars: Int)
+<div class="text-right help-block no-margin" title="used / max characters">
+	<label class="control-label no-margin" for="@inputId">
+		<div id="@inputId-used-char-ctr" class="inline">0</div>
+		<div class="inline">/</div>
+		<div class="inline">@maxChars</div>
+	</label>
+</div>
