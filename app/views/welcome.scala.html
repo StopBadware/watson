@@ -17,21 +17,9 @@
 				<button type="submit" id="btn-login" class="btn btn-default form-btn">Login</button>
 			</div>
 		</form>
-		
-		<div id="login-alert" class="alert alert-danger form-alert non-vis">
-	        <h3 id="login-alert-msg">ACCESS DENIED</h3>
-	        <h4><a href="/account/password">Forgot Password?</a></h4>
-        </div>
-		<div id="login-info" class="alert alert-warning form-info non-vis">
-	        <h4 id="login-info-msg">Signing in...</h4>
-	        @partials.progressbar()
-        </div> 
-        <div id="login-success" class="form-success container text-center alert alert-success non-vis">
-		<h2>Signed in!</h2>
-		<h4>Click <a href="/">here</a> if not automatically redirected.</h4>
-		</div>
     </div>
     
-    @partials.ajaxstatus("ACCESS DENIED", "Signing in", "Signed in!", "width-375px")
+    @(partials.ajaxstatus("ACCESS DENIED", "Signing in", "Signed in!", "width-375px")
+   	  ("<a href=\"/account/password\">Forgot Password?</a>", "", "Click <a href=\"/\">here</a> if not automatically redirected."))
     
 }

@@ -55,8 +55,11 @@ a,
 .alert h2 {
 	margin-top: 0;
 }
+.alert h3 {
+	margin-top: 0.25em;
+}
 .alert h4 {
-	margin-bottom: 0;
+	margin-bottom: 0.25em;
 }
 .with-top-border {
 	border-top-style: solid;

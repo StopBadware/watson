@@ -23,21 +23,9 @@
 				<button type="submit" id="btn-register" class="btn btn-default form-btn">Register</button>
 			</div>
 		</form>
-		
-		<div id="register-alert" class="alert alert-danger form-alert non-vis">
-	        <h4 id="register-alert-msg">Unable to create account</h4>
-        </div>
-		<div id="register-info" class="alert alert-warning form-info non-vis">
-	        <h4 id="register-info-msg">Creating account...</h4>
-	        @partials.progressbar()
-        </div> 
     </div>
     
-    <div id="register-success" class="form-success container text-center alert alert-success non-vis">
-		<h2>Account created!</h2>
-		<h4>Please follow the instructions in the confirmation email.</h4>
-	</div>
-	@partials.ajaxstatus("Unable to request review", "Submitting review request", "Review requested!", "width-375px")
+	@partials.ajaxstatus("Unable to create account", "Creating account", "Account created!", "width-375px")(successHtml="Please follow the instructions in the confirmation email.")
     
     <h3 class="text-center">If you already have an account please <a href="/welcome">sign in</a>.</h3>
 

@@ -197,8 +197,8 @@ function setFilterInputs(fields) {
 function requestReview(uris, email, notes) {
 	if ($(".form-info").is(":hidden")) {
 		if (isSbwEmail(email)) {
-			$("#login-alert").hide();
-			$("#login-info").show();
+			$(".form-alert").hide();
+			$(".form-info").show();
 			var obj = {
 				"email" : email,
 				"pw" : $("#input-password").val()
@@ -208,16 +208,16 @@ function requestReview(uris, email, notes) {
 				data: JSON.stringify(obj)
 			}).done(function(res) {
 				$("#login-well").hide("blind", 495);
-				setTimeout(function() {$("#login-success").show("blind", 100)}, 500);
+				setTimeout(function() {$(".form-success").show("blind", 100)}, 500);
 				var returnTo = (res.returnTo) ? res.returnTo : "/";
 				window.location.replace(returnTo);
 			}).fail(function() {
-				$("#login-alert").show();
+				$(".form-alert").show();
 			}).always(function() {
-				$("#login-info").hide();
+				$(".form-info").hide();
 			});
 		} else {
-			$("#login-alert").show();
+			$(".form-alert").show();
 		}
 	}
 }
@@ -227,8 +227,8 @@ function loginSubmit() {
 	var email = $("#input-email").val();
 	if ($(".form-info").is(":hidden")) {
 		if (isSbwEmail(email)) {
-			$("#login-alert").hide();
-			$("#login-info").show();
+			$(".form-alert").hide();
+			$(".form-info").show();
 			var obj = {
 				"email" : email,
 				"pw" : $("#input-password").val()
@@ -238,16 +238,16 @@ function loginSubmit() {
 				data: JSON.stringify(obj)
 			}).done(function(res) {
 				$("#login-well").hide("blind", 495);
-				setTimeout(function() {$("#login-success").show("blind", 100)}, 500);
+				setTimeout(function() {$(".form-success").show("blind", 100)}, 500);
 				var returnTo = (res.returnTo) ? res.returnTo : "/";
 				window.location.replace(returnTo);
 			}).fail(function() {
-				$("#login-alert").show();
+				$(".form-alert").show();
 			}).always(function() {
-				$("#login-info").hide();
+				$(".form-info").hide();
 			});
 		} else {
-			$("#login-alert").show();
+			$(".form-alert").show();
 		}
 	}
 }
@@ -255,8 +255,8 @@ function loginSubmit() {
 function registerSubmit() {
 	$("#register-btn").focus().blur();
 	if ($(".form-info").is(":hidden") && regFormIsValidated()) {
-		$("#register-alert").hide();
-		$("#register-info").show();
+		$(".form-alert").hide();
+		$(".form-info").show();
 		var obj = {
 			"email" : $("#input-email").val(),
 			"pw" : $("#input-password").val()
@@ -267,14 +267,14 @@ function registerSubmit() {
 		}).done(function(res) {
 			if (res.created) {
 				$("#register-well").hide("blind", 495);
-				setTimeout(function() {$("#register-success").show("blind", 100)}, 500);
+				setTimeout(function() {$(".form-success").show("blind", 100)}, 500);
 			} else {
-				$("#register-alert").show();
+				$(".form-alert").show();
 			}
 		}).fail(function() {
-			$("#register-alert").show();
+			$(".form-alert").show();
 		}).always(function() {
-			$("#register-info").hide();
+			$(".form-info").hide();
 		});
 	}
 }
@@ -284,8 +284,8 @@ function resetPwSubmit() {
 	var email = $("#input-email").val();
 	if ($(".form-info").is(":hidden")) {
 		if (isSbwEmail(email)) {
-			$("#pwreset-alert").hide();
-			$("#pwreset-info").show();
+			$(".form-alert").hide();
+			$(".form-info").show();
 			var obj = {
 				"email" : email,
 			};
@@ -295,17 +295,17 @@ function resetPwSubmit() {
 			}).done(function(res) {
 				if (res.sent) {
 					$("#pwreset-well").hide("blind", 495);
-					setTimeout(function() {$("#pwreset-success").show("blind", 100)}, 500);
+					setTimeout(function() {$(".form-success").show("blind", 100)}, 500);
 				} else {
-					$("#pwreset-alert").show();
+					$(".form-alert").show();
 				}
 			}).fail(function() {
-				$("#pwreset-alert").show();
+				$(".form-alert").show();
 			}).always(function() {
-				$("#pwreset-info").hide();
+				$(".form-info").hide();
 			});
 		} else {
-			$("#pwreset-alert").show();
+			$(".form-alert").show();
 		}
 	}
 }

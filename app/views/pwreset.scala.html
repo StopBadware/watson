@@ -11,20 +11,7 @@
 				<button type="submit" id="btn-pwreset" class="btn btn-default form-btn">Send Reset Email</button>
 			</div>
 		</form>
-		
-		<div id="pwreset-alert" class="alert alert-danger form-alert non-vis">
-	        <h4 id="pwreset-alert-msg">Password reset email NOT sent</h4>
-        </div>
-		<div id="pwreset-info" class="alert alert-warning form-info non-vis">
-	        <h4 id="pwreset-info-msg">Sending password reset email...</h4>
-	        @partials.progressbar()
-        </div> 
     </div>
     
-    @partials.ajaxstatus("Unable to request review", "Submitting review request", "Review requested!", "width-375px")
-    
-    <div id="pwreset-success" class="form-success container text-center alert alert-success non-vis">
-		<h2>Sent!</h2>
-		<h4>Check your email for password reset instructions.</h4>
-	</div>
+    @partials.ajaxstatus("Password reset email NOT sent", "Sending password reset email", "Sent!", "width-375px")(successHtml="Check your email for password reset instructions.")
 }
