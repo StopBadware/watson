@@ -195,28 +195,39 @@ function setFilterInputs(fields) {
 }
 
 function requestReview(uris, email, notes) {
+	var validEmail = isValidEmail(email);
+	var hasUris = uris && uris.length > 0
 	if ($(".form-info").is(":hidden")) {
-		if (isSbwEmail(email)) {
+		if (validEmail && hasUris) {
 			$(".form-alert").hide();
 			$(".form-info").show();
 			var obj = {
+				"uris" : uris,
 				"email" : email,
-				"pw" : $("#input-password").val()
+				"notes" : notes
 			};
-			appRoute.login().ajax({
+			appRoute.requestReview().ajax({
 				contentType: jsonContentType,
 				data: JSON.stringify(obj)
 			}).done(function(res) {
-				$("#login-well").hide("blind", 495);
-				setTimeout(function() {$(".form-success").show("blind", 100)}, 500);
-				var returnTo = (res.returnTo) ? res.returnTo : "/";
-				window.location.replace(returnTo);
-			}).fail(function() {
+				if (res.msg && res.msg.length>0) {
+					$("#success-msg").text(res.msg);
+				}
+				$(".form-success").show();
+			}).fail(function(res) {
+				if (res.responseText && res.responseText.length>0) {
+					$("#alert-msg").text(res.responseText);
+				}
 				$(".form-alert").show();
 			}).always(function() {
 				$(".form-info").hide();
 			});
 		} else {
+			if (!validEmail) {
+				$("#alert-msg").text("Valid email required!");
+			} else if (!hasUris) {
+				$("#alert-msg").text("URI required!");
+			}
 			$(".form-alert").show();
 		}
 	}
@@ -321,6 +332,10 @@ function checkEmail(id) {
 
 function isSbwEmail(email) {
 	return email && email.length > 0 && (/.+@stopbadware.org$/).test(email);
+}
+
+function isValidEmail(email) {
+	return email && email.length > 0 && (/.+@.+\..+$/).test(email);
 }
 
 function checkPassword(id) {

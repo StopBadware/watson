@@ -69,7 +69,27 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
   }
   
   def requestReview = withAuth { userId => implicit request =>
-    Ok("TODO WTSN-58")
+    val json = request.body.asJson
+    if (json.isDefined) {
+      val uris = Try(json.get.\("uris").as[String].split("\\n").toList).getOrElse(List())
+      val email = Try(json.get.\("email").as[String]).toOption
+      val notes = Try(json.get.\("notes").as[String]).toOption
+      if (uris.nonEmpty && email.isDefined) {
+        if (uris.size > 1) {
+          NotImplemented("NOT YET IMPLEMENTED (WTSN-33)")	//TODO WTSN-33 bulk review submission
+        } else {
+          //TODO WTSN-58 check if uri is blacklisted
+          //TODO WTSN-58 get user IP
+          //TODO WTSN-58 submit review request
+        	Ok(Json.obj("msg" -> "TODO WTSN-58"))
+        }
+      } else {
+        val msg = if (uris.isEmpty) "URI required" else "Valid email required"
+          BadRequest(msg)
+      }
+    } else {
+      BadRequest
+    }
   }
   
   def tags = TODO	//TODO WTSN-56 view/add/toggle tags
