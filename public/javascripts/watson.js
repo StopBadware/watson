@@ -199,7 +199,7 @@ function requestReview(uris, email, notes) {
 	var hasUris = uris && uris.length > 0
 	if ($(".form-info").is(":hidden")) {
 		if (validEmail && hasUris) {
-			$(".form-alert").hide();
+			$(".form-alert, .form-success").hide();
 			$(".form-info").show();
 			var obj = {
 				"uris" : uris,

@@ -78,14 +78,21 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
         if (uris.size > 1) {
           NotImplemented("NOT YET IMPLEMENTED (WTSN-33)")	//TODO WTSN-33 bulk review submission
         } else {
-          //TODO WTSN-58 check if uri is blacklisted
-          //TODO WTSN-58 get user IP
-          //TODO WTSN-58 submit review request
-        	Ok(Json.obj("msg" -> "TODO WTSN-58"))
+          val uri = Uri.findBySha256(Hash.sha256(uris.head).getOrElse(""))
+          if (uri.isDefined && uri.get.isBlacklisted) {
+            val address = request.remoteAddress
+            val ip = if (address.startsWith("::ffff:")) address.split("::ffff:").head else address
+            println(request.remoteAddress, ip)	//DELME WTSN-58
+          	//TODO WTSN-58 convert IP to long
+          	//TODO WTSN-58 submit review request
+          	Ok(Json.obj("msg" -> "TODO WTSN-58"))
+          } else {
+            BadRequest("'"+uris.head+"' is not currently blacklisted")
+          }
         }
       } else {
         val msg = if (uris.isEmpty) "URI required" else "Valid email required"
-          BadRequest(msg)
+        BadRequest(msg)
       }
     } else {
       BadRequest
