@@ -210,13 +210,14 @@ function requestReview(uris, email, notes) {
 				contentType: jsonContentType,
 				data: JSON.stringify(obj)
 			}).done(function(res) {
-				if (res.msg && res.msg.length>0) {
+				if (res.msg && res.msg.length > 0) {
 					$("#success-msg").text(res.msg);
 				}
 				$(".form-success").show();
 			}).fail(function(res) {
-				if (res.responseText && res.responseText.length>0) {
-					$("#alert-msg").text(res.responseText);
+				var msg = res.responseJSON.msg;
+				if (msg && msg.length > 0) {
+					$("#alert-msg").text(msg);
 				}
 				$(".form-alert").show();
 			}).always(function() {
