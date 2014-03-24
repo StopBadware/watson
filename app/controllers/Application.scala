@@ -80,8 +80,7 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
         } else {
           val uri = Uri.findBySha256(Hash.sha256(uris.head).getOrElse(""))
           if (uri.isDefined && uri.get.isBlacklisted) {
-            val address = request.remoteAddress
-            val ip = if (address.startsWith("::ffff:")) address.split("::ffff:").tail else address
+            val ip = Ip.toLong(request.remoteAddress)
             println(request.remoteAddress, ip)		//DELME WTSN-58
           	//TODO WTSN-58 convert IP to long
           	//TODO WTSN-58 submit review request

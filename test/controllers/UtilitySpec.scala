@@ -20,6 +20,37 @@ class UtilitySpec extends Specification {
     
   }
   
+  "Ip" should {
+    
+    val ips: Map[Long, String] = Map(
+      0L -> "0.0.0.0",
+      1L -> "0.0.0.1",
+      256L -> "0.0.1.0",
+      65536L -> "0.1.0.0",
+      16777216L -> "1.0.0.0",
+      17306635L -> "1.8.20.11",
+      134744072L -> "8.8.8.8",
+      2130706433L -> "127.0.0.1",
+      4294967295L -> "255.255.255.255")
+    
+    "convert dotted quad to long" in {
+      Ip.toLong("::ffff:1.1.1.1") must equalTo(Some(16843009))
+      ips.map { case (ip, dots) =>
+        Ip.toLong(dots) must equalTo(Some(ip))
+      }
+      val invalid = List("0", "0.0", "0.0.0", "0.0.0.0.0", "256.256.256.256", "0.0.0.256", "", "A.B.C.D")
+      invalid.map(Ip.toLong(_) must beNone)
+    }
+    
+    "convert long to dotted quad" in {
+      ips.map { case (ip, dots) =>
+        Ip.toDots(ip) must equalTo(Some(dots))
+      }
+      List(-1, 4294967296L).map(Ip.toDots(_) must beNone)
+    }
+    
+  }
+  
   "Host" should {
     
     "reverse the labels of a valid host" in {

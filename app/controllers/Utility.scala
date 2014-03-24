@@ -26,6 +26,43 @@ object Hash {
   
 }
 
+object Ip {
+  
+  def toLong(dots: String): Option[Long] = {
+    return try {
+      val ip = if (dots.startsWith("::ffff:")) dots.split("::ffff:").last else dots
+      val octets = ip.split("\\.").map(_.toLong).toList
+      if (octets.size == 4 && octets.forall(o => o >= 0 && o <= 255)) {
+      	Some((octets(0)*16777216) + (octets(1)*65536) + (octets(2)*256) + octets(3))
+      } else {
+        None
+      }
+    } catch {
+      case e: Exception => None
+    }
+  }
+  
+  def toDots(ip: Int): Option[String] = toDots(ip.toLong) 
+  
+  def toDots(ip: Long): Option[String] = {
+    return try {
+    	if (ip >= 0 && ip <= 4294967295L) {
+    	  val octets = List(
+  	      (ip >> 24) & 0xFF,
+    	    (ip >> 16) & 0xFF,
+  	      (ip >> 8) & 0xFF,
+  	      ip & 0xFF)
+    	  Some(octets.mkString("."))
+    	} else {
+    	  None
+    	}
+    } catch {
+      case e: Exception => None
+    }
+  }
+  
+}
+
 object Host {
   
   def reverse(host: String): String = host.split("\\.").reverse.mkString(".")
