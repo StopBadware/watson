@@ -3,6 +3,7 @@ var jsonContentType = "application/json; charset=UTF-8";
 
 $(document).ready(function($) {
 	appRoute = jsRoutes.controllers.Application;
+	
 	$("#login-box").submit(function(e) {
 		e.preventDefault();
 		loginSubmit();
@@ -38,6 +39,13 @@ $(document).ready(function($) {
 		var notes = $("#"+this.id+" .rr-notes").val();
 		$("#"+this.id+" button").focus().blur();
 		requestReview(uris, email, notes);
+	});
+	
+	$(".update-request").click(function() {
+		$(this).focus().blur();
+		var requestId = $("#request-id").data("id");
+		var reason = $(this).data("reason");
+		updateReviewRequest(requestId, reason);
 	});
 	
 	setActiveNav();
@@ -196,7 +204,7 @@ function setFilterInputs(fields) {
 
 function requestReview(uris, email, notes) {
 	var validEmail = isValidEmail(email);
-	var hasUris = uris && uris.length > 0
+	var hasUris = uris && uris.length > 0;
 	if ($(".form-info").is(":hidden")) {
 		if (validEmail && hasUris) {
 			$(".form-alert, .form-success").hide();
@@ -233,6 +241,35 @@ function requestReview(uris, email, notes) {
 			$(".form-alert").show();
 		}
 	}
+}
+
+function updateReviewRequest(requestId, reason) {
+	if ($(".form-info").is(":hidden")) {
+		$(".form-alert, .form-success").hide();
+		$(".form-info").show();
+		var obj = {
+			"id" : requestId,
+			"reason" : reason
+		};
+		appRoute.closeReview().ajax({
+			contentType: jsonContentType,
+			data: JSON.stringify(obj)
+		}).done(function(res) {
+			if (res.closed_reason && res.closed_at) {
+				$("#closed-reason").text(res.closed_reason);
+				prettifyEnums("#closed-reason");
+				$("#closed-at").text(res.closed_at);
+				$("#closed-at").removeClass("non-vis");
+				getDatesFromUnix("#closed-at", true);
+			}
+			$(".update-request").prop("disabled", true);
+			$(".form-success").show();
+		}).fail(function(res) {
+			$(".form-alert").show();
+		}).always(function() {
+			$(".form-info").hide();
+		});
+	}	
 }
 
 function loginSubmit() {

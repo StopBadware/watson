@@ -10,6 +10,7 @@ import scala.util.Try
 import routes.javascript._
 import models._
 import models.enums.ClosedReason
+import models.enums.Role
 
 object Application extends Controller with JsonMapper with Secured with Cookies {
   
@@ -93,10 +94,36 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
         }
       } else {
         val msg = if (uris.isEmpty) "URI required" else "Email required"
-          BadRequest(Json.obj("msg" -> msg))
+        BadRequest(Json.obj("msg" -> msg))
       }
     } else {
       BadRequest
+    }
+  }
+  
+  def closeReview = withAuth { userId => implicit request =>
+    val user = User.find(userId.get)
+    if (user.isDefined && user.get.hasRole(Role.VERIFIER)) {
+	    val json = request.body.asJson
+	    val reason = Try(ClosedReason.fromStr(json.get.\("reason").as[String]).get).toOption
+	    val id = json.get.\("id").asOpt[Int]
+	    if (json.isDefined && reason.isDefined && id.isDefined) {
+	      val rr = ReviewRequest.find(id.get)
+	      if (rr.isDefined) {
+	        if (rr.get.close(reason.get)) {
+	          val updated = ReviewRequest.find(rr.get.id).get
+	          Ok(Json.obj("closed_reason" -> updated.closedReason.get.toString, "closed_at" -> updated.closedAt))
+	        } else {
+	          InternalServerError
+	        }
+	      } else {
+	        BadRequest(Json.obj("msg" -> "Review Request Not Found"))
+	      }
+	    } else {
+	      BadRequest
+	    }
+    } else {
+      Unauthorized
     }
   }
   
@@ -182,7 +209,8 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
       routes.javascript.Application.login,
       routes.javascript.Application.createAccount,
       routes.javascript.Application.sendPwResetEmail,
-      routes.javascript.Application.requestReview
+      routes.javascript.Application.requestReview,
+      routes.javascript.Application.closeReview
 		)).as("text/javascript")
   }
   

@@ -27,6 +27,7 @@ POST	/account/login						controllers.Application.login
 POST	/account/create						controllers.Application.createAccount
 POST	/account/sendpwreset				controllers.Application.sendPwResetEmail
 POST	/requests/requestreview				controllers.Application.requestReview
+POST	/requests/closereview				controllers.Application.closeReview
 
 # REST ENDPOINTS
 GET     /blacklists/timeoflast/:source   	controllers.Rest.timeoflast(source)

@@ -4,19 +4,24 @@
 	<div id="request-summary" class="well well-lg">
 		<h3><label>URI:</label><a href="/uris/@request.uriId">@uri</a></h3>
 		<h4><label>Requested:</label><span class="unixtime-full">@request.requestedAt</span></h4>
-		<h4><label>Closed:</label>@if(request.closedAt.nonEmpty){<span class="unixtime-full">@request.closedAt</span>}</h4>
-		<h4><label>Closed Reason:</label><span id="reason" class="sbw-red request-reason enum">@request.closedReason</span>
+		<h4><label>Closed:</label>
+		@defining(if (request.closedAt.nonEmpty) "" else "non-vis") { vis =>
+			<span id="closed-at" class="unixtime-full @vis">@request.closedAt</span>
+		}</h4>
+		<h4><label>Closed Reason:</label><span id="closed-reason" class="sbw-red request-reason enum">@request.closedReason</span>
 		<h4><label>Review:</label><a href="/reviews/@request.reviewId">@request.reviewId</a></h4>
 		<h4><label>Email:</label>@request.email</h4>
 		<h4><label>IP:</label>@if(request.ip.nonEmpty){<a href="/ips/@request.ip" class="ipv4">@request.ip</a>}</h4>
 		<h4><label>Notes:</label>@request.requesterNotes</h4>
 		@if(user.hasRole(Role.VERIFIER)) {
+			<span id="request-id" class="non-vis" data-id="@request.id"></span>
 			@defining(if (request.open) "" else "disabled") { disabled =>
-			<button type="button" class="btn btn-default" @disabled>Close Abusive</button>
-			<button type="button" class="btn btn-default" @disabled>Close Administrative</button>
+			<button type="button" class="btn btn-default update-request" @disabled data-reason="abusive">Close Abusive</button>
+			<button type="button" class="btn btn-default update-request" @disabled data-reason="administrative">Close Administrative</button>
 			}
 		}
+		
 	</div>
-	
+	@partials.ajaxstatus("Unable to close review", "Closing review", "Review Closed")()
 	@tables.requestsummaries(otherRequests, "Other Requests for URI")
 }
