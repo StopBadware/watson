@@ -3,43 +3,16 @@
 <div class="width-50 auto-margin">
 
 	<ul class="nav nav-pills panel">
-		<li class="active"><a href="#review-request" data-toggle="tab">Single Review</a></li>
-		<li><a href="#bulk-review-request" data-toggle="tab">Bulk Review</a></li>
+		<li class="active"><a href="#bulk-review-request" data-toggle="tab">Bulk Review</a></li>
+		<li><a href="#review-request" data-toggle="tab">Single Review</a></li>
 	</ul>
 	<div class="tab-content">
-		<div id="review-request" class="well well-lg watson-green-bg text-center tab-pane fade in active">
-			<form id="new-review-request" class="form-box form-horizontal review-request-box" role="form">
-				<div id="uri-form-group" class="form-group has-feedback">
-					<label class="control-label col-md-2" for="uri">URI</label>
-					<div class="col-md-10">
-						<input type="url" class="input-large form-control rr-uri" id="uri" name="uri" placeholder="Required" autofocus>
-						<span id="uri-feedback" class="glyphicon form-control-feedback"></span>
-					</div>
-				</div>
-				<div id="email-form-group" class="form-group has-feedback">
-					<label class="control-label col-md-2" for="email">Email</label>
-					<div class="col-md-10">
-						<input type="email" class="input-large form-control rr-email" id="email" name="email" placeholder="Required">
-						<span id="email-feedback" class="glyphicon form-control-feedback"></span>
-					</div>
-				</div>
-				<div id="notes-form-group" class="form-group">
-					<label class="control-label col-md-2" for="notes">Notes</label>
-					<div class="col-md-10">
-						<textarea id="notes" class="input-large form-control has-char-counter rr-notes" rows="4" maxlength="512" name="notes" spellcheck="true" placeholder="Optional"></textarea>
-						@partials.charcounter("notes", 512)
-					</div>
-				</div>
-				<button type="submit" id="btn-request-review" class="btn btn-default form-btn">Request Review</button>
-			</form>
-		</div>
-		
-		<div id="bulk-review-request" class="well well-lg watson-green-bg text-center tab-pane fade">
+		<div id="bulk-review-request" class="well well-lg watson-green-bg text-center tab-pane fade in active">
 			<form id="bulk-review-request" class="form-box form-horizontal review-request-box" role="form">
 				<div id="bulk-uri-form-group" class="form-group">
 					<label class="control-label col-md-2" for="bulk-uris">URIs</label>
 					<div class="col-md-10">
-						<textarea id="bulk-uris" class="input-large form-control has-char-counter rr-uri" rows="12" maxlength="4096" name="bulk-uris" spellcheck="false" placeholder="Required (one URI per line)"></textarea>
+						<textarea id="bulk-uris" class="input-large form-control has-char-counter rr-uri" rows="12" maxlength="4096" name="bulk-uris" spellcheck="false" placeholder="Required (one URI per line)" autofocus></textarea>
 						@partials.charcounter("bulk-uris", 4096)
 					</div>
 				</div>
@@ -58,6 +31,33 @@
 					</div>
 				</div>
 				<button type="submit" id="btn-bulk-request-review" class="btn btn-default form-btn">Request Bulk Review</button>
+			</form>
+		</div>
+		
+		<div id="review-request" class="well well-lg watson-green-bg text-center tab-pane fade">
+			<form id="new-review-request" class="form-box form-horizontal review-request-box" role="form">
+				<div id="uri-form-group" class="form-group has-feedback">
+					<label class="control-label col-md-2" for="uri">URI</label>
+					<div class="col-md-10">
+						<input type="url" class="input-large form-control rr-uri" id="uri" name="uri" placeholder="Required">
+						<span id="uri-feedback" class="glyphicon form-control-feedback"></span>
+					</div>
+				</div>
+				<div id="email-form-group" class="form-group has-feedback">
+					<label class="control-label col-md-2" for="email">Email</label>
+					<div class="col-md-10">
+						<input type="email" class="input-large form-control rr-email" id="email" name="email" placeholder="Required">
+						<span id="email-feedback" class="glyphicon form-control-feedback"></span>
+					</div>
+				</div>
+				<div id="notes-form-group" class="form-group">
+					<label class="control-label col-md-2" for="notes">Notes</label>
+					<div class="col-md-10">
+						<textarea id="notes" class="input-large form-control has-char-counter rr-notes" rows="4" maxlength="512" name="notes" spellcheck="true" placeholder="Optional"></textarea>
+						@partials.charcounter("notes", 512)
+					</div>
+				</div>
+				<button type="submit" id="btn-request-review" class="btn btn-default form-btn">Request Review</button>
 			</form>
 		</div>
 	</div>
