@@ -48,6 +48,14 @@ $(document).ready(function($) {
 		updateReviewRequest(requestId, reason);
 	});
 	
+	$(".update-requests").submit(function(e) {
+		e.preventDefault();
+		$("#btn-close-as").focus().blur();
+		var requestId = [1,8,11];//$("#request-id").data("id");
+		var reason = "TODO"; //$(this).data("reason");
+		updateReviewRequests(requestIds, reason);
+	});
+	
 	setActiveNav();
 	$(".table-sorted").tablesorter({
 		cssAsc: "header-sort-up",
@@ -263,6 +271,30 @@ function updateReviewRequest(requestId, reason) {
 				getDatesFromUnix("#closed-at", true);
 			}
 			$(".update-request").prop("disabled", true);
+			$(".form-success").show();
+		}).fail(function(res) {
+			$(".form-alert").show();
+		}).always(function() {
+			$(".form-info").hide();
+		});
+	}	
+}
+
+function updateReviewRequests(requestIds, reason) {
+	if ($(".form-info").is(":hidden")) {
+		$(".form-alert, .form-success").hide();
+		$(".form-info").show();
+		var obj = {
+			"id" : requestIds,
+			"reason" : reason
+		};
+		appRoute.closeReviews().ajax({
+			contentType: jsonContentType,
+			data: JSON.stringify(obj)
+		}).done(function(res) {
+			if (res.msg) {
+				$("#success-msg").text(res.msg);
+			}
 			$(".form-success").show();
 		}).fail(function(res) {
 			$(".form-alert").show();

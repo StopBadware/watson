@@ -127,6 +127,19 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
     }
   }
   
+  def closeReviews = withAuth { userId => implicit request =>
+    val user = User.find(userId.get)
+    if (user.isDefined && user.get.hasRole(Role.VERIFIER)) {
+    	val json = request.body.asJson
+	    val reason = Try(ClosedReason.fromStr(json.get.\("reason").as[String]).get).toOption
+	    val ids = json.get.\("ids").asOpt[List[Int]]
+    	println(reason, ids)
+      Ok	//TODO WTSN-58
+    } else {
+      Unauthorized
+    }
+  }
+  
   def tags = TODO	//TODO WTSN-56 view/add/toggle tags
   
   def tag(name: String) = TODO	//TODO WTSN-56 view tag
@@ -210,6 +223,7 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
       routes.javascript.Application.createAccount,
       routes.javascript.Application.sendPwResetEmail,
       routes.javascript.Application.requestReview,
+      routes.javascript.Application.closeReviews,
       routes.javascript.Application.closeReview
 		)).as("text/javascript")
   }
