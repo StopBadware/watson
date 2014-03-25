@@ -122,6 +122,19 @@ object ReviewRequest {
     created
   }
   
+  def createAndFind(uriId: Int,
+    email: String,
+    ip: Option[Long]=None,
+    notes: Option[String]=None): Option[ReviewRequest] = DB.withConnection { implicit conn =>
+      val created = create(uriId, email, ip, notes)
+      if (created) {
+      	Try(mapFromRow(SQL("""SELECT * FROM review_requests WHERE uri_id={uriId} AND email={email} AND open=true 
+    	    ORDER BY requested_at DESC LIMIT 1""").on("uriId" -> uriId, "email" -> email)().head)).getOrElse(None)
+      } else {
+        None
+      }
+    }
+  
   def find(id: Int): Option[ReviewRequest] = DB.withConnection { implicit conn =>
     return Try(mapFromRow(SQL("SELECT * FROM review_requests WHERE id={id}").on("id" -> id)().head)).getOrElse(None)
   }

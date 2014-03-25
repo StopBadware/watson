@@ -31,6 +31,16 @@ class ReviewRequestSpec extends Specification {
       }
     }
     
+    "create and find a review request" in {
+      running(FakeApplication()) {
+        val uri = validUri
+        ReviewRequest.findByUri(uri.id).isEmpty must beTrue
+        val rr = ReviewRequest.createAndFind(uri.id, "sylvanas@example.com", Some(4294967295L), Some("For the Forsaken!"))
+        rr must beSome
+        rr.get.uriId must equalTo(uri.id)
+      }
+    }
+    
     "create a review after opening a review request" in {
       running(FakeApplication()) {
         val rr = request

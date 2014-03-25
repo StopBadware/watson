@@ -75,17 +75,18 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
       val email = Try(json.get.\("email").as[String]).toOption
       val notes = Try(json.get.\("notes").as[String]).toOption
       if (uris.nonEmpty && email.isDefined) {
+        val ip = Ip.toLong(request.headers.get("X-FORWARDED-FOR").getOrElse(request.remoteAddress))
         if (uris.size > 1) {
-          NotImplemented("NOT YET IMPLEMENTED (WTSN-33)")	//TODO WTSN-33 bulk review submission
+          NotImplemented(Json.obj("msg" -> "NOT YET IMPLEMENTED (WTSN-33)"))	//TODO WTSN-33 bulk review submission
         } else {
           val uri = Uri.findBySha256(Hash.sha256(uris.head).getOrElse(""))
           if (uri.isDefined && uri.get.isBlacklisted) {
-//            val ip = Ip.toLong(request.remoteAddress)	//DELME
-            val ip = request.headers.get("X-FORWARDED-FOR").getOrElse(request.remoteAddress)
-            println(request.remoteAddress, ip, Ip.toLong(ip))		//DELME WTSN-58
-          	//TODO WTSN-58 convert IP to long
-          	//TODO WTSN-58 submit review request
-          	Ok(Json.obj("msg" -> "TODO WTSN-58"))
+            val rr = ReviewRequest.createAndFind(uri.get.id, email.get, ip, notes)
+            if (rr.isDefined) {
+            	Ok(Json.obj("msg" -> "Review Requested", "id" -> rr.get.id))
+            } else {
+              InternalServerError(Json.obj("msg" -> "Review Request Failed"))
+            }
           } else {
             BadRequest(Json.obj("msg" -> ("'"+uris.head+"' is not currently blacklisted")))
           }

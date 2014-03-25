@@ -210,8 +210,9 @@ function requestReview(uris, email, notes) {
 				contentType: jsonContentType,
 				data: JSON.stringify(obj)
 			}).done(function(res) {
-				if (res.msg && res.msg.length > 0) {
-					$("#success-msg").text(res.msg);
+				if (res.id) {
+					var msg = "Review Request <a href=\"/requests/"+res.id+"\">"+res.id+"</a> Created";
+					$("#success-msg").html(msg);
 				}
 				$(".form-success").show();
 			}).fail(function(res) {
