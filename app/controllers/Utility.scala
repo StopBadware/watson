@@ -101,6 +101,16 @@ object PostgreSql {
     }
   }
   
+  implicit def rowToStringArray: Column[Array[String]] = {
+    Column.nonNull[Array[String]] { (value, meta) =>
+      try {
+      	Right(value.asInstanceOf[Jdbc4Array].getArray().asInstanceOf[Array[Object]].map(_.asInstanceOf[String]))
+      } catch {
+        case _: Exception => Left(TypeDoesNotMatch(value.toString+" - "+meta))
+      }
+    }
+  }  
+  
   def toTimestamp(date: String): Option[Timestamp] = {
     val df = new SimpleDateFormat(Consts.FromStrFormat)
     return try {

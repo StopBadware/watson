@@ -279,14 +279,16 @@ object Review {
     return try {
       val times = params.createdAt
       val rows = SQL("SELECT uris.id AS uri_id, reviews.id AS review_id, uri, reviews.status, " +
-        "(SELECT COUNT(*) FROM review_requests WHERE review_requests.uri_id=reviews.uri_id AND open=true) AS cnt, " + 
+        "ARRAY(SELECT DISTINCT(email) FROM review_requests WHERE review_requests.review_id=reviews.id "+
+        "AND open={open}) AS emails, " +
         "reviews.created_at, reviews.open_only_tag_ids FROM reviews LEFT JOIN uris ON reviews.uri_id=uris.id " + 
         "WHERE status"+params.operator+"{status}::REVIEW_STATUS AND reviews.created_at BETWEEN {start} AND {end} " +
         "ORDER BY reviews.created_at ASC LIMIT {limit}").on(
-          "limit" -> limit, 
+          "open" -> params.reviewStatus.isOpen, 
           "status" -> params.reviewStatus.toString,
           "start" -> times._1,
-          "end" -> times._2
+          "end" -> times._2,
+          "limit" -> limit
     		)()
       val summaries = rows.map { row =>
       	ReviewSummary(
@@ -294,7 +296,7 @@ object Review {
     			row[String]("uri"),
     			row[ReviewStatus]("status"),
     			BlacklistEvent.findBlacklistedByUri(row[Int]("uri_id")).map(_.source).toList.sortBy(_.abbr),
-    			row[Long]("cnt").toInt,
+    			row[Array[String]]("emails").toList.sorted,
     			row[Date]("created_at").getTime / 1000,
     			ReviewTag.find(row[Option[Array[Int]]]("open_only_tag_ids").getOrElse(Array()).toList)
       	)
@@ -330,7 +332,7 @@ case class ReviewSummary(
 	uri: String,
 	status: ReviewStatus,
 	blacklistedBy: List[Source],
-	requests: Int,
+	requestEmails: List[String],
 	createdAt: Long,
 	openOnlyTags: List[ReviewTag]
 )

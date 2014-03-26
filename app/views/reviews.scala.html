@@ -62,7 +62,11 @@
    					</div>
    				}
 	   			</td>
-	   			<td class="text-center">@summary.requests</td>
+	   			<td class="text-center">
+	   			@summary.requestEmails.map { email =>
+	   				<div>@email</div>	
+   				}
+	   			</td>
 	   			<td class="text-right unixtime">@summary.createdAt</td>
 	   			<td class="text-center">
 	   			@if(summary.status.isOpen) {
