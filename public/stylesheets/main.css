@@ -23,6 +23,9 @@ h4 label {
 .watson-green-bg {
 	background-color: #C7DCE1;
 }
+.white-bg {
+	background-color: #FFFFFF;
+}
 .inline {
 	display: inline-block;
 }
