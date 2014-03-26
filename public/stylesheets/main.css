@@ -244,6 +244,9 @@ input[type=checkbox]:focus {
 	-webkit-box-shadow: none;
 	box-shadow: none;
 }
+.selectable:hover {
+	cursor: pointer;
+}
 .selectable .glyphicon {
 	font-size: 1.15em;
 }

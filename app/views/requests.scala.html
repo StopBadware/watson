@@ -25,7 +25,7 @@
 			<label class="control-label" for="requested">Requested</label>
 			<input type="text" class="form-control date-picker text-center" id="requested" name="requested">
 			
-			<button type="submit" id="btn-filter" class="btn btn-default form-btn">Filter</button>	
+			<button type="submit" id="btn-filter" class="btn btn-default form-btn">Filter</button>
 		</form>
 	</div>
 	<table id="requests-table" class="table table-striped table-hover table-condensed table-sorted">
@@ -72,18 +72,20 @@
 	</table>
 	<div class="panel-body hide-on-no-results with-top-border">
 	@defining(if (user.hasRole(Role.VERIFIER)) "" else "disabled") { disabled =>
-		<form class="form-inline text-center">
+		<form id="bulk-close-reviews" class="form-inline text-center">
 			<fieldset @disabled>
 				<label class="control-label" for="close-as">Close selected as</label>
 				<select id="close-as" name="close-as" class="form-control">
-					<option value="absuive">Abusive</option>
+					<option value="abusive">Abusive</option>
 					<option value="administrative">Administrative</option>
 				</select>
-				<button type="submit" id="btn-close-as" class="btn btn-default form-btn">Close</button>	
+				<button type="submit" id="btn-close-as" class="btn btn-default form-btn">Close</button>
 			</fieldset>
 		</form>
 	}
 	</div>
 	@partials.noresults()
-</div>	
+</div>
+@(partials.ajaxstatus("Unable to close reviews", "Closing reviews", "Reviews Closed")
+	(successHtml="<button type=\"button\" class=\"btn btn-default form-btn refresh\">Refresh Filter</button>"))	
 }

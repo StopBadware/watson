@@ -132,9 +132,17 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
     if (user.isDefined && user.get.hasRole(Role.VERIFIER)) {
     	val json = request.body.asJson
 	    val reason = Try(ClosedReason.fromStr(json.get.\("reason").as[String]).get).toOption
-	    val ids = json.get.\("ids").asOpt[List[Int]]
-    	println(reason, ids)
-      Ok	//TODO WTSN-58
+	    val ids = json.get.\("ids").asOpt[List[Int]].getOrElse(List())
+	    if (reason.isDefined && ids.nonEmpty) {
+	      val numClosed = ids.foldLeft(0) { (c, id) =>
+	        val closed = Try(ReviewRequest.find(id).get.close(reason.get))
+	        if (closed.isSuccess && closed.get) c + 1 else c
+	      }
+	      val msg = "Closed " + numClosed + " Review Requests"
+	    	Ok(Json.obj("msg" -> msg))
+	    } else {
+	      BadRequest
+	    }
     } else {
       Unauthorized
     }

@@ -48,12 +48,22 @@ $(document).ready(function($) {
 		updateReviewRequest(requestId, reason);
 	});
 	
-	$(".update-requests").submit(function(e) {
+	$("#bulk-close-reviews").submit(function(e) {
 		e.preventDefault();
 		$("#btn-close-as").focus().blur();
-		var requestId = [1,8,11];//$("#request-id").data("id");
-		var reason = "TODO"; //$(this).data("reason");
+		var requestIds = new Array();
+		$(".selectable input[type=checkbox]:checked").each(function() {
+			var id = $(this).val();
+			if (!isNaN(id)) {
+				requestIds.push(parseInt(id));
+			}
+		});
+		var reason = $("#close-as").val();
 		updateReviewRequests(requestIds, reason);
+	});
+	
+	$(".refresh").click(function() {
+		location.reload(true);
 	});
 	
 	setActiveNav();
@@ -285,7 +295,7 @@ function updateReviewRequests(requestIds, reason) {
 		$(".form-alert, .form-success").hide();
 		$(".form-info").show();
 		var obj = {
-			"id" : requestIds,
+			"ids" : requestIds,
 			"reason" : reason
 		};
 		appRoute.closeReviews().ajax({
