@@ -64,6 +64,9 @@ a,
 .alert h4 {
 	margin-bottom: 0.25em;
 }
+.margin-top-1em {
+	margin-top: 1em;
+}
 .with-top-border {
 	border-top-style: solid;
 	border-top-width: thin;
@@ -75,6 +78,10 @@ a,
 .width-50 {
 	width: 50%;
 }
+.width-100,
+.progress-bar {
+	width: 100%;
+}
 .width-375px {
 	width: 375px;
 }
@@ -85,9 +92,6 @@ a,
 .progress {
 	margin-top: 1em;
 	margin-bottom: 0;
-}
-.progress-bar {
-	width: 100%;
 }
 .tag {
 	color: #FFFFFF;
@@ -234,7 +238,7 @@ textarea.form-control {
 	margin-bottom: 0.2em;
 }
 #associated-uris li input[type=url] {
-	width: calc(100% - 425px);
+	width: calc(100% - 406px);
 }
 #associated-uris li input,
 #associated-uris li select {
@@ -255,6 +259,9 @@ input[type=checkbox]:focus {
 }
 .selectable .glyphicon:hover {
 	cursor: default;
+}
+#executable-hash {
+	width: calc(100% - 200px);
 }
 /* DATE PICKER */
 .form-inline .form-control.date-picker {

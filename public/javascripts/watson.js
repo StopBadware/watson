@@ -98,6 +98,15 @@ $(document).ready(function($) {
 		$("#"+this.id+"-used-char-ctr").text($(this).val().length);
 	});
 	
+	$("#badware-category").change(function() {
+		if ($("#badware-category").val() == "executable") {
+			$("#executable-hash").prop("disabled", false);
+		} else {
+			$("#executable-hash").val("");
+			$("#executable-hash").prop("disabled", true);
+		}
+	});
+	
 	$("th.sorter-false").click(function() {
 		var wasChecked = $("#"+this.id+" input").is(":checked");
 		$("td.selectable").each(function() {
@@ -188,7 +197,7 @@ function associatedUriInput(index) {
 	'<select name="associated-resolved-'+index+'" class="inline form-control auto-width">'+
 	'<option value="resolved">Resolved</option>'+
 	'<option value="dnr">Did Not Resolve</option>'+
-	'<option value="unknown">Unknown</option>'+
+	'<option value="unknown">Unchecked</option>'+
 	'</select>'+
 	'<select name="associated-type-'+index+'" class="inline form-control auto-width">'+
 	'<option value="payload">Payload</option>'+
@@ -198,6 +207,7 @@ function associatedUriInput(index) {
 	'<select name="associated-intent-'+index+'" class="inline form-control auto-width">'+
 	'<option value="hacked">Hacked</option>'+
 	'<option value="malicious">Malicious</option>'+
+	'<option value="malicious">Free Host</option>'+
 	'<option value="unknown">Unknown</option>'+
 	'</select>';
 }
