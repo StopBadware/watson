@@ -16,7 +16,11 @@
 	</div>
 	
 	<div id="review-summary" class="well well-lg">
-		<h3><label>URI:</label><a href="/uris/@details.uri.id">@details.uri.uri</a></h3>
+		<h3>
+			<label>URI:</label>
+			<a href="/uris/@details.uri.id">@details.uri.uri</a>
+			@partials.clipboard(details.uri.uri)
+		</h3>
 		<h4><label>Created:</label><span class="unixtime-full">@details.review.createdAt</span></h4>
 		<h4><label>Status:</label><span id="status" class="sbw-red review-status enum">@details.review.status</span> 
 		@if(details.review.status != ReviewStatus.NEW) {
@@ -78,7 +82,9 @@
 			<ul id="associated-uris" class="list-style-none"></ul>
 			@if(user.hasRole(Role.REVIEWER)) {
 			<div class="text-right">
-				<h5>Snapshot: <span>@details.review.id - @details.uri.uri</span></h5>
+			@defining(details.review.id + " - " + details.uri.uri) { snapshot =>
+				<h5>Snapshot: <span>@snapshot</span>@partials.clipboard(snapshot)</h5>
+			}
 				@defining(if (details.review.isOpen) "" else "disabled") { disabled =>
 				<button type="button" class="btn btn-default" @disabled title="Saves the test data for this review">Save</button>
 				<button type="button" class="btn btn-default" @disabled title="Saves the test data for this review and marks it BAD">Save -> Bad</button>

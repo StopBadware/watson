@@ -77,6 +77,12 @@ $(document).ready(function($) {
 	ip4sToDots(".ipv4");
 	tagBgs();
 	
+	ZeroClipboard.config({
+		forceHandCursor: true,
+		moviePath: "/assets/ZeroClipboard.swf" 
+	});
+	var zc = new ZeroClipboard($(".clipboard"));
+	
 	if ($("#associated-uris").length) {
 		addAssociatedUriInput("#associated-uris");
 	}

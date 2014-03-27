@@ -313,3 +313,17 @@ input[type=checkbox]:focus {
 .icon-sbw {
     background: url(/assets/images/stopbadware_20x20.png) no-repeat;
 }
+.clipboard,
+.clipboard:hover {
+	background-repeat: no-repeat;
+	background-size: contain;
+	padding-top: 0.25em;
+	width: 2em;
+}
+.clipboard {
+	background-image: url(images/clipboard.svg);
+}
+.zeroclipboard-is-hover {
+	background-image: url(images/clipboard-hover.svg);
+}
+
