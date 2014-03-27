@@ -73,6 +73,7 @@
 				<h5>Snapshot: <span>@details.review.id - @details.uri.uri</span></h5>
 				@defining(if (details.review.isOpen) "" else "disabled") { disabled =>
 				<button type="button" class="btn btn-default" @disabled title="Saves the test data for this review">Save</button>
+				<button type="button" class="btn btn-default" @disabled title="Saves the test data for this review and marks it BAD">Save -> Bad</button>
 				<button type="button" class="btn btn-default" @disabled title="Saves the test data for this review, marks it BAD, and moves to the next OPEN review">Save -> Bad -> Next</button>
 				}
 			</div>
