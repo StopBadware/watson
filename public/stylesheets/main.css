@@ -44,9 +44,6 @@ h4 label {
 .no-dec:hover {
 	text-decoration: none;
 }
-.no-margin {
-	margin: 0;
-}
 a,
 .wrap {
 	overflow-wrap: break-word;
@@ -54,6 +51,9 @@ a,
 }
 .header-image {
 	margin-right: 2.5em;
+}
+.no-margin {
+	margin: 0;
 }
 .alert h2 {
 	margin-top: 0;
@@ -63,6 +63,9 @@ a,
 }
 .alert h4 {
 	margin-bottom: 0.25em;
+}
+.margin-bottom-none {
+	margin-bottom: 0;
 }
 .margin-top-1em {
 	margin-top: 1em;
@@ -230,9 +233,9 @@ textarea.form-control {
 	max-width: 100%;
 	width: 100%;
 }
-#associated-uris {
-	padding-left: 0;
+.list-style-none {
 	list-style-type: none;
+	padding-left: 0;
 }
 #associated-uris li {
 	margin-bottom: 0.2em;

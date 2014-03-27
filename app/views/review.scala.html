@@ -50,6 +50,14 @@
 			}
 		}
 		</div>
+		<ul id="review-notes" class="list-style-none margin-top-1em margin-bottom-none width-100">
+			<li id="review-notes-last">
+				<form id="add-review-note-form">
+					<input type="text" name="review-note" id="review-note" class="input-large form-control inline width-50" placeholder="Add note">
+					<button type="button" id="add-review-note" class="btn btn-default">Add</button>
+				</form>
+			</li>
+		</ul>
 	</div>
 	
 	<div id="review-test-data" class="well well-lg watson-green-bg">
@@ -67,7 +75,7 @@
 			</div>
 			<textarea id="badcode" name="badcode" class="form-control keepwhite has-char-counter margin-top-1em" rows="5" placeholder="Bad Code" maxlength="4096" spellcheck="false" @readonly></textarea>
 			@partials.charcounter("badcode", 4096)
-			<ul id="associated-uris"></ul>
+			<ul id="associated-uris" class="list-style-none"></ul>
 			@if(user.hasRole(Role.REVIEWER)) {
 			<div class="text-right">
 				<h5>Snapshot: <span>@details.review.id - @details.uri.uri</span></h5>
