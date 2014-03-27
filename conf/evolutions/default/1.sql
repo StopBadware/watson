@@ -126,11 +126,13 @@ CREATE TABLE review_code (
   id SERIAL PRIMARY KEY,
   review_id INTEGER NOT NULL REFERENCES reviews (id) ON DELETE CASCADE,
   bad_code VARCHAR(4096) DEFAULT NULL,
+  exec_sha2_256 CHAR(64) DEFAULT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX ON review_code (review_id);
+CREATE INDEX ON review_code (exec_sha2_256);
 
 CREATE TABLE review_requests (
   id SERIAL PRIMARY KEY,
