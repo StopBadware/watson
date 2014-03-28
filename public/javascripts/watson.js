@@ -208,6 +208,7 @@ function associatedUriInput(index) {
 	'<select name="associated-type-'+index+'" class="inline form-control auto-width">'+
 	'<option value="payload">Payload</option>'+
 	'<option value="intermediary">Intermediary</option>'+
+	'<option value="landing">Landing</option>'+
 	'<option value="unknown">Unknown</option>'+
 	'</select>'+
 	'<select name="associated-intent-'+index+'" class="inline form-control auto-width">'+
