@@ -62,6 +62,13 @@ $(document).ready(function($) {
 		updateReviewRequests(requestIds, reason);
 	});
 	
+	$(".update-review").click(function() {
+		$(this).focus().blur();
+		var reviewId = $("#review-id").data("id");
+		var status = $(this).data("status");
+		updateReviewStatus(reviewId, status);
+	});
+	
 	$(".refresh").click(function() {
 		location.reload(true);
 	});
@@ -278,6 +285,36 @@ function requestReview(uris, email, notes) {
 	}
 }
 
+function updateReviewStatus(reviewId, status) {
+	var ajaxStatus = "#review-summary-status ";
+	if ($(ajaxStatus+".form-info").is(":hidden")) {
+		$(ajaxStatus+".form-alert, "+ajaxStatus+".form-success").hide();
+		$(ajaxStatus+".form-info").show();
+		var obj = {
+			"id" : reviewId,
+			"status" : status
+		};
+		appRoute.updateReviewStatus().ajax({
+			contentType: jsonContentType,
+			data: JSON.stringify(obj)
+		}).done(function(res) {
+			if (res.status && res.updated_at) {
+//				$("#closed-reason").text(res.closed_reason);
+//				prettifyEnums("#closed-reason");
+//				$("#closed-at").text(res.closed_at);
+//				$("#closed-at").removeClass("non-vis");
+//				getDatesFromUnix("#closed-at", true);
+			}
+//			$(".update-request").prop("disabled", true);
+			$(ajaxStatus+".form-success").show();
+		}).fail(function(res) {
+			$(ajaxStatus+".form-alert").show();
+		}).always(function() {
+			$(ajaxStatus+".form-info").hide();
+		});
+	}	
+}
+
 function updateReviewRequest(requestId, reason) {
 	if ($(".form-info").is(":hidden")) {
 		$(".form-alert, .form-success").hide();
@@ -286,7 +323,7 @@ function updateReviewRequest(requestId, reason) {
 			"id" : requestId,
 			"reason" : reason
 		};
-		appRoute.closeReview().ajax({
+		appRoute.closeReviewRequest().ajax({
 			contentType: jsonContentType,
 			data: JSON.stringify(obj)
 		}).done(function(res) {
@@ -315,7 +352,7 @@ function updateReviewRequests(requestIds, reason) {
 			"ids" : requestIds,
 			"reason" : reason
 		};
-		appRoute.closeReviews().ajax({
+		appRoute.closeReviewRequests().ajax({
 			contentType: jsonContentType,
 			data: JSON.stringify(obj)
 		}).done(function(res) {

@@ -9,8 +9,7 @@ import play.api.Play.current
 import scala.util.Try
 import routes.javascript._
 import models._
-import models.enums.ClosedReason
-import models.enums.Role
+import models.enums.{ClosedReason, ReviewStatus, Role}
 
 object Application extends Controller with JsonMapper with Secured with Cookies {
   
@@ -37,6 +36,51 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
     } else {
     	Ok(views.html.partials.modelnotfound("Review "+id))
     }
+  }
+  
+  def updateReviewStatus = withAuth { userId => implicit request =>
+    val json = request.body.asJson
+    val user = User.find(userId.get)
+    if (json.isDefined && user.isDefined) {
+      val status = Try(ReviewStatus.fromStr(json.get.\("status").as[String].replaceAll("-", "_")).get).toOption
+	    val id = json.get.\("id").asOpt[Int]
+	    if (id.isDefined && status.isDefined) {
+	    	val review = Review.find(id.get)
+	    	if (review.isDefined) {
+	    	  val r = review.get
+	    	  val s = status.get
+	    	  val u = user.get.id
+	    		val updated = s match {
+	    		  case ReviewStatus.PENDING_BAD => r.reviewed(s, u) 
+    		    case ReviewStatus.CLOSED_CLEAN => r.reviewed(s, u)
+  		      case ReviewStatus.CLOSED_WITHOUT_REVIEW => r.closeWithoutReview()
+		        case ReviewStatus.CLOSED_BAD => ""
+	          case ReviewStatus.REJECTED => ""
+            case ReviewStatus.REOPENED => ""
+	    		}
+//	    		if (updated) {
+//	    		  
+//	    		} else {
+//	    		  
+//	    		}
+	    		Ok	//TODO WTSN-18
+	    	} else {
+	    		BadRequest(Json.obj("msg" -> "Review Not Found"))
+	    	}
+	    } else {
+	      BadRequest
+	    }
+    } else {
+      BadRequest
+    }
+  }
+  
+  def updateReviewTestData = withAuth { userId => implicit request =>
+    Ok	//TODO WTSN-18
+  }
+  
+  def addReviewNote = withAuth { userId => implicit request =>
+    Ok	//TODO WTSN-18
   }
   
   def requests = withAuth { userId => implicit request =>
@@ -101,7 +145,7 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
     }
   }
   
-  def closeReview = withAuth { userId => implicit request =>
+  def closeReviewRequest = withAuth { userId => implicit request =>
     val user = User.find(userId.get)
     if (user.isDefined && user.get.hasRole(Role.VERIFIER)) {
 	    val json = request.body.asJson
@@ -127,7 +171,7 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
     }
   }
   
-  def closeReviews = withAuth { userId => implicit request =>
+  def closeReviewRequests = withAuth { userId => implicit request =>
     val user = User.find(userId.get)
     if (user.isDefined && user.get.hasRole(Role.VERIFIER)) {
     	val json = request.body.asJson
@@ -231,8 +275,11 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
       routes.javascript.Application.createAccount,
       routes.javascript.Application.sendPwResetEmail,
       routes.javascript.Application.requestReview,
-      routes.javascript.Application.closeReviews,
-      routes.javascript.Application.closeReview
+      routes.javascript.Application.closeReviewRequests,
+      routes.javascript.Application.closeReviewRequest,
+      routes.javascript.Application.updateReviewStatus,
+      routes.javascript.Application.updateReviewTestData,
+      routes.javascript.Application.addReviewNote
 		)).as("text/javascript")
   }
   

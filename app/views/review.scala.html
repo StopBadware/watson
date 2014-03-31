@@ -27,22 +27,23 @@
 		(<span id="status-updated" class="unixtime-full">@details.review.statusUpdatedAt</span>)
 		}
 		</h4>
+		<span id="review-id" class="non-vis" data-id="@details.review.id"></span>
 		@if(user.hasRole(Role.REVIEWER)) {
 			@defining(if (details.review.isOpen) "" else "disabled") { disabled =>
-			<button type="button" class="btn btn-default" @disabled>Bad</button>
-			<button type="button" class="btn btn-default" @disabled>Clean</button>
+			<button type="button" class="btn btn-default update-review" @disabled data-status="pending-bad">Bad</button>
+			<button type="button" class="btn btn-default update-review" @disabled data-status="closed-clean">Clean</button>
 			}
 		}
 		@if(user.hasRole(Role.VERIFIER)) {
 			@defining(if (details.review.isOpen) "" else "disabled") { disabled =>
-			<button type="button" class="btn btn-default" @disabled>Close Without Review</button>
-			<button type="button" class="btn btn-default" @disabled>Close Bad</button>
+			<button type="button" class="btn btn-default update-review" @disabled data-status="closed-without-review">Close Without Review</button>
+			<button type="button" class="btn btn-default update-review" @disabled data-status="closed-bad">Close Bad</button>
 			}
 			@defining(if (details.review.status == ReviewStatus.PENDING_BAD) "" else "disabled") { disabled =>
-			<button type="button" class="btn btn-default" @disabled>Send Back</button>
+			<button type="button" class="btn btn-default update-review" @disabled data-status="rejected">Send Back</button>
 			}
 			@defining(if (details.review.isOpen) "disabled" else "") { disabled =>
-			<button type="button" class="btn btn-default" @disabled>Re-Open</button>
+			<button type="button" class="btn btn-default update-review" @disabled data-status="reopened">Re-Open</button>
 			}
 		}
 		<div>
@@ -86,7 +87,7 @@
 			@if(user.hasRole(Role.REVIEWER)) {
 			<div class="text-right">
 			@defining(details.review.id + " - " + details.uri.uri) { snapshot =>
-				<h5>Snapshot: <span>@snapshot</span>@partials.clipboard(snapshot)</h5>
+				<h4><label>Snapshot:</label><span>@snapshot</span>@partials.clipboard(snapshot)</h4>
 			}
 				@defining(if (details.review.isOpen) "" else "disabled") { disabled =>
 				<button type="button" class="btn btn-default" @disabled title="Saves the test data for this review">Save</button>
