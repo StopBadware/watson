@@ -63,6 +63,9 @@
 			</li>
 		</ul>
 	</div>
+	<div id="review-summary-status">
+	@partials.ajaxstatus("Unable to update review", "Updating review", "Review Updated")()
+	</div>
 	
 	<div id="review-test-data" class="well well-lg watson-green-bg">
 		@defining(if (user.hasRole(Role.REVIEWER)) "" else "readonly") { readonly =>
@@ -94,7 +97,10 @@
 		}
 		</form>
 		}
-	</div>		
+	</div>
+	<div id="review-test-data-status">
+	@partials.ajaxstatus("Unable to update review", "Updating review", "Review Updated")()
+	</div>
 	
 	<div class="well well-lg white-bg">
 		<ul class="nav nav-pills panel">
