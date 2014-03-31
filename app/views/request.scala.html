@@ -2,7 +2,11 @@
 @import models.enums.Role
 @main("Request "+request.id) {
 	<div id="request-summary" class="well well-lg">
-		<h3><label>URI:</label><a href="/uris/@request.uriId">@uri</a></h3>
+		<h3>
+			<label>URI:</label>
+			<a href="/uris/@request.uriId">@uri</a>
+			@partials.clipboard(uri)
+		</h3>
 		<h4><label>Requested:</label><span class="unixtime-full">@request.requestedAt</span></h4>
 		<h4><label>Closed:</label>
 		@defining(if (request.closedAt.nonEmpty) "" else "non-vis") { vis =>
@@ -22,6 +26,6 @@
 		}
 		
 	</div>
-	@partials.ajaxstatus("Unable to close review", "Closing review", "Review Closed")()
+	@partials.ajaxstatus("Unable to close review request", "Closing review request", "Review request closed")()
 	@tables.requestsummaries(otherRequests, "Other Requests for URI")
 }
