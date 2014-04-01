@@ -135,6 +135,20 @@ class ReviewSpec extends Specification {
       }
     }
     
+    "close without a review" in {
+      running(FakeApplication()) {
+        val rev = createAndFind
+        rev.closeWithoutReview() must beTrue
+        Review.find(rev.id).get.isOpen must beFalse
+        val rev2 = createAndFind
+        rev2.closeWithoutReview(0) must beFalse
+        Review.find(rev2.id).get.isOpen must beTrue
+        val rev3 = createAndFind
+        rev3.closeWithoutReview(testUser) must beTrue
+        Review.find(rev3.id).get.isOpen must beFalse
+      }
+    }
+    
     "determines if review is in a closed state or not" in {
       running(FakeApplication()) {
         val rev = createAndFind

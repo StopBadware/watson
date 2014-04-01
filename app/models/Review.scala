@@ -71,6 +71,15 @@ case class Review(
   
   def closeWithoutReview(): Boolean = updateStatus(ReviewStatus.CLOSED_WITHOUT_REVIEW)
   
+  def closeWithoutReview(verifier: Int): Boolean = {
+    val user = User.find(verifier)
+    if (user.isDefined && user.get.hasRole(Role.VERIFIER)) {
+    	updateStatus(ReviewStatus.CLOSED_WITHOUT_REVIEW, Some(verifier))
+    } else {
+      false
+    }
+  }
+  
   private def updateStatus(newStatus: ReviewStatus, verifier: Option[Int]=None): Boolean = DB.withConnection { implicit conn =>
     val verifierId = if (verifier.isDefined) verifier else verifiedBy
     val updated = try {
