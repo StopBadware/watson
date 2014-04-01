@@ -52,17 +52,13 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
     		val updated = s match {
     		  case ReviewStatus.PENDING_BAD => r.reviewed(u, s) 
   		    case ReviewStatus.CLOSED_CLEAN => r.reviewed(u, s)
-		      case ReviewStatus.CLOSED_WITHOUT_REVIEW => r.closeWithoutReview()
-	        case ReviewStatus.CLOSED_BAD => ""
-          case ReviewStatus.REJECTED => ""
-          case ReviewStatus.REOPENED => ""
+		      case ReviewStatus.CLOSED_WITHOUT_REVIEW => r.closeWithoutReview(u)
+	        case ReviewStatus.CLOSED_BAD => r.verify(u, s)
+          case ReviewStatus.REJECTED => r.reject(u)
+          case ReviewStatus.REOPENED => r.reopen(u)
+          case _ => false
     		}
-//    		if (updated) {
-//    		  
-//    		} else {
-//    		  
-//    		}
-    		Ok	//TODO WTSN-18
+    	  if (updated) Ok else InternalServerError
     	} else {
     		BadRequest(Json.obj("msg" -> "Review Not Found"))
     	}
