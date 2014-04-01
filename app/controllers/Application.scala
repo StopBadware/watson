@@ -41,35 +41,31 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
   def updateReviewStatus = withAuth { userId => implicit request =>
     val json = request.body.asJson
     val user = User.find(userId.get)
-    if (json.isDefined && user.isDefined) {
-      val status = Try(ReviewStatus.fromStr(json.get.\("status").as[String].replaceAll("-", "_")).get).toOption
-	    val id = json.get.\("id").asOpt[Int]
-	    if (id.isDefined && status.isDefined) {
-	    	val review = Review.find(id.get)
-	    	if (review.isDefined) {
-	    	  val r = review.get
-	    	  val s = status.get
-	    	  val u = user.get.id
-	    		val updated = s match {
-	    		  case ReviewStatus.PENDING_BAD => r.reviewed(s, u) 
-    		    case ReviewStatus.CLOSED_CLEAN => r.reviewed(s, u)
-  		      case ReviewStatus.CLOSED_WITHOUT_REVIEW => r.closeWithoutReview()
-		        case ReviewStatus.CLOSED_BAD => ""
-	          case ReviewStatus.REJECTED => ""
-            case ReviewStatus.REOPENED => ""
-	    		}
-//	    		if (updated) {
-//	    		  
-//	    		} else {
-//	    		  
-//	    		}
-	    		Ok	//TODO WTSN-18
-	    	} else {
-	    		BadRequest(Json.obj("msg" -> "Review Not Found"))
-	    	}
-	    } else {
-	      BadRequest
-	    }
+    val status = Try(ReviewStatus.fromStr(json.get.\("status").as[String].replaceAll("-", "_")).get).toOption
+    val id = json.get.\("id").asOpt[Int]
+    if (json.isDefined && user.isDefined && id.isDefined && status.isDefined) {
+    	val review = Review.find(id.get)
+    	if (review.isDefined) {
+    	  val r = review.get
+    	  val s = status.get
+    	  val u = user.get.id
+    		val updated = s match {
+    		  case ReviewStatus.PENDING_BAD => r.reviewed(u, s) 
+  		    case ReviewStatus.CLOSED_CLEAN => r.reviewed(u, s)
+		      case ReviewStatus.CLOSED_WITHOUT_REVIEW => r.closeWithoutReview()
+	        case ReviewStatus.CLOSED_BAD => ""
+          case ReviewStatus.REJECTED => ""
+          case ReviewStatus.REOPENED => ""
+    		}
+//    		if (updated) {
+//    		  
+//    		} else {
+//    		  
+//    		}
+    		Ok	//TODO WTSN-18
+    	} else {
+    		BadRequest(Json.obj("msg" -> "Review Not Found"))
+    	}
     } else {
       BadRequest
     }

@@ -30,7 +30,7 @@ case class Review(
 	  }
   }  
   
-  def reviewed(verdict: ReviewStatus, reviewer: Int): Boolean = DB.withConnection { implicit conn =>
+  def reviewed(reviewer: Int, verdict: ReviewStatus): Boolean = DB.withConnection { implicit conn =>
     val newStatus = if (verdict == ReviewStatus.CLOSED_BAD) ReviewStatus.PENDING_BAD else verdict
     val updated = try {
       if (User.find(reviewer).get.hasRole(Role.REVIEWER)) {
@@ -100,10 +100,14 @@ case class Review(
     return updated
   }
   
-  def reopen(): Boolean = DB.withConnection { implicit conn =>
+  def reopen(verifier: Int): Boolean = DB.withConnection { implicit conn =>
     return try {
-      val reopened = SQL("UPDATE reviews SET status='REOPENED'::REVIEW_STATUS, status_updated_at=NOW() WHERE id={id}")
+      val reopened = if (User.find(verifier).get.hasRole(Role.VERIFIER)) {
+        SQL("UPDATE reviews SET status='REOPENED'::REVIEW_STATUS, status_updated_at=NOW() WHERE id={id}")
       	.on("id" -> id).executeUpdate() > 0
+      } else {
+        false
+      }
     	if (reopened) {
         ReviewRequest.findByReview(id).filterNot(_.open).foreach(_.reopen())
       }

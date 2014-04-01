@@ -74,7 +74,7 @@ class ReviewSpec extends Specification {
         val rev = createAndFind
         rev.status must equalTo(ReviewStatus.NEW)
         Thread.sleep(1500)	//make sure status update time will be different w/ second precision 
-        rev.reviewed(ReviewStatus.CLOSED_BAD, testUser)
+        rev.reviewed(testUser, ReviewStatus.CLOSED_BAD)
         val findRev = Review.find(rev.id).get
         findRev.status must equalTo(ReviewStatus.PENDING_BAD)
         findRev.statusUpdatedAt must be_>(rev.statusUpdatedAt)
@@ -84,7 +84,7 @@ class ReviewSpec extends Specification {
     "verify a review" in {
       running(FakeApplication()) {
         val rev = createAndFind
-        rev.reviewed(ReviewStatus.CLOSED_BAD, testUser) must beTrue
+        rev.reviewed(testUser, ReviewStatus.CLOSED_BAD) must beTrue
         rev.verify(testUser, ReviewStatus.CLOSED_BAD) must beTrue
         Review.find(rev.id).get.status must equalTo(ReviewStatus.CLOSED_BAD)
       }
@@ -116,7 +116,7 @@ class ReviewSpec extends Specification {
     "reject a review" in {
       running(FakeApplication()) {
         val rev = createAndFind
-        rev.reviewed(ReviewStatus.CLOSED_BAD, testUser) must beTrue
+        rev.reviewed(testUser, ReviewStatus.CLOSED_BAD) must beTrue
         rev.reject(testUser, "REJECTED") must beTrue
         Review.find(rev.id).get.status must equalTo(ReviewStatus.REJECTED)
       }
@@ -129,7 +129,7 @@ class ReviewSpec extends Specification {
         val rev = Review.findByUri(uriId).head
         rev.closeWithoutReview() must beTrue
         ReviewRequest.findByUri(uriId).head.open must beFalse
-        Review.find(rev.id).get.reopen() must beTrue
+        Review.find(rev.id).get.reopen(testUser) must beTrue
         ReviewRequest.findByUri(uriId).head.open must beTrue
         Review.find(rev.id).get.status must equalTo(ReviewStatus.REOPENED)
       }
@@ -286,7 +286,7 @@ class ReviewSpec extends Specification {
         val prevPen = createAndFind
         val pen = createAndFind
         val nextPen = createAndFind
-        List(prevPen, pen, nextPen).foreach(_.reviewed(ReviewStatus.PENDING_BAD, testUser))
+        List(prevPen, pen, nextPen).foreach(_.reviewed(testUser, ReviewStatus.PENDING_BAD))
         
         val prevClosed = createAndFind
         val closed = createAndFind
