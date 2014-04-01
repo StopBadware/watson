@@ -58,7 +58,12 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
           case ReviewStatus.REOPENED => r.reopen(u)
           case _ => false
     		}
-    	  if (updated) Ok else InternalServerError
+    	  if (updated) {
+    	    val rev = Review.find(id.get).get
+    	    Ok(Json.obj("status" -> rev.status.toString, "updated_at" -> rev.statusUpdatedAt)) 
+    	  } else {
+    	    InternalServerError
+    	  }
     	} else {
     		BadRequest(Json.obj("msg" -> "Review Not Found"))
     	}

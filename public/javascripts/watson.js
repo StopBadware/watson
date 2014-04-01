@@ -299,11 +299,10 @@ function updateReviewStatus(reviewId, status) {
 			data: JSON.stringify(obj)
 		}).done(function(res) {
 			if (res.status && res.updated_at) {
-//				$("#closed-reason").text(res.closed_reason);
-//				prettifyEnums("#closed-reason");
-//				$("#closed-at").text(res.closed_at);
-//				$("#closed-at").removeClass("non-vis");
-//				getDatesFromUnix("#closed-at", true);
+				$("#status").text(res.status);
+				prettifyEnums("#status");
+				$("#status-updated").text(res.updated_at);
+				getDatesFromUnix("#status-updated", true);
 			}
 //			$(".update-request").prop("disabled", true);
 			$(ajaxStatus+".form-success").show();
