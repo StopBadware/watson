@@ -30,20 +30,20 @@
 		<span id="review-id" class="non-vis" data-id="@details.review.id"></span>
 		@if(user.hasRole(Role.REVIEWER)) {
 			@defining(if (details.review.isOpen) "" else "disabled") { disabled =>
-			<button type="button" class="btn btn-default update-review" @disabled data-status="pending-bad">Bad</button>
-			<button type="button" class="btn btn-default update-review" @disabled data-status="closed-clean">Clean</button>
+			<button type="button" class="btn btn-default update-review is-open" @disabled data-status="pending-bad">Bad</button>
+			<button type="button" class="btn btn-default update-review is-open" @disabled data-status="closed-clean">Clean</button>
 			}
 		}
 		@if(user.hasRole(Role.VERIFIER)) {
 			@defining(if (details.review.isOpen) "" else "disabled") { disabled =>
-			<button type="button" class="btn btn-default update-review" @disabled data-status="closed-without-review">Close Without Review</button>
-			<button type="button" class="btn btn-default update-review" @disabled data-status="closed-bad">Close Bad</button>
+			<button type="button" class="btn btn-default update-review is-open" @disabled data-status="closed-without-review">Close Without Review</button>
+			<button type="button" class="btn btn-default update-review is-open" @disabled data-status="closed-bad">Close Bad</button>
 			}
 			@defining(if (details.review.status == ReviewStatus.PENDING_BAD) "" else "disabled") { disabled =>
-			<button type="button" class="btn btn-default update-review" @disabled data-status="rejected">Send Back</button>
+			<button type="button" class="btn btn-default update-review is-pending-bad" @disabled data-status="rejected">Send Back</button>
 			}
 			@defining(if (details.review.isOpen) "disabled" else "") { disabled =>
-			<button type="button" class="btn btn-default update-review" @disabled data-status="reopened">Re-Open</button>
+			<button type="button" class="btn btn-default update-review is-closed" @disabled data-status="reopened">Re-Open</button>
 			}
 		}
 		<div>

@@ -303,8 +303,8 @@ function updateReviewStatus(reviewId, status) {
 				prettifyEnums("#status");
 				$("#status-updated").text(res.updated_at);
 				getDatesFromUnix("#status-updated", true);
+				toggleReviewButtons(res.status, res.is_open);
 			}
-//			$(".update-request").prop("disabled", true);
 			$(ajaxStatus+".form-success").show();
 		}).fail(function(res) {
 			$(ajaxStatus+".form-alert").show();
@@ -312,6 +312,21 @@ function updateReviewStatus(reviewId, status) {
 			$(ajaxStatus+".form-info").hide();
 		});
 	}	
+}
+
+function toggleReviewButtons(status, isOpen) {
+	if (isOpen) {
+		$(".is-open").prop("disabled", false);
+		$(".is-closed").prop("disabled", true);
+		if (status == "PENDING_BAD") {
+			$(".is-pending-bad").prop("disabled", false);
+		} else {
+			$(".is-pending-bad").prop("disabled", true);
+		}
+	} else {
+		$(".is-open, .is-pending-bad").prop("disabled", true);
+		$(".is-closed").prop("disabled", false);
+	}
 }
 
 function updateReviewRequest(requestId, reason) {

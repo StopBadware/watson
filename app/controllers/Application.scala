@@ -60,7 +60,10 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
     		}
     	  if (updated) {
     	    val rev = Review.find(id.get).get
-    	    Ok(Json.obj("status" -> rev.status.toString, "updated_at" -> rev.statusUpdatedAt)) 
+    	    Ok(Json.obj(
+    	        "status" -> rev.status.toString, 
+    	        "is_open" -> rev.status.isOpen,
+    	        "updated_at" -> rev.statusUpdatedAt)) 
     	  } else {
     	    InternalServerError
     	  }
