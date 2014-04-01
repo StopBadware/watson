@@ -51,9 +51,8 @@ case class Review(
     return updated
   }
   
-  def reject(verifier: Int, comments: String): Boolean = DB.withConnection { implicit conn =>
+  def reject(verifier: Int): Boolean = DB.withConnection { implicit conn =>
     if (User.find(verifier).get.hasRole(Role.VERIFIER)) {
-      //TODO WTSN-18 add comments to review data
 	    updateStatus(ReviewStatus.REJECTED, Some(verifier))
 	  } else {
 	    false

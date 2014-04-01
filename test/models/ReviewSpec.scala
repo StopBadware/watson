@@ -117,7 +117,7 @@ class ReviewSpec extends Specification {
       running(FakeApplication()) {
         val rev = createAndFind
         rev.reviewed(testUser, ReviewStatus.CLOSED_BAD) must beTrue
-        rev.reject(testUser, "REJECTED") must beTrue
+        rev.reject(testUser) must beTrue
         Review.find(rev.id).get.status must equalTo(ReviewStatus.REJECTED)
       }
     }
