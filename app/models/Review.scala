@@ -193,7 +193,21 @@ case class Review(
       case e: PSQLException => Logger.error(e.getMessage)
       false
     }
-  }  
+  }
+  
+  def addNote(authorId: Int, note: String): Boolean = ReviewNote.create(id, authorId, note)
+  
+  def notes: List[Note] = DB.withConnection { implicit conn =>
+    return try {
+      SQL("""SELECT username, note, review_notes.created_at FROM review_notes JOIN users ON 
+        author=users.id WHERE review_id={reviewId}""").on("reviewId" -> id)().map { row =>
+        	Note(row[String]("username"), row[String]("note"), row[Date]("created_at").getTime / 1000)
+      }.toList
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      List()
+    }
+  }
   
   def details: ReviewDetails = ReviewDetails(Review.find(this.id).get)
   
@@ -376,3 +390,5 @@ case class ReviewDetails(review: Review) {
   }
   
 }
+
+case class Note(author: String, note: String, createdAt: Long)

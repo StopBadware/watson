@@ -158,6 +158,21 @@ class ReviewSpec extends Specification {
       }
     }
     
+    "add a note" in {
+      running(FakeApplication()) {
+        val rev = createAndFind
+        rev.addNote(testUser, "FOR THE HORDE!!!") must beTrue
+      }
+    }
+    
+    "retrieve notes" in {
+      running(FakeApplication()) {
+        val rev = createAndFind
+        rev.addNote(testUser, "FOR THE FORSAKEN!") must beTrue
+        rev.notes.nonEmpty must beTrue
+      }
+    }
+    
     "add a tag" in {
       running(FakeApplication()) {
         val rev = createAndFind
