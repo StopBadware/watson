@@ -82,8 +82,9 @@ $(document).ready(function($) {
 		cssAsc: "header-sort-up",
 		cssDesc: "header-sort-down"
 	});
-	getDatesFromUnix(".unixtime", false);
-	getDatesFromUnix(".unixtime-full", true);
+	getDatesFromUnix(".unixtime", false, false);
+	getDatesFromUnix(".unixtime-full", true, true);
+	getDatesFromUnix(".unixtime-short", true, false);
 	prettifyEnums(".enum");
 	ip4sToDots(".ipv4");
 	tagBgs();
@@ -306,11 +307,11 @@ function updateReviewStatus(reviewId, status) {
 				$("#status").text(res.status);
 				prettifyEnums("#status");
 				$("#status-updated").text(res.updated_at);
-				getDatesFromUnix("#status-updated", true);
+				getDatesFromUnix("#status-updated", true, true);
 				toggleReviewButtons(res.status, res.is_open);
 			}
 			$(ajaxStatus+".form-success").show();
-		}).fail(function(res) {
+		}).fail(function() {
 			$(ajaxStatus+".form-alert").show();
 		}).always(function() {
 			$(ajaxStatus+".form-info").hide();
@@ -346,16 +347,15 @@ function addReviewNote(reviewId, note) {
 			contentType: jsonContentType,
 			data: JSON.stringify(obj)
 		}).done(function(res) {
-//			if (res.status && res.updated_at) {
-//				$("#status").text(res.status);
-//				prettifyEnums("#status");
-//				$("#status-updated").text(res.updated_at);
-//				getDatesFromUnix("#status-updated", true);
-//				toggleReviewButtons(res.status, res.is_open);
-//			}
+			if (res.notes) {
+				console.log(res.notes);	//DELME WTSN-18
+				res.notes.map(function(n) {
+					console.log(n.created_at);	//DELME WTSN-18
+				});
+			}
 			$("#review-note").val("");
 			$(ajaxStatus+".form-success").show();
-		}).fail(function(res) {
+		}).fail(function() {
 			$(ajaxStatus+".form-alert").show();
 		}).always(function() {
 			$(ajaxStatus+".form-info").hide();
@@ -380,7 +380,7 @@ function updateReviewRequest(requestId, reason) {
 				prettifyEnums("#closed-reason");
 				$("#closed-at").text(res.closed_at);
 				$("#closed-at").removeClass("non-vis");
-				getDatesFromUnix("#closed-at", true);
+				getDatesFromUnix("#closed-at", true, true);
 			}
 			$(".update-request").prop("disabled", true);
 			$(".form-success").show();
@@ -590,19 +590,28 @@ function longToDots(ip) {
 	return d;
 }
 
-function getDatesFromUnix(selector, withTime) {
+function getDatesFromUnix(selector, withTime, full) {
 	$(selector).each(function() {
-		$(this).text(formatDate($(this).text(), withTime));
+		$(this).text(formatDate($(this).text(), withTime, full));
 	});
 }
 
-function formatDate(unix, withTime) {
+function formatDate(unix, withTime, full) {
 	if (isNaN(unix)) {
-		return unix;
+		return "";
 	} else {
-		var date = new Date(unix * 1000)
-		return (withTime) ? date.toString() : date.toDateString();
+		var date = new Date(unix * 1000);
+		if (withTime) {
+			return (full) ? date.toString() : dateShortFormat(date); 
+		} else {
+			return date.toDateString();
+		}
 	}
+}
+
+function dateShortFormat(date) {
+	//TODO WTSN-18 get desired date/time substring from date.toString()
+	return (date.getMonth()+1)+"/"+date.getDate()+"/"+date.getFullYear()+" "+date.getHours()+":"+date.getMinutes();
 }
 
 function initSortTable(tableId, sortCol) {

@@ -56,13 +56,17 @@
 		}
 		</div>
 		<ul id="review-notes" class="list-style-none margin-top-1em margin-bottom-none width-100">
-			<li id="review-notes-last">
-				<form id="add-review-note-form">
-					<input type="text" name="review-note" id="review-note" class="input-large form-control inline width-50" placeholder="Add note">
-					<button type="submit" id="add-review-note" class="btn btn-default">Add</button>
-				</form>
-			</li>
+		@details.review.notes.map { note =>
+			<li>
+				<label>@note.author</label>
+				<span class="unixtime-short">@note.createdAt</span>
+			</li>			
+		}
 		</ul>
+		<form id="add-review-note-form">
+			<input type="text" name="review-note" id="review-note" class="input-large form-control inline width-50" placeholder="Add note">
+			<button type="submit" id="add-review-note" class="btn btn-default">Add</button>
+		</form>
 	</div>
 	<div id="review-summary-status">
 	@partials.ajaxstatus("Unable to update review", "Updating review", "Review Updated")()

@@ -84,11 +84,15 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
     val user = User.find(userId.get)
     val id = Try(json.get.\("id").asOpt[Int]).getOrElse(None)
     val note = Try(json.get.\("note").asOpt[String]).getOrElse(None)
-    println(json)	//DELME WTSN-18
     if (json.isDefined && user.isDefined && id.isDefined && note.isDefined) {
       val created = ReviewNote.create(id.get, user.get.id, note.get)
       if (created) {
-      	Ok	//TODO WTSN-18
+        val notes = Review.find(id.get).get.notes.map { n =>
+          Json.obj("author" -> n.author,
+            "note" -> n.note,
+            "created_at" -> n.createdAt)
+        }.toList
+        Ok(Json.obj("notes" -> notes)) 
       } else {
         InternalServerError
       }
