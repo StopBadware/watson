@@ -42,7 +42,7 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
     val json = request.body.asJson
     val user = User.find(userId.get)
     val status = Try(ReviewStatus.fromStr(json.get.\("status").as[String].replaceAll("-", "_")).get).toOption
-    val id = json.get.\("id").asOpt[Int]
+    val id = Try(json.get.\("id").asOpt[Int]).getOrElse(None)
     if (json.isDefined && user.isDefined && id.isDefined && status.isDefined) {
     	val review = Review.find(id.get)
     	if (review.isDefined) {
@@ -80,7 +80,21 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
   }
   
   def addReviewNote = withAuth { userId => implicit request =>
-    Ok	//TODO WTSN-18
+    val json = request.body.asJson
+    val user = User.find(userId.get)
+    val id = Try(json.get.\("id").asOpt[Int]).getOrElse(None)
+    val note = Try(json.get.\("note").asOpt[String]).getOrElse(None)
+    println(json)	//DELME WTSN-18
+    if (json.isDefined && user.isDefined && id.isDefined && note.isDefined) {
+      val created = ReviewNote.create(id.get, user.get.id, note.get)
+      if (created) {
+      	Ok	//TODO WTSN-18
+      } else {
+        InternalServerError
+      }
+    } else {
+      BadRequest
+    }
   }
   
   def requests = withAuth { userId => implicit request =>

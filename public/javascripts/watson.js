@@ -64,9 +64,13 @@ $(document).ready(function($) {
 	
 	$(".update-review").click(function() {
 		$(this).focus().blur();
-		var reviewId = $("#review-id").data("id");
-		var status = $(this).data("status");
-		updateReviewStatus(reviewId, status);
+		updateReviewStatus($("#review-id").data("id"), $(this).data("status"));
+	});
+	
+	$("#add-review-note-form").submit(function(e) {
+		e.preventDefault();
+		$("#add-review-note-form button").blur();
+		addReviewNote($("#review-id").data("id"), $("#review-note").val());
 	});
 	
 	$(".refresh").click(function() {
@@ -327,6 +331,36 @@ function toggleReviewButtons(status, isOpen) {
 		$(".is-open, .is-pending-bad").prop("disabled", true);
 		$(".is-closed").prop("disabled", false);
 	}
+}
+
+function addReviewNote(reviewId, note) {
+	var ajaxStatus = "#review-summary-status ";
+	if ($(ajaxStatus+".form-info").is(":hidden")) {
+		$(ajaxStatus+".form-alert, "+ajaxStatus+".form-success").hide();
+		$(ajaxStatus+".form-info").show();
+		var obj = {
+			"id" : reviewId,
+			"note" : note
+		};
+		appRoute.addReviewNote().ajax({
+			contentType: jsonContentType,
+			data: JSON.stringify(obj)
+		}).done(function(res) {
+//			if (res.status && res.updated_at) {
+//				$("#status").text(res.status);
+//				prettifyEnums("#status");
+//				$("#status-updated").text(res.updated_at);
+//				getDatesFromUnix("#status-updated", true);
+//				toggleReviewButtons(res.status, res.is_open);
+//			}
+			$("#review-note").val("");
+			$(ajaxStatus+".form-success").show();
+		}).fail(function(res) {
+			$(ajaxStatus+".form-alert").show();
+		}).always(function() {
+			$(ajaxStatus+".form-info").hide();
+		});
+	}	
 }
 
 function updateReviewRequest(requestId, reason) {
