@@ -610,8 +610,8 @@ function formatDate(unix, withTime, full) {
 }
 
 function dateShortFormat(date) {
-	//TODO WTSN-18 get desired date/time substring from date.toString()
-	return (date.getMonth()+1)+"/"+date.getDate()+"/"+date.getFullYear()+" "+date.getHours()+":"+date.getMinutes();
+	var regex = /^\w{3}\s(.*):\d{2}\s.*$/;
+	return regex.exec(date)[1];
 }
 
 function initSortTable(tableId, sortCol) {

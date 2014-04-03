@@ -112,6 +112,11 @@ a,
 #review-summary .review-status {
 	font-weight: 800;
 }
+#review-notes .unixtime-short {
+	margin-left: 0.25em;
+	font-size: 0.75em;
+	color: #8B8B8B;
+}
 .review-nav {
 	margin-top: -1.25em;
 	margin-bottom: .25em;

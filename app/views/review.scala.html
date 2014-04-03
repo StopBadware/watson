@@ -58,8 +58,8 @@
 		<ul id="review-notes" class="list-style-none margin-top-1em margin-bottom-none width-100">
 		@details.review.notes.map { note =>
 			<li>
-				<label>@note.author</label>
-				<span class="unixtime-short">@note.createdAt</span>
+				<label>@note.author<span class="unixtime-short">@note.createdAt</span></label>
+				<span>@note.note</span>
 			</li>			
 		}
 		</ul>
