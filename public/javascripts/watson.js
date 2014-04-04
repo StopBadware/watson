@@ -291,9 +291,9 @@ function requestReview(uris, email, notes) {
 }
 
 function updateReviewStatus(reviewId, status) {
-	var ajaxStatus = "#review-summary-status ";
+	var ajaxStatus = ".review-update-status ";
 	if ($(ajaxStatus+".form-info").is(":hidden")) {
-		$(ajaxStatus+".form-alert, "+ajaxStatus+".form-success").hide();
+		$(".alert").hide();
 		$(ajaxStatus+".form-info").show();
 		var obj = {
 			"id" : reviewId,
@@ -335,9 +335,9 @@ function toggleReviewButtons(status, isOpen) {
 }
 
 function addReviewNote(reviewId, note) {
-	var ajaxStatus = "#review-summary-status ";
+	var ajaxStatus = ".review-note-status ";
 	if ($(ajaxStatus+".form-info").is(":hidden")) {
-		$(ajaxStatus+".form-alert, "+ajaxStatus+".form-success").hide();
+		$(".alert").hide();
 		$(ajaxStatus+".form-info").show();
 		var obj = {
 			"id" : reviewId,
@@ -348,9 +348,14 @@ function addReviewNote(reviewId, note) {
 			data: JSON.stringify(obj)
 		}).done(function(res) {
 			if (res.notes) {
-				console.log(res.notes);	//DELME WTSN-18
 				res.notes.map(function(n) {
-					console.log(n.created_at);	//DELME WTSN-18
+					var noteId = "#note-"+n.id;
+					if ($(noteId).length == 0) {
+						renderNote(n);
+						getDatesFromUnix(noteId+" .unixtime-short", true, false);
+						$(noteId+" span").animate({"background-color": "#DFF0D8"}, 25);
+						$(noteId+" span").animate({"background-color": "rgba(0, 0, 0, 0)"}, 5000);
+					}
 				});
 			}
 			$("#review-note").val("");
@@ -361,6 +366,13 @@ function addReviewNote(reviewId, note) {
 			$(ajaxStatus+".form-info").hide();
 		});
 	}	
+}
+
+function renderNote(note) {
+	var li = "<li id=\"note-"+note.id+"\"><label>"+note.author+"<span class=\"unixtime-short\">"+note.created_at+"</span>"+
+		"</label><span class=\"note\"></span></li>";
+	$("#review-notes").append(li);
+	$("#note-"+note.id+" .note").text(note.note).html();
 }
 
 function updateReviewRequest(requestId, reason) {

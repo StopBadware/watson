@@ -199,9 +199,10 @@ case class Review(
   
   def notes: List[Note] = DB.withConnection { implicit conn =>
     return try {
-      SQL("""SELECT username, note, review_notes.created_at FROM review_notes JOIN users ON 
-        author=users.id WHERE review_id={reviewId}""").on("reviewId" -> id)().map { row =>
-        	Note(row[String]("username"), row[String]("note"), row[Date]("created_at").getTime / 1000)
+      SQL("""SELECT review_notes.id, username, note, review_notes.created_at FROM review_notes JOIN users ON 
+        author=users.id WHERE review_id={reviewId} ORDER BY review_notes.created_at ASC""")
+        .on("reviewId" -> id)().map { row =>
+        	Note(row[Int]("id"), row[String]("username"), row[String]("note"), row[Date]("created_at").getTime / 1000)
       }.toList
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
@@ -391,4 +392,4 @@ case class ReviewDetails(review: Review) {
   
 }
 
-case class Note(author: String, note: String, createdAt: Long)
+case class Note(id: Int, author: String, note: String, createdAt: Long)

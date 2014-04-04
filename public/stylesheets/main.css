@@ -114,6 +114,7 @@ a,
 }
 #review-notes .unixtime-short {
 	margin-left: 0.25em;
+	padding-right: 0.5em;
 	font-size: 0.75em;
 	color: #8B8B8B;
 }

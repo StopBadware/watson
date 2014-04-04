@@ -88,7 +88,8 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
       val created = ReviewNote.create(id.get, user.get.id, note.get)
       if (created) {
         val notes = Review.find(id.get).get.notes.map { n =>
-          Json.obj("author" -> n.author,
+          Json.obj("id" -> n.id,
+            "author" -> n.author,
             "note" -> n.note,
             "created_at" -> n.createdAt)
         }.toList
