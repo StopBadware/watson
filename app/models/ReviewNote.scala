@@ -1,7 +1,6 @@
 package models
 
 import java.util.Date
-import java.sql.Timestamp
 import anorm._
 import play.api.db._
 import play.api.Play.current
