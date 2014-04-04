@@ -73,6 +73,21 @@ $(document).ready(function($) {
 		addReviewNote($("#review-id").data("id"), $("#review-note").val());
 	});
 	
+	$("#review-test-data-save").click(function() {
+		$(this).focus().blur();
+		saveReviewTestData(false, false);
+	});
+	
+	$("#review-test-data-save-bad").click(function() {
+		$(this).focus().blur();
+		saveReviewTestData(true, false);
+	});
+	
+	$("#review-test-data-save-bad-next").click(function() {
+		$(this).focus().blur();
+		saveReviewTestData(true, true);
+	});
+	
 	$(".refresh").click(function() {
 		location.reload(true);
 	});
@@ -373,6 +388,47 @@ function renderNote(note) {
 		"</label><span class=\"note\"></span></li>";
 	$("#review-notes").append(li);
 	$("#note-"+note.id+" .note").text(note.note).html();
+}
+
+function saveReviewTestData(markBad, advance) {
+	var reviewId = $("#review-id").data("id");
+	var category = $("#badware-category").val();
+	var sha256 = $("#executable-hash").val();
+	var badCode = $("#badcode").val();
+	var associatedUris = [0, 1, 2];	//TODO WTSN-18 get associated URIs
+	
+	var ajaxStatus = ".review-test-data-status ";
+	if ($(ajaxStatus+".form-info").is(":hidden")) {
+		$(".alert").hide();
+		$(ajaxStatus+".form-info").show();
+		var obj = {
+			"id" : reviewId,
+			"category" : category,
+			"sha256" : sha256,
+			"badCode" : badCode,
+			"associatedUris" : associatedUris,
+			"markBad" : markBad
+		};
+		appRoute.updateReviewTestData().ajax({
+			contentType: jsonContentType,
+			data: JSON.stringify(obj)
+		}).done(function(res) {
+			if (res) {
+				console.log(res);	//DELME WTSN-18
+				if (markBad && res.status && res.updated_at) {
+					//TODO WTSN-18 update status and buttons
+				}
+			}
+			$(ajaxStatus+".form-success").show();
+			if (advance) {
+				//TODO WTSN-18 advance to next open review
+			}
+		}).fail(function() {
+			$(ajaxStatus+".form-alert").show();
+		}).always(function() {
+			$(ajaxStatus+".form-info").hide();
+		});
+	}	
 }
 
 function updateReviewRequest(requestId, reason) {

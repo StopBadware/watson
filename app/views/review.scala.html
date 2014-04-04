@@ -94,9 +94,9 @@
 				<h4><label>Snapshot:</label><span>@snapshot</span>@partials.clipboard(snapshot)</h4>
 			}
 				@defining(if (details.review.isOpen) "" else "disabled") { disabled =>
-				<button type="button" class="btn btn-default" @disabled title="Saves the test data for this review">Save</button>
-				<button type="button" class="btn btn-default" @disabled title="Saves the test data for this review and marks it BAD">Save -> Bad</button>
-				<button type="button" class="btn btn-default" @disabled title="Saves the test data for this review, marks it BAD, and moves to the next OPEN review">Save -> Bad -> Next</button>
+				<button id="review-test-data-save" type="button" class="btn btn-default" @disabled title="Saves the test data for this review">Save</button>
+				<button id="review-test-data-save-bad" type="button" class="btn btn-default" @disabled title="Saves the test data for this review and marks it BAD">Save -> Bad</button>
+				<button id="review-test-data-save-bad-next" type="button" class="btn btn-default" @disabled title="Saves the test data for this review, marks it BAD, and moves to the next OPEN review">Save -> Bad -> Next</button>
 				}
 			</div>
 		}

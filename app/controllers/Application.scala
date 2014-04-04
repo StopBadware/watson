@@ -76,6 +76,12 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
   }
   
   def updateReviewTestData = withAuth { userId => implicit request =>
+    val json = request.body.asJson
+    val user = User.find(userId.get)
+    if (json.isDefined && user.isDefined) {
+      println(json)	//DELME WTSN-18
+      
+    }
     Ok	//TODO WTSN-18
   }
   
