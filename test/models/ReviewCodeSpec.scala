@@ -28,12 +28,12 @@ class ReviewCodeSpec extends Specification {
     
     "update a review code" in {
       running(FakeApplication()) {
-        val sha256 = testHash
-        ReviewCode.create(testReviewId, None, Some(sha256))
-        val rc = ReviewCode.findByExecutable(sha256).head
+        val sha256 = Some(testHash)
+        ReviewCode.create(testReviewId, None, sha256)
+        val rc = ReviewCode.findByExecutable(sha256.get).head
         rc.badCode must beNone
-        rc.update()	//TODO WTSN-18
-        ReviewCode.findByExecutable(sha256).head.badCode must equalTo(Some(sha256))
+        rc.update(sha256, None)
+        ReviewCode.find(rc.id).get.badCode must equalTo(sha256)
       }
     }
     

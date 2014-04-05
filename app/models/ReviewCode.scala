@@ -26,8 +26,14 @@ case class ReviewCode(
     }
   }
   
-  def update(): Boolean = DB.withConnection { implicit conn =>
-    return false	//TODO WTSN-18
+  def update(badCode: Option[String], sha256: Option[String]): Boolean = DB.withConnection { implicit conn =>
+    return try {
+      SQL("UPDATE review_code SET bad_code={badCode}, exec_sha2_256={sha256}, updated_at=NOW() WHERE id={id}")
+        .on("id" -> id, "badCode" -> badCode, "sha256" -> sha256).executeUpdate() > 0
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      false
+    }
   }
 
 }
