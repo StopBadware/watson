@@ -228,21 +228,21 @@ function associatedUriInput(index) {
 	return '<li id="associated-'+index+'" data-index="'+index+'">'+
 	'<input type="url" name="associated-uri-'+index+'" class="input-large form-control uri inline" placeholder="Associated URI">'+
 	'<select name="associated-resolved-'+index+'" class="inline form-control auto-width">'+
-	'<option value="resolved">Resolved</option>'+
-	'<option value="dnr">Did Not Resolve</option>'+
-	'<option value="unknown">Unchecked</option>'+
+	'<option value="Resolved">Resolved</option>'+
+	'<option value="DNR">Did Not Resolve</option>'+
+	'<option value="">Unchecked</option>'+
 	'</select>'+
 	'<select name="associated-type-'+index+'" class="inline form-control auto-width">'+
-	'<option value="payload">Payload</option>'+
-	'<option value="intermediary">Intermediary</option>'+
-	'<option value="landing">Landing</option>'+
-	'<option value="unknown">Unknown</option>'+
+	'<option value="Payload">Payload</option>'+
+	'<option value="Intermediary">Intermediary</option>'+
+	'<option value="Landing">Landing</option>'+
+	'<option value="">Unknown</option>'+
 	'</select>'+
 	'<select name="associated-intent-'+index+'" class="inline form-control auto-width">'+
-	'<option value="hacked">Hacked</option>'+
-	'<option value="malicious">Malicious</option>'+
-	'<option value="malicious">Free Host</option>'+
-	'<option value="unknown">Unknown</option>'+
+	'<option value="Hacked">Hacked</option>'+
+	'<option value="Malicious">Malicious</option>'+
+	'<option value="Free Host">Free Host</option>'+
+	'<option value="">Unknown</option>'+
 	'</select>';
 }
 
