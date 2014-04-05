@@ -49,15 +49,15 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
     	  val r = review.get
     	  val s = status.get
     	  val u = user.get.id
-    		val updated = s match {
-    		  case ReviewStatus.PENDING_BAD => r.reviewed(u, s) 
-  		    case ReviewStatus.CLOSED_CLEAN => r.reviewed(u, s)
+  			val updated = s match {
+    	    case ReviewStatus.PENDING_BAD => r.reviewed(u, s) 
+    	    case ReviewStatus.CLOSED_CLEAN => r.reviewed(u, s)
 		      case ReviewStatus.CLOSED_WITHOUT_REVIEW => r.closeWithoutReview(u)
-	        case ReviewStatus.CLOSED_BAD => r.verify(u, s)
-          case ReviewStatus.REJECTED => r.reject(u)
-          case ReviewStatus.REOPENED => r.reopen(u)
-          case _ => false
-    		}
+		      case ReviewStatus.CLOSED_BAD => r.verify(u, s)
+		      case ReviewStatus.REJECTED => r.reject(u)
+		      case ReviewStatus.REOPENED => r.reopen(u)
+		      case _ => false
+			}
     	  if (updated) {
     	    val rev = Review.find(id.get).get
     	    Ok(Json.obj(
@@ -80,7 +80,6 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
     val user = User.find(userId.get)
     if (json.isDefined && user.isDefined) {
       println(json)	//DELME WTSN-18
-      
     }
     Ok	//TODO WTSN-18
   }
