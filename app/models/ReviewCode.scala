@@ -7,6 +7,7 @@ import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
 import scala.util.Try
+import controllers.PostgreSql
 
 case class ReviewCode(
     id: Int,
@@ -42,16 +43,33 @@ object ReviewCode {
   
   def create(reviewId: Int, badCode: Option[String], sha256: Option[String]): Boolean = DB.withConnection { implicit conn =>
     return try {
-      SQL("INSERT INTO review_code (review_id, bad_code, exec_sha2_256) VALUES({reviewId}, {badCode}, {sha256})")
+      SQL("""INSERT INTO review_code (review_id, bad_code, exec_sha2_256) SELECT {reviewId}, {badCode}, {sha256} 
+          WHERE NOT EXISTS (SELECT 1 FROM review_code WHERE review_id={reviewId})""")
         .on("reviewId" -> reviewId, "badCode" -> badCode, "sha256" -> sha256).executeUpdate() > 0
     } catch {
-      case e: PSQLException => Logger.error(e.getMessage)
+      case e: PSQLException => if (PostgreSql.isNotDupeError(e.getMessage)) {
+  	    Logger.error(e.getMessage)
+  	  }
       false
     }
   }
   
+  def createOrUpdate(reviewId: Int, badCode: Option[String], sha256: Option[String]): Boolean = {
+    val existing = findByReview(reviewId)
+    return if (existing.isDefined) {
+      existing.get.update(badCode, sha256)
+    } else {
+      create(reviewId, badCode, sha256)
+    }
+  } 
+  
   def find(id: Int): Option[ReviewCode] = DB.withConnection { implicit conn =>
     return Try(mapFromRow(SQL("SELECT * FROM review_code WHERE id={id} LIMIT 1").on("id"->id)().head)).getOrElse(None)
+  }
+  
+  def findByReview(reviewId: Int): Option[ReviewCode] = DB.withConnection { implicit conn =>
+    return Try(mapFromRow(SQL("SELECT * FROM review_code WHERE review_id={reviewId} ORDER BY created_at DESC")
+      .on("reviewId"->reviewId)().head).get).toOption
   }
   
   def findByExecutable(sha256: String): List[ReviewCode] = DB.withConnection { implicit conn =>

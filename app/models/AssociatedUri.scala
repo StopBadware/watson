@@ -96,3 +96,5 @@ object AssociatedUri {
   }
   
 }
+
+case class RevAssocUri(uriId: Int, resolved: Option[Boolean], uriType: Option[String],intent: Option[String])

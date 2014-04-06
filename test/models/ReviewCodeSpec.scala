@@ -10,13 +10,9 @@ import controllers.Hash
 @RunWith(classOf[JUnitRunner])
 class ReviewCodeSpec extends Specification {
   
-  private val testReviewId = {
-    running(FakeApplication()) {
-    	Review.findOpenOrCreate(Uri.findOrCreate(UriSpec.validUri).get.id).get.id
-    }
-  }
+  private def testReviewId: Int = Review.findOpenOrCreate(Uri.findOrCreate(UriSpec.validUri).get.id).get.id
   
-  private def testHash = Hash.sha256(System.nanoTime.toHexString).get
+  private def testHash: String = Hash.sha256(System.nanoTime.toHexString).get
   
   "ReviewCode" should {
     
@@ -33,6 +29,18 @@ class ReviewCodeSpec extends Specification {
         val rc = ReviewCode.findByExecutable(sha256.get).head
         rc.badCode must beNone
         rc.update(sha256, None)
+        ReviewCode.find(rc.id).get.badCode must equalTo(sha256)
+      }
+    }
+    
+    "create or update a review code" in {
+      running(FakeApplication()) {
+        val sha256 = Some(testHash)
+        val revId = testReviewId
+        ReviewCode.create(revId, None, sha256)
+        val rc = ReviewCode.findByExecutable(sha256.get).head
+        rc.badCode must beNone
+        ReviewCode.createOrUpdate(revId, sha256, None) must beTrue
         ReviewCode.find(rc.id).get.badCode must equalTo(sha256)
       }
     }
@@ -61,6 +69,14 @@ class ReviewCodeSpec extends Specification {
         val sha256 = testHash
         ReviewCode.create(testReviewId, None, Some(sha256))
         ReviewCode.findByExecutable(sha256).nonEmpty must beTrue
+      }
+    }
+    
+    "find review code by review" in {
+      running(FakeApplication()) {
+        val revId = testReviewId
+        ReviewCode.create(revId, None, None)
+        ReviewCode.findByReview(revId) must beSome
       }
     }
     

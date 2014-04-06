@@ -114,6 +114,14 @@ $(document).ready(function($) {
 		addAssociatedUriInput("#associated-uris");
 	}
 	
+	$("#executable-hash").focusout(function() {
+		if ($(this).val().length != 64) {
+			$("#executable-hash-alert").show();
+		} else {
+			$("#executable-hash-alert").hide();
+		}
+	});
+	
 	$(".date-picker").daterangepicker({
 		ranges: {
 			'Today': [new Date(), new Date()],
@@ -136,6 +144,7 @@ $(document).ready(function($) {
 			$("#executable-hash").prop("disabled", false);
 		} else {
 			$("#executable-hash").val("");
+			$("#executable-hash-alert").hide();
 			$("#executable-hash").prop("disabled", true);
 		}
 	});
@@ -220,25 +229,27 @@ function addAssociatedUriInput(id) {
 			});
 		}
 		$(".remove").remove();
-		addAssociatedUriInput(id);
+		window.setTimeout(function() {
+			addAssociatedUriInput(id);
+		}, 100);
 	});
 }
 
 function associatedUriInput(index) {
 	return '<li id="associated-'+index+'" data-index="'+index+'">'+
-	'<input type="url" name="associated-uri-'+index+'" class="input-large form-control uri inline" placeholder="Associated URI">'+
-	'<select name="associated-resolved-'+index+'" class="inline form-control auto-width">'+
+	'<input type="url" id="associated-uri-'+index+'" class="input-large form-control uri inline" placeholder="Associated URI">'+
+	'<select id="associated-resolved-'+index+'" class="inline form-control auto-width">'+
 	'<option value="Resolved">Resolved</option>'+
-	'<option value="DNR">Did Not Resolve</option>'+
+	'<option value="Did Not Resolve">Did Not Resolve</option>'+
 	'<option value="">Unchecked</option>'+
 	'</select>'+
-	'<select name="associated-type-'+index+'" class="inline form-control auto-width">'+
+	'<select id="associated-type-'+index+'" class="inline form-control auto-width">'+
 	'<option value="Payload">Payload</option>'+
 	'<option value="Intermediary">Intermediary</option>'+
 	'<option value="Landing">Landing</option>'+
 	'<option value="">Unknown</option>'+
 	'</select>'+
-	'<select name="associated-intent-'+index+'" class="inline form-control auto-width">'+
+	'<select id="associated-intent-'+index+'" class="inline form-control auto-width">'+
 	'<option value="Hacked">Hacked</option>'+
 	'<option value="Malicious">Malicious</option>'+
 	'<option value="Free Host">Free Host</option>'+
@@ -395,19 +406,31 @@ function saveReviewTestData(markBad, advance) {
 	var category = $("#badware-category").val();
 	var sha256 = $("#executable-hash").val();
 	var badCode = $("#badcode").val();
-	var associatedUris = [0, 1, 2];	//TODO WTSN-18 get associated URIs
+	var associatedUris = new Array();
+	$("#associated-uris li").each(function(i) {
+		var uri = $("#associated-uri-"+i).val();
+		if (uri.length > 0) {
+			var au = {
+				"uri": uri,
+				"resolved": $("#associated-resolved-"+i).val(),
+				"type": $("#associated-type-"+i).val(),
+				"intent": $("#associated-intent-"+i).val()
+			};
+			associatedUris[i] = au;
+		}
+	});
 	
 	var ajaxStatus = ".review-test-data-status ";
-	if ($(ajaxStatus+".form-info").is(":hidden")) {
+	if ($(ajaxStatus+".form-info").is(":hidden") && $("#executable-hash-alert").is(":hidden")) {
 		$(".alert").hide();
 		$(ajaxStatus+".form-info").show();
 		var obj = {
 			"id" : reviewId,
 			"category" : category,
 			"sha256" : sha256,
-			"badCode" : badCode,
-			"associatedUris" : associatedUris,
-			"markBad" : markBad
+			"bad_code" : badCode,
+			"associated_uris" : associatedUris,
+			"mark_bad" : markBad
 		};
 		appRoute.updateReviewTestData().ajax({
 			contentType: jsonContentType,

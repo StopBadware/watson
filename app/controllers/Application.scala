@@ -79,9 +79,48 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
     val json = request.body.asJson
     val user = User.find(userId.get)
     if (json.isDefined && user.isDefined) {
-      println(json)	//DELME WTSN-18
+      try {
+        val id = json.get.\("id").as[Int]
+        val review = Review.find(id).get
+        
+        json.get.\("associated_uris").as[Array[JsValue]].map { au =>
+          val uriId = Uri.findOrCreate(au.\("uri").as[String]).get.id
+          val resolved = au.\("resolved").as[String] match {
+            case "Resolved" => Some(true)
+            case "Did Not Resolve" => Some(false)
+            case _ => None
+          }
+          RevAssocUri(uriId, resolved, au.\("type").asOpt[String], au.\("intent").asOpt[String])
+        }.foreach(au => AssociatedUri.create(review.id, au.uriId, au.resolved, au.uriType, au.intent))
+        
+        val category = json.get.\("category").as[String]
+        val tag = ReviewTag.findByName(category)
+        if (tag.isDefined) {
+        	review.addTag(tag.get.id)
+        } else {
+          ReviewTag.create(category)
+          review.addTag(ReviewTag.findByName(category).get.id)
+        }
+        
+        val sha256 = json.get.\("sha256").as[String]
+        val badCode = json.get.\("bad_code").as[String]
+        ReviewCode.createOrUpdate(
+          review.id,
+          if (badCode.nonEmpty) Some(badCode) else None,
+          if (sha256.length == 64) Some(sha256) else None)
+        
+        if (json.get.\("mark_bad").as[Boolean]) {
+          val updated = review.reviewed(user.get.id, ReviewStatus.PENDING_BAD)
+          if (updated) Ok else InternalServerError
+        } else {
+          Ok
+        }
+      } catch {
+        case _: Exception => BadRequest
+      }
+    } else {
+      BadRequest
     }
-    Ok	//TODO WTSN-18
   }
   
   def addReviewNote = withAuth { userId => implicit request =>

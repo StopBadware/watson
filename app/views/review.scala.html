@@ -84,6 +84,9 @@
 				<option value="executable">Executable</option>
 				</select>
 				<input type="text" name="executable-hash" id="executable-hash" class="input-large form-control inline auto-width" disabled placeholder="SHA-256">
+				<div id="executable-hash-alert" class="form-alert alert alert-danger text-center non-vis margin-bottom-none margin-top-1em">
+					<h3 id="alert-msg">Invalid Hash: SHA-256 must contain 64 characters</h3>
+				</div>
 			</div>
 			<textarea id="badcode" name="badcode" class="form-control keepwhite has-char-counter margin-top-1em" rows="5" placeholder="Bad Code" maxlength="4096" spellcheck="false" @readonly></textarea>
 			@partials.charcounter("badcode", 4096)
