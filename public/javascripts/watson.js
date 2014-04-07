@@ -97,9 +97,8 @@ $(document).ready(function($) {
 		cssAsc: "header-sort-up",
 		cssDesc: "header-sort-down"
 	});
-	getDatesFromUnix(".unixtime", false, false);
-	getDatesFromUnix(".unixtime-full", true, true);
-	getDatesFromUnix(".unixtime-short", true, false);
+	getDatesFromUnix(".unixtime", false);
+	getDatesFromUnix(".unixtime-full", true);
 	prettifyEnums(".enum");
 	ip4sToDots(".ipv4");
 	tagBgs();
@@ -374,7 +373,7 @@ function addReviewNote(reviewId, note) {
 					var noteId = "#note-"+n.id;
 					if ($(noteId).length == 0) {
 						renderNote(n);
-						getDatesFromUnix(noteId+" .unixtime-short", true, false);
+						getDatesFromUnix(noteId+" .unixtime", false);
 						$(noteId+" span").animate({"background-color": "#DFF0D8"}, 25);
 						$(noteId+" span").animate({"background-color": "rgba(0, 0, 0, 0)"}, 5000);
 					}
@@ -391,7 +390,7 @@ function addReviewNote(reviewId, note) {
 }
 
 function renderNote(note) {
-	var li = "<li id=\"note-"+note.id+"\"><label>"+note.author+"<span class=\"unixtime-short\">"+note.created_at+"</span>"+
+	var li = "<li id=\"note-"+note.id+"\"><label>"+note.author+"<span class=\"unixtime\">"+note.created_at+"</span>"+
 		"</label><span class=\"note\"></span></li>";
 	$("#review-notes").append(li);
 	$("#note-"+note.id+" .note").text(note.note).html();
@@ -454,7 +453,7 @@ function renderReviewStatus(status, updatedAt, isOpen) {
 	prettifyEnums("#status");
 	$("#status-updated").text(updatedAt);
 	$("#status-updated").show();
-	getDatesFromUnix("#status-updated", true, true);
+	getDatesFromUnix("#status-updated", true);
 	toggleReviewButtons(status, isOpen);
 }
 
@@ -475,7 +474,7 @@ function updateReviewRequest(requestId, reason) {
 				prettifyEnums("#closed-reason");
 				$("#closed-at").text(res.closed_at);
 				$("#closed-at").removeClass("non-vis");
-				getDatesFromUnix("#closed-at", true, true);
+				getDatesFromUnix("#closed-at", true);
 			}
 			$(".update-request").prop("disabled", true);
 			$(".form-success").show();
@@ -685,22 +684,18 @@ function longToDots(ip) {
 	return d;
 }
 
-function getDatesFromUnix(selector, withTime, full) {
+function getDatesFromUnix(selector, full) {
 	$(selector).each(function() {
-		$(this).text(formatDate($(this).text(), withTime, full));
+		$(this).text(formatDate($(this).text(), full));
 	});
 }
 
-function formatDate(unix, withTime, full) {
+function formatDate(unix, full) {
 	if (isNaN(unix) || unix <= 0) {
 		return "";
 	} else {
 		var date = new Date(unix * 1000);
-		if (withTime) {
-			return (full) ? date.toString() : dateShortFormat(date); 
-		} else {
-			return date.toDateString();
-		}
+		return (full) ? date.toString() : dateShortFormat(date);
 	}
 }
 
