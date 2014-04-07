@@ -9,7 +9,7 @@ import play.api.Play.current
 import scala.util.Try
 import routes.javascript._
 import models._
-import models.enums.{ClosedReason, ReviewStatus, Role}
+import models.enums._
 
 object Application extends Controller with JsonMapper with Secured with Cookies {
   
@@ -98,16 +98,18 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
             case _ => None
           }
           RevAssocUri(uriId, resolved, au.\("type").asOpt[String], au.\("intent").asOpt[String])
-        }.foreach(au => AssociatedUri.create(review.id, au.uriId, au.resolved, au.uriType, au.intent))
+        }.foreach { au => 
+          AssociatedUri.create(review.id, au.uriId, au.resolved, UriType.fromStr(au.uriType.get), UriIntent.fromStr(au.intent.get))
+        }
         
         val category = json.get.\("category").as[String]
-        val tag = ReviewTag.findByName(category)
-        if (tag.isDefined) {
-        	review.addTag(tag.get.id)
-        } else {
-          ReviewTag.create(category)
-          review.addTag(ReviewTag.findByName(category).get.id)
-        }
+        //TODO WTSN-18 handle category
+//        val tag = ReviewTag.findByName(category)
+//        if (tag.isDefined) {
+//        	review.addTag(tag.get.id)
+//        } else {
+//          review.addTag(ReviewTag.findByName(category).get.id)
+//        }
         
         val sha256 = json.get.\("sha256").as[String]
         val badCode = json.get.\("bad_code").as[String]

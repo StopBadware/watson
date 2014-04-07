@@ -381,6 +381,7 @@ case class ReviewDetails(review: Review) {
 	val googleRescans = GoogleRescan.findByUri(uri.id)
 	val reviewRequests = ReviewRequest.findByUri(uri.id)
 	val tags = ReviewTag.find((review+:otherReviews).map(_.reviewTags).flatten.distinct).map(t => (t.id, t)).toMap
+	val category = "TODO" //TODO WTSN-18
 	val reviewCode = ReviewCode.findByReview(review.id)
 	val associatedUris = AssociatedUri.findByReviewId(review.id)
   val uris: Map[Int, String] = {

@@ -5,6 +5,7 @@ import org.junit.runner._
 import org.specs2.runner._
 import play.api.test._
 import play.api.test.Helpers._
+import models.enums.{UriIntent, UriType}
 
 @RunWith(classOf[JUnitRunner])
 class AssociatedUriSpec extends Specification {
@@ -34,14 +35,14 @@ class AssociatedUriSpec extends Specification {
       }
     }
     
-    "update an Associated ri" in {
+    "update an AssociatedUri" in {
       running(FakeApplication()) {
         val au = createAssocUri
         au.resolved must beNone
         au.uriType must beNone
         au.intent must beNone
-        val newType = Some("Payload")
-        val newIntent = Some("Hacked")
+        val newType = Some(UriType.LANDING)
+        val newIntent = Some(UriIntent.HACKED)
         au.update(Some(true), newType, newIntent)
         val found = AssociatedUri.find(au.id).get
         found.resolved must equalTo(Some(true))

@@ -7,14 +7,15 @@ import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
 import scala.util.Try
+import models.enums.{UriIntent, UriType}
 
 case class AssociatedUri(
     id: Int,
     reviewId: Int,
     uriId: Int,
     resolved: Option[Boolean],
-    uriType: Option[String],
-    intent: Option[String],
+    uriType: Option[UriType],
+    intent: Option[UriIntent],
     associatedAt: Long
   ) {
 
@@ -29,10 +30,10 @@ case class AssociatedUri(
   
   def update(
       newResolved: Option[Boolean], 
-      newUriType: Option[String], 
-      newIntent: Option[String]): Boolean = DB.withConnection { implicit conn =>
+      newUriType: Option[UriType], 
+      newIntent: Option[UriIntent]): Boolean = DB.withConnection { implicit conn =>
     return try {
-      SQL("UPDATE associated_uris SET resolved={newResolved}, uri_type={newUriType}, intent={newIntent} WHERE id={id}")
+      SQL("UPDATE associated_uris SET resolved={newResolved}, uri_type={newUriType}::URI_TYPE, intent={newIntent}::URI_INTENT WHERE id={id}")
         .on("id" -> id, "newResolved" -> newResolved, "newUriType" -> newUriType, "newIntent" -> newIntent).executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
@@ -48,12 +49,12 @@ object AssociatedUri {
       reviewId: Int,
       uriId: Int,
       resolved: Option[Boolean],
-      uriType: Option[String],
-      intent: Option[String]): Boolean = DB.withConnection { implicit conn =>
+      uriType: Option[UriType],
+      intent: Option[UriIntent]): Boolean = DB.withConnection { implicit conn =>
     return try {
       SQL("""INSERT INTO associated_uris (review_id, uri_id, resolved, uri_type, intent) 
-        SELECT {reviewId}, {uriId}, {resolved}, {uriType}, {intent} WHERE NOT EXISTS (SELECT 1 FROM 
-        associated_uris WHERE review_id={reviewId} AND uri_id={uriId})""")
+        SELECT {reviewId}, {uriId}, {resolved}, {uriType}::URI_TYPE, {intent}::URI_INTENT 
+        WHERE NOT EXISTS (SELECT 1 FROM associated_uris WHERE review_id={reviewId} AND uri_id={uriId})""")
         .on(
           "reviewId" -> reviewId, 
           "uriId" -> uriId, 
@@ -87,8 +88,8 @@ object AssociatedUri {
 			  row[Int]("review_id"),
 			  row[Int]("uri_id"),
 			  row[Option[Boolean]]("resolved"),
-			  row[Option[String]]("uri_type"),
-			  row[Option[String]]("intent"),
+			  row[Option[UriType]]("uri_type"),
+			  row[Option[UriIntent]]("intent"),
 			  row[Date]("associated_at").getTime / 1000
       ))
     } catch {

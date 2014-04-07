@@ -13,6 +13,7 @@ case class ReviewTag(
     description: Option[String], 
     hexColor: String,
     openOnly: Boolean,
+    isCategory: Boolean,
     active: Boolean) {
 
   def update(description: Option[String], hexColor: String): Boolean = DB.withConnection { implicit conn =>
@@ -54,12 +55,19 @@ object ReviewTag {
   def create(
       name: String, 
       description: Option[String]=None, 
-      hexColor: String="000000", 
-      openOnly: Boolean=false): Boolean = DB.withConnection { implicit conn =>
+      hexColor: String="000000",
+      openOnly: Boolean=false,
+      isCategory: Boolean=false
+    ): Boolean = DB.withConnection { implicit conn =>
     return try {
-      SQL("""INSERT INTO review_tags (name, description, hex_color, open_only, active) SELECT {name}, {description}, 
-        {hexColor}, {openOnly}, true WHERE NOT EXISTS (SELECT 1 FROM review_tags WHERE name={name})""")
-        .on("name" -> name.toUpperCase, "description" -> description, "hexColor" -> hexColor, "openOnly" -> openOnly)
+      SQL("""INSERT INTO review_tags (name, description, hex_color, open_only, is_category, active) SELECT {name}, {description}, 
+        {hexColor}, {openOnly}, {isCategory}, true WHERE NOT EXISTS (SELECT 1 FROM review_tags WHERE name={name})""")
+        .on(
+          "name" -> name.toUpperCase, 
+          "description" -> description, 
+          "hexColor" -> hexColor, 
+          "openOnly" -> openOnly,
+          "isCategory" -> isCategory)
         .executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
@@ -87,6 +95,7 @@ object ReviewTag {
 				    Try(Some(row.getString("description"))).getOrElse(None),
 				    row.getString("hex_color"),
 				    row.getBoolean("open_only"),
+				    row.getBoolean("is_category"),
 				    row.getBoolean("active")
 		  		))
 	      }.flatten.toList
@@ -116,6 +125,7 @@ object ReviewTag {
 		    row[Option[String]]("description"),
 		    row[String]("hex_color"),
 		    row[Boolean]("open_only"),
+		    row[Boolean]("is_category"),
 		    row[Boolean]("active")
   		))
     } catch {
