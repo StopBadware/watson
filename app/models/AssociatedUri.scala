@@ -52,7 +52,8 @@ object AssociatedUri {
       intent: Option[String]): Boolean = DB.withConnection { implicit conn =>
     return try {
       SQL("""INSERT INTO associated_uris (review_id, uri_id, resolved, uri_type, intent) 
-        VALUES({reviewId}, {uriId}, {resolved}, {uriType}, {intent})""")
+        SELECT {reviewId}, {uriId}, {resolved}, {uriType}, {intent} WHERE NOT EXISTS (SELECT 1 FROM 
+        associated_uris WHERE review_id={reviewId} AND uri_id={uriId})""")
         .on(
           "reviewId" -> reviewId, 
           "uriId" -> uriId, 

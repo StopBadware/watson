@@ -83,8 +83,15 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
         val id = json.get.\("id").as[Int]
         val review = Review.find(id).get
         
+        val incoming = json.get.\("associated_uris").as[Array[JsValue]].map { au =>
+          val uri = au.\("uri").as[String]
+          (uri, Uri.findOrCreate(uri).get.id)
+        }.toMap
+        val uris = incoming.values.toList
+        AssociatedUri.findByReviewId(review.id).filterNot(au => uris.contains(au.uriId)).foreach(_.delete())
+        
         json.get.\("associated_uris").as[Array[JsValue]].map { au =>
-          val uriId = Uri.findOrCreate(au.\("uri").as[String]).get.id
+          val uriId = incoming(au.\("uri").as[String])
           val resolved = au.\("resolved").as[String] match {
             case "Resolved" => Some(true)
             case "Did Not Resolve" => Some(false)
@@ -111,7 +118,15 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
         
         if (json.get.\("mark_bad").as[Boolean]) {
           val updated = review.reviewed(user.get.id, ReviewStatus.PENDING_BAD)
-          if (updated) Ok else InternalServerError
+          if (updated) {
+            val rev = Review.find(id).get
+        		Ok(Json.obj(
+    	        "status" -> rev.status.toString, 
+    	        "is_open" -> rev.status.isOpen,
+    	        "updated_at" -> rev.statusUpdatedAt))
+          } else {
+            InternalServerError
+          }
         } else {
           Ok
         }

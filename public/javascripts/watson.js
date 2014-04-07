@@ -231,7 +231,7 @@ function addAssociatedUriInput(id) {
 		$(".remove").remove();
 		window.setTimeout(function() {
 			addAssociatedUriInput(id);
-		}, 100);
+		}, 200);
 	});
 }
 
@@ -330,11 +330,7 @@ function updateReviewStatus(reviewId, status) {
 			data: JSON.stringify(obj)
 		}).done(function(res) {
 			if (res.status && res.updated_at) {
-				$("#status").text(res.status);
-				prettifyEnums("#status");
-				$("#status-updated").text(res.updated_at);
-				getDatesFromUnix("#status-updated", true, true);
-				toggleReviewButtons(res.status, res.is_open);
+				renderReviewStatus(res.status, res.updated_at, res.is_open)
 			}
 			$(ajaxStatus+".form-success").show();
 		}).fail(function() {
@@ -437,14 +433,13 @@ function saveReviewTestData(markBad, advance) {
 			data: JSON.stringify(obj)
 		}).done(function(res) {
 			if (res) {
-				console.log(res);	//DELME WTSN-18
 				if (markBad && res.status && res.updated_at) {
-					//TODO WTSN-18 update status and buttons
+					renderReviewStatus(res.status, res.updated_at, res.is_open)
 				}
 			}
 			$(ajaxStatus+".form-success").show();
 			if (advance) {
-				//TODO WTSN-18 advance to next open review
+				window.location = $("#next-review").attr("href");
 			}
 		}).fail(function() {
 			$(ajaxStatus+".form-alert").show();
@@ -452,6 +447,15 @@ function saveReviewTestData(markBad, advance) {
 			$(ajaxStatus+".form-info").hide();
 		});
 	}	
+}
+
+function renderReviewStatus(status, updatedAt, isOpen) {
+	$("#status").text(status);
+	prettifyEnums("#status");
+	$("#status-updated").text(updatedAt);
+	$("#status-updated").show();
+	getDatesFromUnix("#status-updated", true, true);
+	toggleReviewButtons(status, isOpen);
 }
 
 function updateReviewRequest(requestId, reason) {
@@ -688,7 +692,7 @@ function getDatesFromUnix(selector, withTime, full) {
 }
 
 function formatDate(unix, withTime, full) {
-	if (isNaN(unix)) {
+	if (isNaN(unix) || unix <= 0) {
 		return "";
 	} else {
 		var date = new Date(unix * 1000);
