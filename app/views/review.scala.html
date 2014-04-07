@@ -81,12 +81,18 @@
 				<option value="redirect">Redirect</option>
 				<option value="executable">Executable</option>
 				</select>
-				<input type="text" name="executable-hash" id="executable-hash" class="input-large form-control inline auto-width" disabled placeholder="SHA-256">
+				@defining(if (details.reviewCode.isDefined) details.reviewCode.get.execSha256 else None) { hash =>
+					@defining(if (hash.isDefined) "" else "disabled") { disabled =>
+					<input type="text" name="executable-hash" id="executable-hash" class="input-large form-control inline auto-width" @disabled placeholder="SHA-256" value="@hash">
+					}
+				}
 				<div id="executable-hash-alert" class="form-alert alert alert-danger text-center non-vis margin-bottom-none margin-top-1em">
 					<h3 id="alert-msg">Invalid Hash: SHA-256 must contain 64 characters</h3>
 				</div>
 			</div>
-			<textarea id="badcode" name="badcode" class="form-control keepwhite has-char-counter margin-top-1em" rows="5" placeholder="Bad Code" maxlength="4096" spellcheck="false" @readonly></textarea>
+			@defining(if (details.reviewCode.isDefined) details.reviewCode.get.badCode else None) { badCode =>
+			<textarea id="badcode" name="badcode" class="form-control keepwhite has-char-counter margin-top-1em" rows="5" placeholder="Bad Code" maxlength="4096" spellcheck="false" @readonly>@badCode</textarea>
+			}
 			@partials.charcounter("badcode", 4096)
 			<ul id="associated-uris" class="list-style-none"></ul>
 			@if(user.hasRole(Role.REVIEWER)) {
@@ -132,8 +138,8 @@
 			    	<tbody>
 			    	@details.googleRescans.map { rescan =>
 						<tr class="text-center">
-							<td class="text-left"><a href="/uris/@rescan.uriId">@(details.rescanUris(rescan.uriId))</a></td>
-							<td><a href="https://www.google.com/safebrowsing/diagnostic?site=@(details.rescanUris(rescan.uriId))" target="_blank">SBD</a></td>
+							<td class="text-left"><a href="/uris/@rescan.uriId">@(details.uris(rescan.uriId))</a></td>
+							<td><a href="https://www.google.com/safebrowsing/diagnostic?site=@(details.uris(rescan.uriId))" target="_blank">SBD</a></td>
 							<td>@rescan.status</td>
 							<td class="unixtime-full text-right">@rescan.rescannedAt</td>
 							<td>@rescan.requestedVia</td>

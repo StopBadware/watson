@@ -372,7 +372,7 @@ class ReviewSpec extends Specification {
     		details.tags.nonEmpty must beTrue
     		details.tags.contains(tag.id) must beTrue
     		List("prev", "next").map(review.siblings.contains(_) must beTrue)
-    		details.rescanUris.contains(GoogleRescan.findByUri(uriId).head.uriId) must beTrue
+    		details.uris.contains(GoogleRescan.findByUri(uriId).head.uriId) must beTrue
       }
     }
     

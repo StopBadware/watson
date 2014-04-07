@@ -381,15 +381,17 @@ case class ReviewDetails(review: Review) {
 	val googleRescans = GoogleRescan.findByUri(uri.id)
 	val reviewRequests = ReviewRequest.findByUri(uri.id)
 	val tags = ReviewTag.find((review+:otherReviews).map(_.reviewTags).flatten.distinct).map(t => (t.id, t)).toMap
-	
-  def tagsWithoutOpenOnly: Map[Int, ReviewTag] = tags.filterNot(_._2.openOnly)
-  
-  def rescanUris: Map[Int, String] = {
-    //TODO WTSN-55 get all related uris
-    Uri.find(googleRescans.map(rescan => List(rescan.uriId, rescan.relatedUriId.getOrElse(0))).flatten.toSet.toList)
-      .map(uri => (uri.id, uri.uri.toString)).toMap
+	val reviewCode = ReviewCode.findByReview(review.id)
+	val associatedUris = AssociatedUri.findByReviewId(review.id)
+  val uris: Map[Int, String] = {
+    //TODO WTSN-55 get all related goog rescan uris
+    val urisToFind = {
+      googleRescans.map(rescan => List(rescan.uriId, rescan.relatedUriId.getOrElse(0))).flatten ++ 
+      associatedUris.map(_.uriId)
+    }.distinct
+    Uri.find(urisToFind).map(uri => (uri.id, uri.uri.toString)).toMap
   }
-  
+  def tagsWithoutOpenOnly: Map[Int, ReviewTag] = tags.filterNot(_._2.openOnly)
 }
 
 case class Note(id: Int, author: String, note: String, createdAt: Long)
