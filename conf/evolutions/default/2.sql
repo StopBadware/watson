@@ -17,4 +17,4 @@ CREATE INDEX ON google_rescans (status, requested_via);
 
 # --- !Downs
 
-DROP TABLE google_rescans CASCADE;
+DROP TABLE IF EXISTS google_rescans CASCADE;

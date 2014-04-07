@@ -18,4 +18,4 @@ INSERT INTO email_templates (name, subject, body) VALUES
 
 # --- !Downs
 
-DROP TABLE email_templates CASCADE;
+DROP TABLE IF EXISTS email_templates CASCADE;
