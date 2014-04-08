@@ -270,7 +270,7 @@ input[type=checkbox]:focus {
 	cursor: default;
 }
 #executable-hash {
-	width: calc(100% - 200px);
+	width: calc(100% - 220px);
 }
 /* DATE PICKER */
 .form-inline .form-control.date-picker {

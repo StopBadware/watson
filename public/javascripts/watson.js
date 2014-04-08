@@ -113,14 +113,6 @@ $(document).ready(function($) {
 		addAssociatedUriInput("#associated-uris");
 	}
 	
-	$("#executable-hash").focusout(function() {
-		if ($(this).val().length != 64) {
-			$("#executable-hash-alert").show();
-		} else {
-			$("#executable-hash-alert").hide();
-		}
-	});
-	
 	$(".date-picker").daterangepicker({
 		ranges: {
 			'Today': [new Date(), new Date()],
@@ -138,13 +130,25 @@ $(document).ready(function($) {
 		$("#"+this.id+"-used-char-ctr").text($(this).val().length);
 	});
 	
+	if ($("#badware-category").length) {
+		$("#badware-category").val("SCRIPT");
+	}
+	
 	$("#badware-category").change(function() {
-		if ($("#badware-category").val() == "executable") {
+		if ($("#badware-category").val() == "EXECUTABLE") {
 			$("#executable-hash").prop("disabled", false);
 		} else {
 			$("#executable-hash").val("");
 			$("#executable-hash-alert").hide();
 			$("#executable-hash").prop("disabled", true);
+		}
+	});
+	
+	$("#executable-hash").focusout(function() {
+		if ($(this).val().length != 64) {
+			$("#executable-hash-alert").show();
+		} else {
+			$("#executable-hash-alert").hide();
 		}
 	});
 	

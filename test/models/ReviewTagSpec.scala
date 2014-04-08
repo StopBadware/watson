@@ -86,6 +86,12 @@ class ReviewTagSpec extends Specification {
       }
     }
     
+    "find categories" in {
+      running(FakeApplication()) {
+        ReviewTag.categories.nonEmpty must beTrue
+      }
+    }
+    
     "find a tag by name" in {
       running(FakeApplication()) {
         val tag = createAndFind("FNM")

@@ -83,6 +83,8 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
         val id = json.get.\("id").as[Int]
         val review = Review.find(id).get
         
+        review.addTag(ReviewTag.findByName(json.get.\("category").as[String]).get.id)
+        
         val incoming = json.get.\("associated_uris").as[Array[JsValue]].map { au =>
           val uri = au.\("uri").as[String]
           (uri, Uri.findOrCreate(uri).get.id)
@@ -101,15 +103,6 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
         }.foreach { au => 
           AssociatedUri.create(review.id, au.uriId, au.resolved, UriType.fromStr(au.uriType.get), UriIntent.fromStr(au.intent.get))
         }
-        
-        val category = json.get.\("category").as[String]
-        //TODO WTSN-18 handle category
-//        val tag = ReviewTag.findByName(category)
-//        if (tag.isDefined) {
-//        	review.addTag(tag.get.id)
-//        } else {
-//          review.addTag(ReviewTag.findByName(category).get.id)
-//        }
         
         val sha256 = json.get.\("sha256").as[String]
         val badCode = json.get.\("bad_code").as[String]

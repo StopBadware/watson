@@ -112,6 +112,10 @@ object ReviewTag {
     Try(SQL("SELECT * FROM review_tags WHERE active=true")().map(mapFromRow).flatten.toList).getOrElse(List())
   }
   
+  def categories: List[ReviewTag] = DB.withConnection { implicit conn =>
+    Try(SQL("SELECT * FROM review_tags WHERE is_category=true")().map(mapFromRow).flatten.toList).getOrElse(List())
+  }
+  
   def findByName(name: String): Option[ReviewTag] = DB.withConnection { implicit conn =>
     return Try(mapFromRow(SQL("SELECT * FROM review_tags WHERE name={name} LIMIT 1")
       .on("name" -> name.toUpperCase)().head)).getOrElse(None)

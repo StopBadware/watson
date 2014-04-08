@@ -76,10 +76,9 @@
 			<div class="inline width-100">
 				<label for="badware-category">Category</label>
 				<select name="badware-category" id="badware-category" class="inline form-control auto-width">
-				<option value="script">Script</option>
-				<option value="iframe">Iframe</option>
-				<option value="redirect">Redirect</option>
-				<option value="executable">Executable</option>
+				@ReviewTag.categories.map { cat =>
+				<option value="@cat">@cat</option>	
+				}
 				</select>
 				@defining(if (details.reviewCode.isDefined) details.reviewCode.get.execSha256 else None) { hash =>
 					@defining(if (hash.isDefined) "" else "disabled") { disabled =>

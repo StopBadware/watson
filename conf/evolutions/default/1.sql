@@ -78,6 +78,15 @@ CREATE TABLE review_tags (
 );
 
 CREATE INDEX ON review_tags (active);
+CREATE INDEX ON review_tags (is_category);
+CREATE INDEX ON review_tags (open_only);
+CREATE INDEX ON review_tags (name);
+
+INSERT INTO review_tags (name, hex_color, is_category) VALUES 
+  ('EXECUTABLE', '005695', TRUE),
+  ('IFRAME', '005695', TRUE),
+  ('REDIRECT', '005695', TRUE),
+  ('SCRIPT', '005695', TRUE);
 
 CREATE TABLE reviews (
   id SERIAL PRIMARY KEY,
