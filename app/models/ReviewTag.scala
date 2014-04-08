@@ -47,6 +47,7 @@ case class ReviewTag(
   }
   
   override def toString: String = name
+  override def equals(any: Any): Boolean = name.equals(any.toString) 
   
 }
 

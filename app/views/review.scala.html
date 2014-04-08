@@ -76,8 +76,10 @@
 			<div class="inline width-100">
 				<label for="badware-category">Category</label>
 				<select name="badware-category" id="badware-category" class="inline form-control auto-width">
-				@ReviewTag.categories.map { cat =>
-				<option value="@cat">@cat</option>	
+				@ReviewTag.categories.sortWith(_.name.equals("SCRIPT") || _.active).map { cat =>
+					@defining(if (details.category.isDefined && details.category.get.equals(cat)) "selected" else "") { selected =>
+					<option value="@cat" @selected>@cat</option>
+					}
 				}
 				</select>
 				@defining(if (details.reviewCode.isDefined) details.reviewCode.get.execSha256 else None) { hash =>
