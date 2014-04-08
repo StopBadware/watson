@@ -140,6 +140,15 @@ case class Review(
   def addTag(tagId: Int): Boolean = {
 		val tag = ReviewTag.find(tagId)
     return if (tag.isDefined) {
+      val t = tag.get
+      if (t.openOnly) {
+        addOpenOnlyTag(t.id)
+      } else {
+        if (t.isCategory) {
+          removeCategories()
+        }
+        addReviewTag(t.id)
+      }
       if (tag.get.openOnly) addOpenOnlyTag(tag.get.id) else addReviewTag(tag.get.id) 
     } else {
       false
@@ -180,6 +189,14 @@ case class Review(
     return Try {
       SQL("DELETE FROM review_taggings WHERE review_id={id} AND review_tag_id={tagId}")
       	.on("id" -> id, "tagId" -> tagId).executeUpdate()
+    }.isSuccess
+  }
+  
+  private def removeCategories(): Boolean = DB.withConnection { implicit conn =>
+    return Try {
+      SQL("""DELETE FROM review_taggings USING review_tags tags WHERE review_id={id} AND review_tag_id=tags.id 
+        AND tags.is_category=true""")
+      	.on("id" -> id).executeUpdate()
     }.isSuccess
   }
   
