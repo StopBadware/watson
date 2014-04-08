@@ -33,8 +33,10 @@ case class AssociatedUri(
       newUriType: Option[UriType], 
       newIntent: Option[UriIntent]): Boolean = DB.withConnection { implicit conn =>
     return try {
+      val nt = if (newUriType.isDefined) Some(newUriType.get.toString) else None
+      val ni = if (newIntent.isDefined) Some(newIntent.get.toString) else None
       SQL("UPDATE associated_uris SET resolved={newResolved}, uri_type={newUriType}::URI_TYPE, intent={newIntent}::URI_INTENT WHERE id={id}")
-        .on("id" -> id, "newResolved" -> newResolved, "newUriType" -> newUriType, "newIntent" -> newIntent).executeUpdate() > 0
+        .on("id" -> id, "newResolved" -> newResolved, "newUriType" -> nt, "newIntent" -> ni).executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       false
