@@ -149,7 +149,6 @@ case class Review(
         }
         addReviewTag(t.id)
       }
-      if (tag.get.openOnly) addOpenOnlyTag(tag.get.id) else addReviewTag(tag.get.id) 
     } else {
       false
     }
