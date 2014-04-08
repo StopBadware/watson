@@ -138,7 +138,7 @@ case class Review(
   def isOpen: Boolean = status.isOpen
   
   def addTag(tagId: Int): Boolean = {
-  		val tag = ReviewTag.find(tagId)
+		val tag = ReviewTag.find(tagId)
     return if (tag.isDefined) {
       if (tag.get.openOnly) addOpenOnlyTag(tag.get.id) else addReviewTag(tag.get.id) 
     } else {
@@ -158,8 +158,8 @@ case class Review(
       if (openOnlyTags.contains(tagId)) {
         false
       } else {
-        SQL("""UPDATE reviews SET open_only_tag_ids=((SELECT open_only_tag_ids FROM reviews WHERE id={id}) || ARRAY[{tagId}]) 
-          WHERE id={id}""").on("id" -> id, "tagId" -> tagId).executeUpdate() > 0
+        SQL("""UPDATE reviews SET open_only_tag_ids=((SELECT open_only_tag_ids FROM reviews WHERE id={id}) 
+          || ARRAY[{tagId}::INTEGER]) WHERE id={id}""").on("id" -> id, "tagId" -> tagId).executeUpdate() > 0
       }
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
@@ -188,7 +188,7 @@ case class Review(
       val tags = Try(SQL("SELECT open_only_tag_ids FROM reviews WHERE id={id}").on("id" -> id)()
         .head[Option[Array[Int]]]("open_only_tag_ids").getOrElse(Array()).toSet).getOrElse(Set())
       val newTagIds = tags.filterNot(_ == tagId).mkString(",")
-      SQL("UPDATE reviews SET open_only_tag_ids=ARRAY["+newTagIds+"] WHERE id={id}").on("id"->id).executeUpdate() > 0
+      SQL("UPDATE reviews SET open_only_tag_ids=ARRAY["+newTagIds+"]::INTEGER[] WHERE id={id}").on("id"->id).executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       false
