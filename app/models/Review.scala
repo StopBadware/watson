@@ -137,8 +137,11 @@ case class Review(
   
   def isOpen: Boolean = status.isOpen
   
-  def addTag(tagId: Int): Boolean = {
-		val tag = ReviewTag.find(tagId)
+  def addTag(tagId: Int): Boolean = addTag(ReviewTag.find(tagId))
+  
+  def addTag(tagName: String): Boolean = addTag(ReviewTag.findByName(tagName)) 
+  
+  def addTag(tag: Option[ReviewTag]): Boolean = {
     return if (tag.isDefined) {
       val t = tag.get
       if (t.openOnly) {

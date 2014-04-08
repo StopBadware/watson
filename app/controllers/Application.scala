@@ -83,7 +83,7 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
         val id = json.get.\("id").as[Int]
         val review = Review.find(id).get
         
-        review.addTag(ReviewTag.findByName(json.get.\("category").as[String]).get.id)
+        review.addTag(json.get.\("category").as[String])
         
         val incoming = json.get.\("associated_uris").as[Array[JsValue]].map { au =>
           val uri = au.\("uri").as[String]
