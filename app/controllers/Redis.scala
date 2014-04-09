@@ -20,6 +20,8 @@ object Redis extends Controller {
   
   def get(key: String): Option[String] = pool.withClient(_.get(key))
   
+  def drop(key: String): Boolean = pool.withClient(_.del(key)).getOrElse(0L) > 0L
+  
   def addBlacklist(source: Source, time: Long, blacklist: List[String]): Boolean = {
     return pool.withClient(client => client.hset(source, time, Json.generate(blacklist)))
   }  
