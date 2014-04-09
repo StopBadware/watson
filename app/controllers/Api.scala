@@ -8,7 +8,7 @@ import play.api.mvc._
 import models.{BlacklistEvent, Uri}
 import models.enums.Source
 
-object Rest extends Controller with JsonMapper {
+object Api extends Controller with JsonMapper {
   
 	def timeoflast(abbr: String) = Action { implicit request =>
 		val source = Source.withAbbr(abbr)

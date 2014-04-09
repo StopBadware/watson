@@ -33,10 +33,11 @@ POST	/reviews/updatestatus				controllers.Application.updateReviewStatus
 POST	/reviews/updatetestdata				controllers.Application.updateReviewTestData
 POST	/reviews/note						controllers.Application.addReviewNote
 
-# REST ENDPOINTS
-GET     /blacklists/timeoflast/:source   	controllers.Rest.timeoflast(source)
-POST    /blacklists/add/:source				controllers.Rest.importList(source)
-POST    /reviews/request					controllers.Rest.requestReview
+# API ENDPOINTS
+GET     /blacklists/timeoflast/:source   	controllers.Api.timeoflast(source)
+POST    /blacklists/add/:source				controllers.Api.importList(source)
+POST    /reviews/request					controllers.Api.requestReview
 
 # MISC RESOURCES
+GET     /robots.txt		               		controllers.Assets.at(path="/public", file="robots.txt")
 GET     /assets/*file               		controllers.Assets.at(path="/public", file)
