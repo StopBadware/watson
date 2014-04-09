@@ -95,6 +95,9 @@
 			<textarea id="badcode" name="badcode" class="form-control keepwhite has-char-counter margin-top-1em" rows="5" placeholder="Bad Code" maxlength="4096" spellcheck="false" @readonly>@badCode</textarea>
 			}
 			@partials.charcounter("badcode", 4096)
+			@details.associatedUris.map { au =>
+			<span class="associated-uris-data non-vis" data-uri="@details.uris(au.uriId)" data-resolved="@au.resolved" data-type="@au.uriType" data-intent="@au.intent"></span>
+			}
 			<ul id="associated-uris" class="list-style-none"></ul>
 			@if(user.hasRole(Role.REVIEWER)) {
 			<div class="text-right">

@@ -61,8 +61,8 @@ object AssociatedUri {
           "reviewId" -> reviewId, 
           "uriId" -> uriId, 
           "resolved" -> resolved, 
-          "uriType" -> uriType, 
-          "intent" -> intent).executeUpdate() > 0
+          "uriType" -> uriType.map(_.toString), 
+          "intent" -> intent.map(_.toString)).executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       false

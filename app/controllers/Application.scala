@@ -85,18 +85,19 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
         
         review.addTag(json.get.\("category").as[String])
         
-        val incoming = json.get.\("associated_uris").as[Array[JsValue]].map { au =>
+        val associated = json.get.\("associated_uris").as[Array[JsValue]]
+        val incoming = associated.map { au =>
           val uri = au.\("uri").as[String]
           (uri, Uri.findOrCreate(uri).get.id)
         }.toMap
         val uris = incoming.values.toList
         AssociatedUri.findByReviewId(review.id).filterNot(au => uris.contains(au.uriId)).foreach(_.delete())
         
-        json.get.\("associated_uris").as[Array[JsValue]].map { au =>
+        associated.map { au =>
           val uriId = incoming(au.\("uri").as[String])
-          val resolved = au.\("resolved").as[String] match {
-            case "Resolved" => Some(true)
-            case "Did Not Resolve" => Some(false)
+          val resolved = au.\("resolved").as[String].toUpperCase match {
+            case "RESOLVED" => Some(true)
+            case "DNR" => Some(false)
             case _ => None
           }
           RevAssocUri(uriId, resolved, au.\("type").asOpt[String], au.\("intent").asOpt[String])

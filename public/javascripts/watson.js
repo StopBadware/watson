@@ -110,6 +110,7 @@ $(document).ready(function($) {
 	var zc = new ZeroClipboard($(".clipboard"));
 	
 	if ($("#associated-uris").length) {
+		renderAssociatedUris(".associated-uris-data", "#associated-uris");
 		addAssociatedUriInput("#associated-uris");
 	}
 	
@@ -238,22 +239,38 @@ function associatedUriInput(index) {
 	return '<li id="associated-'+index+'" data-index="'+index+'">'+
 	'<input type="url" id="associated-uri-'+index+'" class="input-large form-control uri inline" placeholder="Associated URI">'+
 	'<select id="associated-resolved-'+index+'" class="inline form-control auto-width">'+
-	'<option value="Resolved">Resolved</option>'+
-	'<option value="Did Not Resolve">Did Not Resolve</option>'+
+	'<option value="RESOLVED">Resolved</option>'+
+	'<option value="DNR">Did Not Resolve</option>'+
 	'<option value="">Unchecked</option>'+
 	'</select>'+
 	'<select id="associated-type-'+index+'" class="inline form-control auto-width">'+
-	'<option value="Payload">Payload</option>'+
-	'<option value="Intermediary">Intermediary</option>'+
-	'<option value="Landing">Landing</option>'+
+	'<option value="PAYLOAD">Payload</option>'+
+	'<option value="INTERMEDIARY">Intermediary</option>'+
+	'<option value="LANDING">Landing</option>'+
 	'<option value="">Unknown</option>'+
 	'</select>'+
 	'<select id="associated-intent-'+index+'" class="inline form-control auto-width">'+
-	'<option value="Hacked">Hacked</option>'+
-	'<option value="Malicious">Malicious</option>'+
-	'<option value="Free Host">Free Host</option>'+
+	'<option value="HACKED">Hacked</option>'+
+	'<option value="MALICIOUS">Malicious</option>'+
+	'<option value="FREE_HOST">Free Host</option>'+
 	'<option value="">Unknown</option>'+
 	'</select>';
+}
+
+function renderAssociatedUris(id, listId) {
+	$(id).each(function(index) {
+		$(listId).append(associatedUriInput(index));
+		$("#associated-uri-"+index).val($(this).data("uri"));
+		if ($(this).data("resolved")) {
+			$("#associated-resolved-"+index).val("RESOLVED");
+		} else if ($(this).data("resolved") === "") {
+			$("#associated-resolved-"+index).val("");
+		} else {
+			$("#associated-resolved-"+index).val("DNR");
+		}
+		$("#associated-type-"+index).val($(this).data("type"));
+		$("#associated-intent-"+index).val($(this).data("intent"));
+	});
 }
 
 function emptyCount(selector) {
@@ -292,13 +309,13 @@ function requestReview(uris, email, notes) {
 			}).done(function(res) {
 				if (res.id) {
 					var msg = "Review Request <a href=\"/requests/"+res.id+"\">"+res.id+"</a> Created";
-					$("#success-msg").html(msg);
+					$(".success-msg").html(msg);
 				}
 				$(".form-success").show();
 			}).fail(function(res) {
 				var msg = res.responseJSON.msg;
 				if (msg && msg.length > 0) {
-					$("#alert-msg").text(msg);
+					$(".alert-msg").text(msg);
 				}
 				$(".form-alert").show();
 			}).always(function() {
@@ -306,9 +323,9 @@ function requestReview(uris, email, notes) {
 			});
 		} else {
 			if (!validEmail) {
-				$("#alert-msg").text("Valid email required!");
+				$(".alert-msg").text("Valid email required!");
 			} else if (!hasUris) {
-				$("#alert-msg").text("URI required!");
+				$(".alert-msg").text("URI required!");
 			}
 			$(".form-alert").show();
 		}
@@ -499,7 +516,7 @@ function updateReviewRequests(requestIds, reason) {
 			data: JSON.stringify(obj)
 		}).done(function(res) {
 			if (res.msg) {
-				$("#success-msg").text(res.msg);
+				$(".success-msg").text(res.msg);
 			}
 			$(".form-success").show();
 		}).fail(function(res) {
