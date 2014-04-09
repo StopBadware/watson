@@ -9,7 +9,7 @@ import play.api.test.Helpers._
 @RunWith(classOf[JUnitRunner])
 class MailerSpec extends Specification {
   
-  private val email = "test@stopbadware.org"
+  private val email = sys.env("TEST_EMAIL")
   private val uri = "http://example.com/"
   
   "Mailer" should {
