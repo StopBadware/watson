@@ -10,7 +10,7 @@ import models.enums.Source
 
 object Api extends Controller with JsonMapper {
   
-	def timeoflast(abbr: String) = Action { implicit request =>
+	def timeoflast(abbr: String) = withAuth { implicit request =>
 		val source = Source.withAbbr(abbr)
 		if (source.isDefined) {
 		  val blTimeOfLast = BlacklistEvent.timeOfLast(source.get)
@@ -21,21 +21,22 @@ object Api extends Controller with JsonMapper {
 		}
   }
 	
-	def importList(abbr: String) = Action(parse.temporaryFile) { implicit request =>
+	def importList(abbr: String) = withAuth { implicit request =>
 	  Logger.info("Received import for " + abbr)
 	  val source = Source.withAbbr(abbr)
+	  val file = request.body.asRaw.get.asFile
 	  if (source.isDefined) {
-	    future(Blacklist.importBlacklist(IoSource.fromFile(request.body.file).mkString, source.get))
+	    future(Blacklist.importBlacklist(IoSource.fromFile(file).mkString, source.get))
 	    Ok
 	  } else if (abbr.equalsIgnoreCase("googapl")) {
-	    future(Blacklist.importGoogleAppeals(IoSource.fromFile(request.body.file).mkString))
+	    future(Blacklist.importGoogleAppeals(IoSource.fromFile(file).mkString))
 	    Ok
 	  } else {
 	  	NotFound
 	  }
   }
 	
-	def requestReview = Action { implicit request =>
+	def requestReview = withAuth { implicit request =>
 	  val body = Try(mapJson(request.body.asJson.get.toString).get)
 	  if (body.isSuccess) {
 	    val json = body.get
@@ -52,5 +53,29 @@ object Api extends Controller with JsonMapper {
 	  	UnsupportedMediaType
 	  }
 	}
+	
+	def withAuth(auth: => Request[AnyContent] => Result) = {
+    Security.Authenticated(apiKey, onUnauthorized) { implicit request =>
+      Action(request => auth((request)))
+    }
+  }
+	
+	private def apiKey(request: RequestHeader): Option[String] = {
+	  println(request.headers)		//DELME WTSN-21
+	  println(request)						//DELME WTSN-21
+	  println("AUTH STUFF HERE")	//TODO WTSN-21
+	  try {
+	    //TODO WTSN-21 get key ts and sig headers
+	    //TODO WTSN-21 validate ts
+	    //TODO WTSN-21 get secret and unecrypt
+	    //TODO WTSN-21 compare hashes
+	    //TODO WTSN-21 return Some(pubkey) or None
+	    Some("TODO")
+	  } catch {
+	    case _: Exception => None
+	  }
+	}
+	
+	private def onUnauthorized(request: RequestHeader) = Forbidden
 	
 }
