@@ -6,6 +6,7 @@ import scala.util.Try
 import scala.io.{Source => IoSource}
 import play.api._
 import play.api.mvc._
+import org.jasypt.encryption.pbe.StandardPBEStringEncryptor
 import models.{BlacklistEvent, Uri}
 import models.enums.Source
 
@@ -82,23 +83,31 @@ object Api extends Controller with JsonMapper {
 object ApiAuth {
   
   private val cryptAlg = sys.env("CRYPT_ALG")
-  private val crypKey = sys.env("CRYPT_KEY")
+  private val cryptKey = sys.env("CRYPT_KEY")
   private val maxAge = Try(sys.env("API_MAX_SECONDS").toInt).getOrElse(60)
+  private val textEncryptor = new StandardPBEStringEncryptor()
   
-  def newPair: (String, String) = {
+  textEncryptor.setAlgorithm(cryptAlg)
+  textEncryptor.setPassword(cryptKey)
+  
+  def newPair: Option[(String, String)] = {
   	val pubKey = UUID.randomUUID + "-" + System.currentTimeMillis.toHexString
-  	println(pubKey)	//DELME WTSN-21
-  	val secret = ""	//TODO WTSN-21 encrypt
-    return (pubKey, secret)
+  	val secret = Hash.sha256(UUID.randomUUID + System.nanoTime.toHexString).get
+  	val crypted = encrypt(secret)
+  	return if (crypted.isDefined) {
+  		Redis.set(pubKey, crypted.get)
+  		Some((pubKey, secret))
+  	} else {
+  	  None
+  	}
   }
   
   def dropPair(pubKey: String): Boolean = Redis.drop(pubKey)
   
   def authenticate(pubKey: String, timestamp: Long, path: String, signature: String): Boolean = {
-    println(pubKey, timestamp, path, signature)	//DELME WTSN-21
-    val authenticated = if (validateTimestamp(timestamp)) {
-      val secret = Redis.get(pubKey).getOrElse("")	//TODO WTSN-21 unecrypt	
-      Try(Hash.sha256(pubKey+timestamp+path+secret).get.equals(signature)).getOrElse(false)
+    val cryptedSecret = Redis.get(pubKey)
+    val authenticated = if (cryptedSecret.isDefined && validateTimestamp(timestamp)) {
+      Try(Hash.sha256(pubKey + timestamp + path + decrypt(cryptedSecret.get).getOrElse("")).get.equals(signature)).getOrElse(false)
     } else {
       false
     }
@@ -114,5 +123,9 @@ object ApiAuth {
     val now = System.currentTimeMillis / 1000
     return timestamp < (now + 10) && (now - timestamp) < maxAge
   }
+  
+  private def encrypt(cleartext: String): Option[String] = Try(textEncryptor.encrypt(cleartext)).toOption
+  
+  private def decrypt(ciphertext: String): Option[String] = Try(textEncryptor.decrypt(ciphertext)).toOption
   
 }

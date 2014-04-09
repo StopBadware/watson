@@ -15,6 +15,7 @@ object ApplicationBuild extends Build {
     "com.typesafe" % "play-plugins-redis_2.10" % "2.1.1",
     "com.typesafe.play" %% "play-cache" % "2.2.0",
     "postgresql" % "postgresql" % "9.1-901.jdbc4",
+    "org.jasypt" % "jasypt" % "1.9.2",
     "com.stormpath.sdk" % "stormpath-sdk-api" % "0.9.1",
     "com.stormpath.sdk" % "stormpath-sdk-httpclient" % "0.9.1"
   )

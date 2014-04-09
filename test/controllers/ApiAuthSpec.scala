@@ -13,7 +13,7 @@ class ApiAuthSpec extends Specification {
     
     "generate a new key pair" in {
       running(FakeApplication()) {
-        val pair = ApiAuth.newPair
+        val pair = ApiAuth.newPair.get
         pair._1.isEmpty must beFalse
         pair._2.isEmpty must beFalse
         ApiAuth.dropPair(pair._1) must beTrue
@@ -22,14 +22,14 @@ class ApiAuthSpec extends Specification {
     
     "delete a key pair" in {
       running(FakeApplication()) {
-        val pair = ApiAuth.newPair
+        val pair = ApiAuth.newPair.get
         ApiAuth.dropPair(pair._1) must beTrue
       }
     }
     
     "authenticate" in {
       running(FakeApplication()) {
-        val pair = ApiAuth.newPair
+        val pair = ApiAuth.newPair.get
         val ts = System.currentTimeMillis / 1000
         val path = "/for/the/horde"
         val sig = Hash.sha256(pair._1+ts+path+pair._2).get
