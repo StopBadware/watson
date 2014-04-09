@@ -1,5 +1,6 @@
 package controllers
 
+import java.util.UUID
 import scala.actors.Futures.future
 import scala.util.Try
 import scala.io.{Source => IoSource}
@@ -85,18 +86,18 @@ object ApiAuth {
   private val maxAge = Try(sys.env("API_MAX_SECONDS").toInt).getOrElse(60)
   
   def newPair: (String, String) = {
-    return ("", "")	//TODO WTSN-21
+  	val pubKey = UUID.randomUUID + "-" + System.currentTimeMillis.toHexString
+  	println(pubKey)	//DELME WTSN-21
+  	val secret = ""	//TODO WTSN-21 encrypt
+    return (pubKey, secret)
   }
   
-  def dropPair(pubKey: String): Boolean = {
-    return false	//TODO WTSN-21
-  }
+  def dropPair(pubKey: String): Boolean = Redis.drop(pubKey)
   
   def authenticate(pubKey: String, timestamp: Long, path: String, signature: String): Boolean = {
     println(pubKey, timestamp, path, signature)	//DELME WTSN-21
-    //TODO WTSN-21 validate ts
     val authenticated = if (validateTimestamp(timestamp)) {
-      val secret = ""	//TODO WTSN-21 get secret and unecrypt	
+      val secret = Redis.get(pubKey).getOrElse("")	//TODO WTSN-21 unecrypt	
       Try(Hash.sha256(pubKey+timestamp+path+secret).get.equals(signature)).getOrElse(false)
     } else {
       false
