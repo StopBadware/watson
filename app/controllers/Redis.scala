@@ -16,6 +16,10 @@ object Redis extends Controller {
   }
   private lazy val pool = new RedisClientPool(redisUrl.getHost, redisUrl.getPort, secret=redisPw)
   
+  def set(key: String, value: String): Boolean = pool.withClient(_.set(key, value))
+  
+  def get(key: String): Option[String] = pool.withClient(_.get(key))
+  
   def addBlacklist(source: Source, time: Long, blacklist: List[String]): Boolean = {
     return pool.withClient(client => client.hset(source, time, Json.generate(blacklist)))
   }  

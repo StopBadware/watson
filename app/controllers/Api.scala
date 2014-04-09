@@ -61,16 +61,14 @@ object Api extends Controller with JsonMapper {
   }
 	
 	private def apiKey(request: RequestHeader): Option[String] = {
-	  println(request.headers)		//DELME WTSN-21
-	  println(request)						//DELME WTSN-21
-	  println("AUTH STUFF HERE")	//TODO WTSN-21
-	  try {
-	    //TODO WTSN-21 get key ts and sig headers
-	    //TODO WTSN-21 validate ts
-	    //TODO WTSN-21 get secret and unecrypt
-	    //TODO WTSN-21 compare hashes
-	    //TODO WTSN-21 return Some(pubkey) or None
-	    Some("TODO")
+	  return try {
+	    val headers = request.headers
+	    val key = headers("SBW-Key")
+	    if (ApiAuth.authenticate(key, headers("SBW-Timestamp").toLong, request.path, headers("SBW-Signature"))) {
+	      Some(key)
+	    } else {
+	      None
+	    }
 	  } catch {
 	    case _: Exception => None
 	  }
@@ -78,4 +76,42 @@ object Api extends Controller with JsonMapper {
 	
 	private def onUnauthorized(request: RequestHeader) = Forbidden
 	
+}
+
+object ApiAuth {
+  
+  private val cryptAlg = sys.env("CRYPT_ALG")
+  private val crypKey = sys.env("CRYPT_KEY")
+  private val maxAge = Try(sys.env("API_MAX_SECONDS").toInt).getOrElse(60)
+  
+  def newPair: (String, String) = {
+    return ("", "")	//TODO WTSN-21
+  }
+  
+  def dropPair(pubKey: String): Boolean = {
+    return false	//TODO WTSN-21
+  }
+  
+  def authenticate(pubKey: String, timestamp: Long, path: String, signature: String): Boolean = {
+    println(pubKey, timestamp, path, signature)	//DELME WTSN-21
+    //TODO WTSN-21 validate ts
+    val authenticated = if (validateTimestamp(timestamp)) {
+      val secret = ""	//TODO WTSN-21 get secret and unecrypt	
+      Try(Hash.sha256(pubKey+timestamp+path+secret).get.equals(signature)).getOrElse(false)
+    } else {
+      false
+    }
+    if (authenticated) {
+      Logger.info(pubKey+" accessing "+path)
+    } else {
+      Logger.warn("Authentication FAILURE for "+pubKey+" accessing "+path)
+    }
+    return authenticated
+  }
+  
+  private def validateTimestamp(timestamp: Long): Boolean = {
+    val now = System.currentTimeMillis / 1000
+    return timestamp < (now + 10) && (now - timestamp) < maxAge
+  }
+  
 }
