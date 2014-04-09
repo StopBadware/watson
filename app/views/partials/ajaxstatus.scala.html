@@ -1,15 +1,15 @@
 @(alertMsg: String, infoMsg: String, successMsg: String, classes: String="")(alertHtml: String="", infoHtml: String="", successHtml: String="")
 <div class="@classes auto-margin">
 	<div class="form-alert alert alert-danger text-center non-vis">
-		<h3 id="alert-msg">@alertMsg</h3>
+		<h3 class="alert-msg">@alertMsg</h3>
 		@if(alertHtml.nonEmpty){<h4>@Html(alertHtml)</h4>}
 	</div>
 	<div class="form-info alert alert-warning non-vis">
-		<h4 id="info-msg">@infoMsg...</h4>
+		<h4 class="info-msg">@infoMsg...</h4>
 		@if(infoHtml.nonEmpty){<h4>@Html(infoHtml)</h4>}else{@partials.progressbar()}
 	</div>
 	<div class="form-success text-center alert alert-success non-vis">
-		<h3 id="success-msg">@successMsg</h3>
+		<h3 class="success-msg">@successMsg</h3>
 		@if(successHtml.nonEmpty){<h4>@Html(successHtml)</h4>}
 	</div>
 </div>
