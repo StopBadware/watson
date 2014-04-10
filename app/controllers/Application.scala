@@ -276,7 +276,23 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
   
   def ips = TODO	//TODO WTSN-59 ips view
   
-  def ip(ip: Long) = TODO	//TODO WTSN-59 view ip  
+  def ip(ip: Long) = TODO	//TODO WTSN-59 view ip
+  
+  def apiKeys = withAuth { userId => implicit request =>
+    val user = User.find(userId.get).get
+    if (user.hasRole(Role.ADMIN)) {
+	    val email = user.email
+	    val keys = ApiAuth.newPair
+	    if (keys.isDefined) {
+	      Mailer.sendSecret(email, keys.get._2)
+	    	Ok(views.html.apikeys(email, keys.get._1))
+	    } else {
+	      InternalServerError
+	    }
+    } else {
+      Unauthorized
+    }
+  }
   
   def welcome = Action { implicit request =>
     Ok(views.html.welcome())

@@ -31,6 +31,14 @@ object Mailer extends Controller {
     sendTemplate(reviewClosedBad, email, uri, notes)
   }
   
+  def sendSecret(email: String, secret: String): Future[Boolean] = {
+    val body = "<h1 style='color: #FF0000'>KEEP THIS KEY SECURE</h1>"+
+  		"<h2>Watson API secret key corresponding to the public key given at time of the request:</h2>"+
+  		"<h2>"+secret+"</h2><h1 style='color: #FF0000'>KEEP THIS KEY SECURE</h1>"
+    val json = sendReqJson(email, "Watson API", body, "API secret")
+    return future(if (email.endsWith("@stopbadware.org")) send(json) else false)
+  } 
+  
   private def sendTemplate(templateName: String, email: String, uri: String, notes: String=""): Future[Boolean] = {
   	val template = EmailTemplate.find(templateName)
     return future {
