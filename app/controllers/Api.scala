@@ -65,8 +65,8 @@ object Api extends Controller with JsonMapper {
 	private def apiKey(request: RequestHeader): Option[String] = {
 	  return try {
 	    val headers = request.headers
-	    val key = headers("SBW-Key")
-	    if (ApiAuth.authenticate(key, headers("SBW-Timestamp").toLong, request.path, headers("SBW-Signature"))) {
+	    val key = headers("Wtsn-Key")
+	    if (ApiAuth.authenticate(key, headers("Wtsn-Timestamp").toLong, request.path, headers("Wtsn-Signature"))) {
 	      Some(key)
 	    } else {
 	      None
