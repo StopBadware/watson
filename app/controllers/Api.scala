@@ -26,12 +26,12 @@ object Api extends Controller with JsonMapper {
 	def importList(abbr: String) = withAuth { implicit request =>
 	  Logger.info("Received import for " + abbr)
 	  val source = Source.withAbbr(abbr)
-	  val file = request.body.asRaw.get.asFile
+	  val json = request.body.asJson.mkString
 	  if (source.isDefined) {
-	    future(Blacklist.importBlacklist(IoSource.fromFile(file).mkString, source.get))
+	    future(Blacklist.importBlacklist(json, source.get))
 	    Ok
 	  } else if (abbr.equalsIgnoreCase("googapl")) {
-	    future(Blacklist.importGoogleAppeals(IoSource.fromFile(file).mkString))
+	    future(Blacklist.importGoogleAppeals(json))
 	    Ok
 	  } else {
 	  	NotFound
