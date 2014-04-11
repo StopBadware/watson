@@ -9,8 +9,9 @@ import play.api.mvc._
 import org.jasypt.encryption.pbe.StandardPBEStringEncryptor
 import models.{BlacklistEvent, Uri}
 import models.enums.Source
+import models.cr._
 
-object Api extends Controller with JsonMapper {
+object Api extends Controller with ApiSecured {
   
 	def timeoflast(abbr: String) = withAuth { implicit request =>
 		val source = Source.withAbbr(abbr)
@@ -39,14 +40,14 @@ object Api extends Controller with JsonMapper {
   }
 	
 	def requestReview = withAuth { implicit request =>
-	  val body = Try(mapJson(request.body.asJson.get.toString).get)
+	  val body = Try(request.body.asJson)
 	  if (body.isSuccess) {
-	    val json = body.get
+	    val json = body.get.get
 	    try {
-		    val uri = Uri.findOrCreate(json.get("uri").asText).get
-		    val email = json.get("email").asText
-		    val ip = if (json.has("ip")) Some(json.get("ip").asLong) else None
-		    val notes = if (json.has("notes")) Some(json.get("notes").asText) else None
+	      val uri = Uri.findOrCreate(json.\("uri").as[String]).get
+		    val email = json.\("email").as[String]
+		    val ip = json.\("ip").asOpt[Long]
+	      val notes = json.\("notes").asOpt[String]
 	    	if (uri.requestReview(email, ip, notes)) Ok else UnprocessableEntity
 	    } catch {
 	      case _: Exception => BadRequest
@@ -56,6 +57,30 @@ object Api extends Controller with JsonMapper {
 	  }
 	}
 	
+	def submitCommunityReport = withAuth { implicit request =>
+	  val body = Try(request.body.asJson)
+	  if (body.isSuccess) {
+	    val json = body.get.get
+	    try {
+		    val uri = Uri.findOrCreate(json.\("uri").as[String]).get.id
+		    val ip = json.\("ip").asOpt[Long]
+		    val desc = json.\("description").asOpt[String]
+		    val badCode = json.\("bad_code").asOpt[String]
+		    val crType = Try(CrType.findByType(json.\("type").as[String]).get.id).toOption
+		    val crSource = Try(CrSource.findByName(json.\("source").as[String]).get.id).toOption
+	    	if (CommunityReport.create(uri, ip, desc, badCode, crType, crSource)) Ok else UnprocessableEntity
+	    } catch {
+	      case _: Exception => BadRequest
+	    }
+	  } else {
+	  	UnsupportedMediaType
+	  }
+	}
+	
+}
+
+trait ApiSecured {
+  
 	def withAuth(auth: => Request[AnyContent] => Result) = {
     Security.Authenticated(apiKey, onUnauthorized) { implicit request =>
       Action(request => auth((request)))
@@ -76,8 +101,7 @@ object Api extends Controller with JsonMapper {
 	  }
 	}
 	
-	private def onUnauthorized(request: RequestHeader) = Forbidden
-	
+	private def onUnauthorized(request: RequestHeader) = play.api.mvc.Results.Forbidden  
 }
 
 object ApiAuth {
