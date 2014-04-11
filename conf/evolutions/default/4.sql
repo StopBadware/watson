@@ -4,20 +4,16 @@
 
 CREATE TABLE cr_types (
   id SERIAL PRIMARY KEY,
-  cr_type VARCHAR(64) NOT NULL,
+  cr_type VARCHAR(64) UNIQUE NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
-
-CREATE INDEX ON cr_types (cr_type);
 
 CREATE TABLE cr_sources (
   id SERIAL PRIMARY KEY,
-  short_name VARCHAR(6) NOT NULL,
+  short_name VARCHAR(6) UNIQUE NOT NULL,
   full_name VARCHAR(32) NOT NULL, 
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
-
-CREATE INDEX ON cr_sources (short_name);
 
 CREATE TABLE community_reports (
   id SERIAL PRIMARY KEY,
