@@ -8,12 +8,19 @@ CREATE TABLE cr_types (
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+INSERT INTO cr_types (cr_type) VALUES ('Drive-by download'), ('Executable'), ('Links to badware');
+
 CREATE TABLE cr_sources (
   id SERIAL PRIMARY KEY,
   short_name VARCHAR(6) UNIQUE NOT NULL,
   full_name VARCHAR(32) NOT NULL, 
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+INSERT INTO cr_sources (short_name, full_name) VALUES 
+  ('sbworg', 'StopBadware website'),
+  ('sbw', 'StopBadware staff'),
+  ('mmd', 'MalwareMustDie');
 
 CREATE TABLE community_reports (
   id SERIAL PRIMARY KEY,
