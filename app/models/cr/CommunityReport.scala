@@ -1,7 +1,7 @@
 package models.cr
 
 import java.util.Date
-import java.sql.Timestamp
+import java.sql.{Timestamp, Types}
 import anorm._
 import play.api.db._
 import play.api.Play.current
@@ -53,6 +53,33 @@ object CommunityReport {
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       false
+    }
+  }
+  
+  def bulkCreate(uriIds: List[Int],
+    ip: Option[Long]=None,
+    description: Option[String]=None,
+    badCode: Option[String]=None,
+    crTypeId: Option[Int]=None,
+    reportedVia: Option[Int]=None
+  ): Int = DB.withTransaction { implicit conn =>
+    return try {
+      val sql = "INSERT INTO community_reports (uri_id, ip, description, bad_code, cr_type_id, reported_via) VALUES (?, ?, ?, ?, ?, ?)"
+      val ps = conn.prepareStatement(sql)
+      uriIds.foreach { uriId =>
+        ps.setInt(1, uriId)
+        if (ip.isDefined) ps.setLong(2, ip.get) else ps.setNull(2, Types.BIGINT)
+        if (description.isDefined) ps.setString(3, description.get) else ps.setNull(3, Types.VARCHAR)
+        if (badCode.isDefined) ps.setString(4, badCode.get) else ps.setNull(4, Types.VARCHAR)
+        if (crTypeId.isDefined) ps.setInt(5, crTypeId.get) else ps.setNull(5, Types.INTEGER)
+        if (reportedVia.isDefined) ps.setInt(6, reportedVia.get) else ps.setNull(6, Types.INTEGER)
+        ps.addBatch()
+      }
+      val batch = ps.executeBatch()
+      batch.foldLeft(0)((cnt, b) => cnt + b)
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      0
     }
   }
   

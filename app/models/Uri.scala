@@ -85,14 +85,14 @@ object Uri {
 		return inserted > 0
   }
   
-  def create(reported: List[String]): Int = DB.withTransaction { implicit conn =>
+  def create(uris: List[String]): Int = DB.withTransaction { implicit conn =>
     return try {
       val sql = """INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256) 
     		SELECT ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM uris WHERE sha2_256=?)"""    
       val ps = conn.prepareStatement(sql)
-      reported.grouped(BatchSize).foldLeft(0) { (total, group) =>
-	  		group.foreach { rep =>
-	  		  Try(new ReportedUri(rep)).foreach { repUri =>
+      uris.grouped(BatchSize).foldLeft(0) { (total, group) =>
+	  		group.foreach { uri =>
+	  		  Try(new ReportedUri(uri)).foreach { repUri =>
 		  			ps.setString(1, repUri.uri.toString)
 		  			ps.setString(2, Host.reverse(repUri.uri))
 		  			ps.setString(3, repUri.hierarchicalPart)
@@ -114,11 +114,11 @@ object Uri {
   	}
   }   
   
-  def findOrCreate(uriStr: String): Option[Uri] = {
+  def findOrCreate(uri: String): Option[Uri] = {
     return try {
-      findOrCreate(new ReportedUri(uriStr))
+      findOrCreate(new ReportedUri(uri))
     } catch {
-      case e: URISyntaxException => Logger.warn("Invalid URI: '"+uriStr+"'\t"+e.getMessage)
+      case e: URISyntaxException => Logger.warn("Invalid URI: '"+uri+"'\t"+e.getMessage)
       None
     }
   }  
@@ -133,10 +133,10 @@ object Uri {
     }
   }
   
-   def findOrCreateIds(reported: List[String]): List[Int] = {
-  	val writes = create(reported)
+   def findOrCreateIds(uris: List[String]): List[Int] = {
+  	val writes = create(uris)
   	Logger.info("Wrote "+writes+" new URIs")
-  	return reported.grouped(10000).foldLeft(List.empty[Int]) { (ids, group) =>
+  	return uris.grouped(10000).foldLeft(List.empty[Int]) { (ids, group) =>
       ids ++ findBySha256(group.map(u => ReportedUri.sha256(u))).map(_.id)
     }
   } 

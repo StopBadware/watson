@@ -20,6 +20,14 @@ class CommunityReportSpec extends Specification {
       } 
   	}
     
+    "bulk create CommunityReports" in {
+      running(FakeApplication()) {
+        val numInBulk = 10
+        val uris = (1 to numInBulk).foldLeft(List.empty[Int])((l, _) => validUri.id +: l)
+        CommunityReport.bulkCreate(uris) must equalTo(numInBulk)
+      } 
+  	}
+    
     "delete a CommunityReport" in {
       running(FakeApplication()) {
         val uriId = validUri.id

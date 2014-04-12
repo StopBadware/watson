@@ -60,7 +60,8 @@ object Api extends Controller with ApiSecured {
 	def submitCommunityReport = withAuth { implicit request =>
 	  val body = Try(request.body.asJson)
 	  if (body.isSuccess) {
-	    if (Application.createCommunityReport(body.get.get)) Ok else BadRequest
+	    val created = Application.createCommunityReports(body.get.get)
+	    if (created > 0) Ok(created.toString) else BadRequest
 	  } else {
 	  	UnsupportedMediaType
 	  }

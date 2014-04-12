@@ -267,41 +267,25 @@ object Application extends Controller with Secured with Cookies {
     }
   }
   
-  def submitCommunityReport = withAuth { userId => implicit request =>
-    val created = Try(createCommunityReport(request.body.asJson.get)).getOrElse(false)
-    if (created) Ok else BadRequest
-  }
-  
   def submitCommunityReports = withAuth { userId => implicit request =>
     val created = Try(createCommunityReports(request.body.asJson.get)).getOrElse(0)
-    val msg = "Created " + created + " community reports"
-    Ok(Json.obj("msg" -> msg))
-  }
-  
-  def createCommunityReport(json: JsValue): Boolean = {
-    return try {
-	    val uri = Uri.findOrCreate(json.\("uri").as[String]).get.id
-	    val ip = json.\("ip").asOpt[Long]
-	    val desc = json.\("description").asOpt[String]
-	    val badCode = json.\("bad_code").asOpt[String]
-	    val crType = Try(CrType.findByType(json.\("type").as[String]).get.id).toOption
-	    val crSource = Try(CrSource.findByName(json.\("source").as[String]).get.id).toOption
-	    CommunityReport.create(uri, ip, desc, badCode, crType, crSource)
-    } catch {
-      case _: Exception => false
+    if (created > 0) {
+    	val msg = "Created " + created + " community reports"
+    	Ok(Json.obj("msg" -> msg))
+    } else {
+      BadRequest
     }
   }
   
-    def createCommunityReports(json: JsValue): Int = {
+  def createCommunityReports(json: JsValue): Int = {
     return try {
-	    val uri = Uri.findOrCreate(json.\("uri").as[String]).get.id
+	    val uris = Uri.findOrCreateIds(json.\("uris").as[String].split("\\n").toList)
 	    val ip = json.\("ip").asOpt[Long]
 	    val desc = json.\("description").asOpt[String]
 	    val badCode = json.\("bad_code").asOpt[String]
 	    val crType = Try(CrType.findByType(json.\("type").as[String]).get.id).toOption
 	    val crSource = Try(CrSource.findByName(json.\("source").as[String]).get.id).toOption
-	    CommunityReport.create(uri, ip, desc, badCode, crType, crSource)
-	    0	//TODO WTSN-16
+      CommunityReport.bulkCreate(uris, ip, desc, badCode, crType, crSource)
     } catch {
       case _: Exception => 0
     }
