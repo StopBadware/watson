@@ -11,7 +11,7 @@ import routes.javascript._
 import models._
 import models.enums._
 
-object Application extends Controller with JsonMapper with Secured with Cookies {
+object Application extends Controller with Secured with Cookies {
   
   private val limit = Try(sys.env("FILTER_LIMIT").toInt).getOrElse(500)
   
@@ -42,7 +42,7 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
     val json = request.body.asJson
     val user = User.find(userId.get)
     val status = Try(ReviewStatus.fromStr(json.get.\("status").as[String].replaceAll("-", "_")).get).toOption
-    val id = Try(json.get.\("id").asOpt[Int]).getOrElse(None)
+    val id = json.get.\("id").asOpt[Int]
     if (json.isDefined && user.isDefined && id.isDefined && status.isDefined) {
     	val review = Review.find(id.get)
     	if (review.isDefined) {
@@ -137,8 +137,8 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
   def addReviewNote = withAuth { userId => implicit request =>
     val json = request.body.asJson
     val user = User.find(userId.get)
-    val id = Try(json.get.\("id").asOpt[Int]).getOrElse(None)
-    val note = Try(json.get.\("note").asOpt[String]).getOrElse(None)
+    val id = json.get.\("id").asOpt[Int]
+    val note = json.get.\("note").asOpt[String]
     if (json.isDefined && user.isDefined && id.isDefined && note.isDefined) {
       val created = ReviewNote.create(id.get, user.get.id, note.get)
       if (created) {
@@ -191,8 +191,8 @@ object Application extends Controller with JsonMapper with Secured with Cookies 
     val json = request.body.asJson
     if (json.isDefined) {
       val uris = Try(json.get.\("uris").as[String].split("\\n").toList).getOrElse(List())
-      val email = Try(json.get.\("email").as[String]).toOption
-      val notes = Try(json.get.\("notes").as[String]).toOption
+      val email = json.get.\("email").asOpt[String]
+      val notes = json.get.\("notes").asOpt[String]
       if (uris.nonEmpty && email.isDefined) {
         val ip = Ip.toLong(request.headers.get("X-FORWARDED-FOR").getOrElse(request.remoteAddress))
         if (uris.size > 1) {
@@ -391,7 +391,7 @@ trait Secured {
   
   private def userId(request: RequestHeader): Option[Int] = {
     val sessionId = request.session.get("sessionId")
-    val userId = Try(Cache.getAs[Int](sessionId.get)).getOrElse(None)
+    val userId = Try(Cache.getAs[Int](sessionId.get).get).toOption
     return if (userId.isDefined) {
       updateSessionExpiry(sessionId.get, userId.get)
       userId
