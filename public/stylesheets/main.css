@@ -81,6 +81,9 @@ a,
 .width-50 {
 	width: 50%;
 }
+.width-75 {
+	width: 75%;
+}
 .width-100,
 .progress-bar {
 	width: 100%;
