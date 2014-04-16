@@ -203,7 +203,8 @@ $(document).ready(function($) {
 	              {id:"#reviews-others-table",sortOn:2},
 	              {id:"#reviews-rescans-table",sortOn:3},
 	              {id:"#reviews-table",sortOn:4},
-	              {id:"#requests-table",sortOn:4}];
+	              {id:"#requests-table",sortOn:4},
+	              {id:"#crs-table",sortOn:5}];
 	tableSorts.map(function(table) {
 		initSortTable(table.id, table.sortOn);
 	});

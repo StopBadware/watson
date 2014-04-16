@@ -267,8 +267,15 @@ object Application extends Controller with Secured with Cookies {
     }
   }
   
+  def communityReports = withAuth { userId => implicit request =>
+    //TODO WTSN-16
+    Ok(views.html.crs(CommunityReport.findRecent(limit), limit))
+  }
+  
+  def communityReport(id: Int) = TODO
+  
   def newCommunityReport = withAuth { userId => implicit request =>
-    Ok(views.html.newcr(CrType.all, CrSource.all))
+    Ok(views.html.newcr())
   }
   
   def submitCommunityReports = withAuth { userId => implicit request =>
