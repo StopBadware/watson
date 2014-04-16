@@ -16,7 +16,7 @@ case class CommunityReport(
     description: Option[String],
     badCode: Option[String],
     crTypeId: Option[Int],
-    reportedVia: Option[Int],
+    crSourceId: Option[Int],
     reportedAt: Long
   ) {
   
@@ -38,17 +38,17 @@ object CommunityReport {
     description: Option[String]=None,
     badCode: Option[String]=None,
     crTypeId: Option[Int]=None,
-    reportedVia: Option[Int]=None
+    crSourceId: Option[Int]=None
   ): Boolean = DB.withConnection { implicit conn =>
     return try {
-      SQL("""INSERT INTO community_reports (uri_id, ip, description, bad_code, cr_type_id, reported_via) 
-        VALUES ({uriId}, {ip}, {description}, {badCode}, {crTypeId}, {reportedVia})""").on(
+      SQL("""INSERT INTO community_reports (uri_id, ip, description, bad_code, cr_type_id, cr_source_id) 
+        VALUES ({uriId}, {ip}, {description}, {badCode}, {crTypeId}, {crSourceId})""").on(
       		"uriId" -> uriId,
       		"ip" -> ip,
       		"description" -> description,
       		"badCode" -> badCode,
       		"crTypeId" -> crTypeId,
-      		"reportedVia" -> reportedVia
+      		"crSourceId" -> crSourceId
         ).executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
@@ -61,10 +61,10 @@ object CommunityReport {
     description: Option[String]=None,
     badCode: Option[String]=None,
     crTypeId: Option[Int]=None,
-    reportedVia: Option[Int]=None
+    crSourceId: Option[Int]=None
   ): Int = DB.withTransaction { implicit conn =>
     return try {
-      val sql = "INSERT INTO community_reports (uri_id, ip, description, bad_code, cr_type_id, reported_via) VALUES (?, ?, ?, ?, ?, ?)"
+      val sql = "INSERT INTO community_reports (uri_id, ip, description, bad_code, cr_type_id, cr_source_id) VALUES (?, ?, ?, ?, ?, ?)"
       val ps = conn.prepareStatement(sql)
       uriIds.foreach { uriId =>
         ps.setInt(1, uriId)
@@ -72,7 +72,7 @@ object CommunityReport {
         if (description.isDefined) ps.setString(3, description.get) else ps.setNull(3, Types.VARCHAR)
         if (badCode.isDefined) ps.setString(4, badCode.get) else ps.setNull(4, Types.VARCHAR)
         if (crTypeId.isDefined) ps.setInt(5, crTypeId.get) else ps.setNull(5, Types.INTEGER)
-        if (reportedVia.isDefined) ps.setInt(6, reportedVia.get) else ps.setNull(6, Types.INTEGER)
+        if (crSourceId.isDefined) ps.setInt(6, crSourceId.get) else ps.setNull(6, Types.INTEGER)
         ps.addBatch()
       }
       val batch = ps.executeBatch()
@@ -95,7 +95,7 @@ object CommunityReport {
   def findRecent(limit: Int): List[CommunityReportSummary] = DB.withConnection { implicit conn =>
     val sql = """SELECT cr.id, uri, cr.ip, cr.description, cr_type, full_name, cr.reported_at FROM community_reports AS cr 
       JOIN uris on cr.uri_id=uris.id LEFT JOIN cr_types ON cr.cr_type_id=cr_types.id LEFT JOIN cr_sources ON 
-      cr.reported_via=cr_sources.id ORDER BY reported_at DESC LIMIT {limit}"""
+      cr.cr_source_id=cr_sources.id ORDER BY reported_at DESC LIMIT {limit}"""
     return Try(SQL(sql)
       .on("limit" -> limit)().map(CommunityReportSummary.mapFromRow).flatten.toList)
       .getOrElse(List.empty[CommunityReportSummary])
@@ -110,7 +110,7 @@ object CommunityReport {
 			  row[Option[String]]("description"),
 			  row[Option[String]]("bad_code"),
 			  row[Option[Int]]("cr_type_id"),
-			  row[Option[Int]]("reported_via"),
+			  row[Option[Int]]("cr_source_id"),
 			  row[Date]("reported_at").getTime / 1000
       ))
     } catch {

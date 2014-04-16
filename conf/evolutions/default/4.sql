@@ -29,12 +29,12 @@ CREATE TABLE community_reports (
   description VARCHAR(2048) DEFAULT NULL,
   bad_code VARCHAR(2048) DEFAULT NULL,
   cr_type_id INTEGER DEFAULT NULL REFERENCES cr_types (id) ON DELETE SET NULL,
-  reported_via INTEGER DEFAULT NULL REFERENCES cr_sources (id) ON DELETE SET NULL,
+  cr_source_id INTEGER DEFAULT NULL REFERENCES cr_sources (id) ON DELETE SET NULL,
   reported_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX ON community_reports (uri_id);
-CREATE INDEX ON community_reports (cr_type_id, reported_via, reported_at);
+CREATE INDEX ON community_reports (cr_type_id, cr_source_id, reported_at);
 
 CREATE TABLE cr_notes (
   id SERIAL PRIMARY KEY,
