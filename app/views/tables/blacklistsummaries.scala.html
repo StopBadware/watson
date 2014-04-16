@@ -1,0 +1,28 @@
+@(events: List[BlacklistEvent], title: String="Blacklist Events")
+<div class="panel panel-default">
+	<div class="panel-heading">
+		<h3 class="panel-title">@title</h3>
+	</div>
+    <table id="blacklist-events-table" class="table table-striped table-hover table-condensed table-sorted">
+    	<thead>
+    		<tr>
+    			<th>Blacklisted By</th>
+    			<th>Blacklisted From</th>
+    			<th>Blacklisted To</th>
+    		</tr>
+    	</thead>
+    	<tbody>
+    	@events.map { event =>
+			<tr class="text-right">
+				<td>@event.source
+					<div class="inline source-icon icon-@event.source.toString.toLowerCase">
+						<span class="vis-hidden">@event.source.toString</span>
+					</div>
+				</td>
+				<td class="unixtime-full">@event.blacklistedAt</td>
+				@if(event.unblacklistedAt.nonEmpty){<td class="unixtime-full">@event.unblacklistedAt.get</td>}else{<td></td>}
+			</tr>			
+		}
+    	</tbody>
+   	</table>
+</div>

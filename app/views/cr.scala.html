@@ -1,9 +1,4 @@
-@(cr: models.cr.CommunityReport, 
-	uri: String, 
-	summaries: List[models.cr.CommunityReportSummary], 
-	events: List[BlacklistEvent], 
-	reviews: List[Review], 
-	requests: List[ReviewRequest])
+@(cr: models.cr.CommunityReport, uri: String, summaries: List[models.cr.CommunityReportSummary], events: List[BlacklistEvent])
 @import models.cr._
 @import scala.util.Try
 @main("Community Report "+cr.id) {
@@ -14,10 +9,11 @@
 		@partials.clipboard(uri)
 	</h3>
 	<h4><label>Reported:</label><span class="unixtime-full">@cr.reportedAt</span></h4>
-	<h4><label>Reporter IP:</label><span class="ipv4">@cr.ip</span></h4>
+	<h4><label>Reporter IP:</label>@if(cr.ip.isDefined){<span class="ipv4">@cr.ip</span>}</h4>
 	<h4><label>Source:</label>@Try(CrSource.find(cr.crSourceId.get).get.fullName).toOption</h4>
 	<h4><label>Type:</label>@Try(CrType.find(cr.crTypeId.get).get.crType).toOption</h4>
 	<h4><label>Description:</label>@cr.description</h4>
 	<h4><label>Bad Code:</label>@cr.badCode</h4>
 </div>
+@tables.blacklistsummaries(events, "Blacklist history for URI")
 }
