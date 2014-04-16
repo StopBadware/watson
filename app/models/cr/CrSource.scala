@@ -60,6 +60,12 @@ object CrSource {
       .on("shortName" -> shortName)().head)).getOrElse(None)
   }
   
+  def all: Map[String, String] = DB.withConnection { implicit conn =>
+    return Try(SQL("SELECT short_name, full_name FROM cr_sources ORDER BY short_name ASC")().map{ row =>
+       (row[String]("short_name"), row[String]("full_name"))
+      }.toMap).getOrElse(Map.empty[String, String])
+  }
+  
   private def mapFromRow(row: SqlRow): Option[CrSource] = {
     return try {
       Some(CrSource(

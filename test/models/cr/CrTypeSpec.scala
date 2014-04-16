@@ -52,6 +52,16 @@ class CrTypeSpec extends Specification {
       } 
   	}
     
+    "return all type names" in {
+      running(FakeApplication()) {
+        val name = validType
+        CrType.create(name) must beTrue
+        val all = CrType.all
+        all.nonEmpty must beTrue
+        all.contains(name) must beTrue
+      } 
+  	}
+    
   }
 
 }

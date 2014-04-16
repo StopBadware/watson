@@ -88,6 +88,17 @@ $(document).ready(function($) {
 		saveReviewTestData(true, true);
 	});
 	
+	$(".new-cr-box").submit(function(e) {
+		e.preventDefault();
+		var uris = $(".cr-uris").val();
+		var description = $(".cr-description").val();
+		var badCode = $(".cr-bad-code").val();
+		var crType = $("#type").val();
+		var crSource = $("#source").val();
+		$("#"+this.id+" button").focus().blur();
+		addCommunityReports(uris, description, badCode, crType, crSource)
+	});
+	
 	$(".refresh").click(function() {
 		location.reload(true);
 	});
@@ -525,6 +536,43 @@ function updateReviewRequests(requestIds, reason) {
 			$(".form-info").hide();
 		});
 	}	
+}
+
+function addCommunityReports(uris, description, badCode, crType, crSource) {
+	var hasUris = uris && uris.length > 0;
+	if ($(".form-info").is(":hidden")) {
+		if (hasUris) {
+			$(".form-alert, .form-success").hide();
+			$(".form-info").show();
+			var obj = {
+				"uris" : uris,
+				"description" : description,
+				"bad_code" : badCode,
+				"type" : crType,
+				"source" : crSource
+			};
+			appRoute.submitCommunityReports().ajax({
+				contentType: jsonContentType,
+				data: JSON.stringify(obj)
+			}).done(function(res) {
+				if (res.msg) {
+					$(".success-msg").html(res.msg);
+				}
+				$(".form-success").show();
+			}).fail(function(res) {
+				var msg = res.responseJSON.msg;
+				if (msg && msg.length > 0) {
+					$(".alert-msg").text(msg);
+				}
+				$(".form-alert").show();
+			}).always(function() {
+				$(".form-info").hide();
+			});
+		} else {
+			$(".alert-msg").text("URI required!");
+			$(".form-alert").show();
+		}
+	}
 }
 
 function loginSubmit() {

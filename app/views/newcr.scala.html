@@ -1,0 +1,54 @@
+@(types: List[String], sources: Map[String, String])
+@main("New Community Report") {
+<div class="width-75 auto-margin">
+	<div class="well well-lg watson-green-bg text-center tab-pane fade in active">
+		<form id="new-cr" class="form-box form-horizontal new-cr-box" role="form">
+			<div id="uri-form-group" class="form-group">
+				<label class="control-label col-md-2" for="uris">URIs</label>
+				<div class="col-md-10">
+					<textarea id="uris" class="input-large form-control has-char-counter cr-uris" rows="14" maxlength="4096" name="uris" spellcheck="false" placeholder="Required (one URI per line)" autofocus></textarea>
+					@partials.charcounter("uris", 4096)
+				</div>
+			</div>
+			<div id="description-form-group" class="form-group">
+				<label class="control-label col-md-2" for="description">Description</label>
+				<div class="col-md-10">
+					<textarea id="description" class="input-large form-control has-char-counter cr-description" rows="4" maxlength="512" name="description" spellcheck="true" placeholder="Optional"></textarea>
+					@partials.charcounter("description", 512)
+				</div>
+			</div>
+			<div id="bad-code-form-group" class="form-group">
+				<label class="control-label col-md-2" for="bad-code">Bad Code</label>
+				<div class="col-md-10">
+					<textarea id="bad-code" class="input-large form-control has-char-counter cr-bad-code" rows="4" maxlength="512" name="bad-code" spellcheck="false" placeholder="Optional"></textarea>
+					@partials.charcounter("bad-code", 512)
+				</div>
+			</div>
+			<div id="type-form-group" class="form-group" title="Optional">
+				<label class="control-label col-md-2" for="type">Type</label>
+				<div class="col-md-10">
+					<select id="type" name="type" class="form-control">
+					<option value="">Unknown</option>
+					@types.map { t =>
+						<option value="@t">@t</option>
+					}
+					</select>
+				</div>
+			</div>
+			<div id="source-form-group" class="form-group" title="Optional">
+				<label class="control-label col-md-2" for="source">Source</label>
+				<div class="col-md-10">
+					<select id="source" name="source" class="form-control">
+					<option value="">None</option>
+					@sources.map { case (s, f) =>
+						<option value="@s">@f</option>
+					}
+					</select>
+				</div>
+			</div>
+			<button type="submit" id="btn-new-cr" class="btn btn-default form-btn">Report URIs</button>
+		</form>
+	</div>
+	@partials.ajaxstatus("Unable to create CRs", "Submitting URIs", "Added to Community Reports!")()
+</div>
+}

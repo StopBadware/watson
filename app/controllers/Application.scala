@@ -267,10 +267,14 @@ object Application extends Controller with Secured with Cookies {
     }
   }
   
+  def newCommunityReport = withAuth { userId => implicit request =>
+    Ok(views.html.newcr(CrType.all, CrSource.all))
+  }
+  
   def submitCommunityReports = withAuth { userId => implicit request =>
     val created = Try(createCommunityReports(request.body.asJson.get)).getOrElse(0)
     if (created > 0) {
-    	val msg = "Created " + created + " community reports"
+    	val msg = "Added " + created + " community " + (if (created==1) "report" else "reports")
     	Ok(Json.obj("msg" -> msg))
     } else {
       BadRequest
@@ -393,7 +397,8 @@ object Application extends Controller with Secured with Cookies {
       routes.javascript.Application.closeReviewRequest,
       routes.javascript.Application.updateReviewStatus,
       routes.javascript.Application.updateReviewTestData,
-      routes.javascript.Application.addReviewNote
+      routes.javascript.Application.addReviewNote,
+      routes.javascript.Application.submitCommunityReports
 		)).as("text/javascript")
   }
   

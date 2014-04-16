@@ -54,6 +54,10 @@ object CrType {
     return Try(mapFromRow(SQL("SELECT * FROM cr_types WHERE cr_type={name} LIMIT 1").on("name"->name)().head)).getOrElse(None)
   }
   
+  def all: List[String] = DB.withConnection { implicit conn =>
+    return Try(SQL("SELECT cr_type FROM cr_types ORDER BY cr_type ASC")().map(_[String]("cr_type")).toList).getOrElse(List.empty[String])
+  }
+  
   private def mapFromRow(row: SqlRow): Option[CrType] = {
     return try {
       Some(CrType(

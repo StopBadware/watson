@@ -52,6 +52,16 @@ class CrSourceSpec extends Specification {
       } 
   	}
     
+    "return all short names" in {
+      running(FakeApplication()) {
+        val name = validName
+        CrSource.create(name, name)
+        val all = CrSource.all
+        all.nonEmpty must beTrue
+        all.contains(name) must beTrue
+      } 
+  	}
+    
   }  
 
 }
