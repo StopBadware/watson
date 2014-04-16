@@ -281,10 +281,8 @@ object Application extends Controller with Secured with Cookies {
       val uriId = cr.get.uriId
       val summaries = CommunityReport.findSummariesByUri(uriId)
       val events = BlacklistEvent.findByUri(uriId)
-      val reviews = Review.findByUri(uriId)
-      val requests = ReviewRequest.findByUri(uriId)
     	val uri = Uri.find(uriId).get.uri
-    	Ok(views.html.cr(cr.get, uri, summaries, events, reviews, requests))
+    	Ok(views.html.cr(cr.get, uri, summaries, events))
     } else {
       Ok(views.html.partials.modelnotfound("Community Report "+id))
     }
