@@ -545,6 +545,7 @@ function addCommunityReports(uris, description, badCode, crType, crSource) {
 		if (hasUris) {
 			$(".form-alert, .form-success").hide();
 			$(".form-info").show();
+			$("html, body").animate({ scrollTop: $(document).height()}, "slow");
 			var obj = {
 				"uris" : uris,
 				"description" : description,
