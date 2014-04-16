@@ -8,7 +8,7 @@
 	<div class="panel-body">
 		<form id="crs-filter" class="form-inline text-center">
 			<label class="control-label" for="type">Type</label>
-			<select id="cr-type" name="type" class="form-control">
+			<select id="type" name="type" class="form-control">
 				<option value="">Any</option>
 				@CrType.all.map { t =>
 				<option value="@t">@t</option>
@@ -16,7 +16,7 @@
 			</select>
 			
 			<label class="control-label" for="source">Source</label>
-			<select id="cr-source" name="source" class="form-control">
+			<select id="source" name="source" class="form-control">
 				<option value="">Any</option>
 				@CrSource.all.map { case (s, f) =>
 				<option value="@s">@f</option>
@@ -24,7 +24,7 @@
 			</select>
 			
 			<label class="control-label" for="reported">Reported</label>
-			<input type="text" class="form-control date-picker text-center" id="cr-reported" name="reported">
+			<input type="text" class="form-control date-picker text-center" id="reported" name="reported">
 			
 			<button type="submit" id="btn-filter" class="btn btn-default form-btn">Filter</button>
 		</form>

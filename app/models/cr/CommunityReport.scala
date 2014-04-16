@@ -92,12 +92,25 @@ object CommunityReport {
       .on("uriId" -> uriId)().map(mapFromRow).flatten.toList).getOrElse(List.empty[CommunityReport])
   }
   
-  def findRecent(limit: Int): List[CommunityReportSummary] = DB.withConnection { implicit conn =>
-    val sql = """SELECT cr.id, uri, cr.ip, cr.description, cr_type, full_name, cr.reported_at FROM community_reports AS cr 
-      JOIN uris on cr.uri_id=uris.id LEFT JOIN cr_types ON cr.cr_type_id=cr_types.id LEFT JOIN cr_sources ON 
-      cr.cr_source_id=cr_sources.id ORDER BY reported_at DESC LIMIT {limit}"""
+  def findRecent(
+      crTypeId: Option[Int], 
+      crSourceId: Option[Int], 
+      times: (Timestamp, Timestamp), 
+      limit: Int): List[CommunityReportSummary] = DB.withConnection { implicit conn =>
+    val sql = {
+      """SELECT cr.id, uri, cr.ip, cr.description, cr_type, full_name, cr.reported_at FROM community_reports AS cr 
+    		JOIN uris on cr.uri_id=uris.id LEFT JOIN cr_types ON cr.cr_type_id=cr_types.id LEFT JOIN cr_sources ON 
+    		cr.cr_source_id=cr_sources.id WHERE reported_at BETWEEN {start} AND {end} """ +
+    	(if (crTypeId.isDefined) "AND cr_type_id={crTypeId} " else "") +
+    	(if (crSourceId.isDefined) "AND cr_source_id={crSourceId} " else "") +
+  		"ORDER BY reported_at DESC LIMIT {limit}"
+    }
     return Try(SQL(sql)
-      .on("limit" -> limit)().map(CommunityReportSummary.mapFromRow).flatten.toList)
+      .on("limit" -> limit, 
+          "crTypeId" -> crTypeId,
+          "crSourceId" -> crSourceId,
+          "start" -> times._1,
+          "end" -> times._2)().map(CommunityReportSummary.mapFromRow).flatten.toList)
       .getOrElse(List.empty[CommunityReportSummary])
   }
   

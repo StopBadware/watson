@@ -187,7 +187,8 @@ $(document).ready(function($) {
 	});
 	
 	var tableFilters = [{id:"#reviews-table",fields:["status", "blacklisted", "created"]},
-	                    {id:"#requests-table",fields:["status", "email", "requested"]}];
+	                    {id:"#requests-table",fields:["status", "email", "requested"]},
+	                    {id:"#crs-table",fields:["type", "source", "reported"]}];
 	tableFilters.map(function(table) {
 		if ($(table.id).length) {
 			if ($(table.id+" tbody tr").length == 0) {
