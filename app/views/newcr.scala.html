@@ -1,4 +1,3 @@
-@(types: List[String], sources: Map[String, String])
 @main("New Community Report") {
 <div class="width-75 auto-margin">
 	<div class="well well-lg watson-green-bg text-center tab-pane fade in active">
@@ -29,7 +28,7 @@
 				<div class="col-md-10">
 					<select id="type" name="type" class="form-control">
 					<option value="">Unknown</option>
-					@types.map { t =>
+					@models.cr.CrType.all.map { t =>
 						<option value="@t">@t</option>
 					}
 					</select>
@@ -40,7 +39,7 @@
 				<div class="col-md-10">
 					<select id="source" name="source" class="form-control">
 					<option value="">None</option>
-					@sources.map { case (s, f) =>
+					@models.cr.CrSource.all.map { case (s, f) =>
 						<option value="@s">@f</option>
 					}
 					</select>
