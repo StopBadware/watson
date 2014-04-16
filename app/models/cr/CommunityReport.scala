@@ -92,6 +92,15 @@ object CommunityReport {
       .on("uriId" -> uriId)().map(mapFromRow).flatten.toList).getOrElse(List.empty[CommunityReport])
   }
   
+  def findRecent(limit: Int): List[CommunityReportSummary] = DB.withConnection { implicit conn =>
+    val sql = """SELECT cr.id, uri, cr.ip, cr.description, cr_type, full_name, cr.reported_at FROM community_reports AS cr 
+      JOIN uris on cr.uri_id=uris.id LEFT JOIN cr_types ON cr.cr_type_id=cr_types.id LEFT JOIN cr_sources ON 
+      cr.reported_via=cr_sources.id ORDER BY reported_at DESC LIMIT {limit}"""
+    return Try(SQL(sql)
+      .on("limit" -> limit)().map(CommunityReportSummary.mapFromRow).flatten.toList)
+      .getOrElse(List.empty[CommunityReportSummary])
+  }
+  
   private def mapFromRow(row: SqlRow): Option[CommunityReport] = {
     return try {
       Some(CommunityReport(
@@ -102,6 +111,36 @@ object CommunityReport {
 			  row[Option[String]]("bad_code"),
 			  row[Option[Int]]("cr_type_id"),
 			  row[Option[Int]]("reported_via"),
+			  row[Date]("reported_at").getTime / 1000
+      ))
+    } catch {
+      case e: Exception => None
+    }
+  }
+  
+}
+
+case class CommunityReportSummary(
+    id: Int,
+    uri: String,
+    ip: Option[Long],
+    description: Option[String],
+    crType: Option[String],
+    crSource: Option[String],
+    reportedAt: Long
+  ) {}
+
+object CommunityReportSummary {
+  
+  def mapFromRow(row: SqlRow): Option[CommunityReportSummary] = {
+    return try {
+      Some(CommunityReportSummary(
+      	row[Int]("id"), 
+			  row[String]("uri"),
+			  row[Option[Long]]("ip"),
+			  row[Option[String]]("description"),
+			  row[Option[String]]("cr_type"),
+			  row[Option[String]]("full_name"),
 			  row[Date]("reported_at").getTime / 1000
       ))
     } catch {

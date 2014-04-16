@@ -47,6 +47,20 @@ class CommunityReportSpec extends Specification {
       } 
   	}
     
+    "find recent CommunityReports" in {
+      running(FakeApplication()) {
+        val uri1 = validUri
+        CommunityReport.create(uri1.id)
+        val uri2 = validUri
+        CommunityReport.create(uri2.id)
+        val recent = CommunityReport.findRecent(1000).map(_.uri)
+        recent.nonEmpty must beTrue
+        recent.contains(uri1.uri) must beTrue
+        recent.contains(uri2.uri) must beTrue
+        CommunityReport.findRecent(1).map(_.uri).contains(uri1.uri) must beFalse
+      } 
+  	}
+    
   }  
 
 }
