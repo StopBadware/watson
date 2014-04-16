@@ -48,18 +48,19 @@ class CommunityReportSpec extends Specification {
       } 
   	}
     
-    "find recent CommunityReports" in {
+    "find CommunityReportSummaries" in {
       running(FakeApplication()) {
         val uri1 = validUri
         CommunityReport.create(uri1.id)
         val uri2 = validUri
         CommunityReport.create(uri2.id)
         val times = PostgreSql.parseTimes("")
-        val recent = CommunityReport.findRecent(None, None, times, 1000).map(_.uri)
+        val recent = CommunityReport.findSummaries(None, None, times, 1000).map(_.uri)
         recent.nonEmpty must beTrue
         recent.contains(uri1.uri) must beTrue
         recent.contains(uri2.uri) must beTrue
-        CommunityReport.findRecent(None, None, times, 1).map(_.uri).contains(uri1.uri) must beFalse
+        CommunityReport.findSummaries(None, None, times, 1).map(_.uri).contains(uri1.uri) must beFalse
+        CommunityReport.findSummariesByUri(uri1.id).map(_.uri).contains(uri1.uri) must beTrue
       } 
   	}
     

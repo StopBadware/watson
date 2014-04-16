@@ -271,11 +271,24 @@ object Application extends Controller with Secured with Cookies {
     val crType = Try(CrType.findByType(request.getQueryString("type").get).get.id).toOption
     val crSource = Try(CrSource.findByName(request.getQueryString("source").get).get.id).toOption
     val times = PostgreSql.parseTimes(request.getQueryString("reported").getOrElse(""))
-    Ok(views.html.crs(CommunityReport.findRecent(crType, crSource, times, limit), limit))
+    Ok(views.html.crs(CommunityReport.findSummaries(crType, crSource, times, limit), limit))
     	.withCookies(cookies(request, List("type", "source", "reported")):_*)
   }
   
-  def communityReport(id: Int) = TODO
+  def communityReport(id: Int) = withAuth { userId => implicit request =>
+    val cr = CommunityReport.find(id)
+    if (cr.isDefined) {
+      val uriId = cr.get.uriId
+      val summaries = CommunityReport.findSummariesByUri(uriId)
+      val events = BlacklistEvent.findByUri(uriId)
+      val reviews = Review.findByUri(uriId)
+      val requests = ReviewRequest.findByUri(uriId)
+    	val uri = Uri.find(uriId).get.uri
+    	Ok(views.html.cr(cr.get, uri, summaries, events, reviews, requests))
+    } else {
+      Ok(views.html.partials.modelnotfound("Community Report "+id))
+    }
+  }
   
   def newCommunityReport = withAuth { userId => implicit request =>
     Ok(views.html.newcr())

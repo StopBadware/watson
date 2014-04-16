@@ -8,6 +8,7 @@ import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
 import scala.util.Try
+import controllers.PostgreSql
 
 case class CommunityReport(
     id: Int,
@@ -92,23 +93,30 @@ object CommunityReport {
       .on("uriId" -> uriId)().map(mapFromRow).flatten.toList).getOrElse(List.empty[CommunityReport])
   }
   
-  def findRecent(
+  def findSummariesByUri(uriId: Int): List[CommunityReportSummary] = {
+    findSummaries(None, None, PostgreSql.parseTimes(""), 5000, Some(uriId))
+  }
+  
+  def findSummaries(
       crTypeId: Option[Int], 
       crSourceId: Option[Int], 
       times: (Timestamp, Timestamp), 
-      limit: Int): List[CommunityReportSummary] = DB.withConnection { implicit conn =>
+      limit: Int,
+      uriId: Option[Int]=None): List[CommunityReportSummary] = DB.withConnection { implicit conn =>
     val sql = {
       """SELECT cr.id, uri, cr.ip, cr.description, cr_type, full_name, cr.reported_at FROM community_reports AS cr 
     		JOIN uris on cr.uri_id=uris.id LEFT JOIN cr_types ON cr.cr_type_id=cr_types.id LEFT JOIN cr_sources ON 
     		cr.cr_source_id=cr_sources.id WHERE reported_at BETWEEN {start} AND {end} """ +
     	(if (crTypeId.isDefined) "AND cr_type_id={crTypeId} " else "") +
     	(if (crSourceId.isDefined) "AND cr_source_id={crSourceId} " else "") +
+    	(if (uriId.isDefined) "AND uri_id={uriId} " else "") +
   		"ORDER BY reported_at DESC LIMIT {limit}"
     }
     return Try(SQL(sql)
       .on("limit" -> limit, 
           "crTypeId" -> crTypeId,
           "crSourceId" -> crSourceId,
+          "uriId" -> uriId,
           "start" -> times._1,
           "end" -> times._2)().map(CommunityReportSummary.mapFromRow).flatten.toList)
       .getOrElse(List.empty[CommunityReportSummary])
