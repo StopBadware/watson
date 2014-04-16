@@ -310,6 +310,7 @@ function requestReview(uris, email, notes) {
 		if (validEmail && hasUris) {
 			$(".form-alert, .form-success").hide();
 			$(".form-info").show();
+			scrollToBottom();
 			var obj = {
 				"uris" : uris,
 				"email" : email,
@@ -545,7 +546,7 @@ function addCommunityReports(uris, description, badCode, crType, crSource) {
 		if (hasUris) {
 			$(".form-alert, .form-success").hide();
 			$(".form-info").show();
-			$("html, body").animate({ scrollTop: $(document).height()}, "slow");
+			scrollToBottom();
 			var obj = {
 				"uris" : uris,
 				"description" : description,
@@ -728,6 +729,10 @@ function toggleValid(baseId, valid) {
 		icon.removeClass("glyphicon-ok").addClass("glyphicon-remove");
 	}
 	
+}
+
+function scrollToBottom() {
+	$("html, body").animate({ scrollTop: $(document).height()}, "slow");
 }
 
 function prettifyEnums(selector) {
