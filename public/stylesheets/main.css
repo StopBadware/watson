@@ -115,7 +115,7 @@ a,
 #review-summary .review-status {
 	font-weight: 800;
 }
-#review-notes .unixtime {
+.notes .unixtime {
 	margin-left: 0.25em;
 	padding-right: 0.5em;
 	font-size: 0.75em;
