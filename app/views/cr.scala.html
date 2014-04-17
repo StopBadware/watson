@@ -16,4 +16,5 @@
 	<h4><label>Bad Code:</label>@cr.badCode</h4>
 </div>
 @tables.blacklistsummaries(events, "Blacklist history for URI")
+@tables.crsummaries(summaries.filterNot(_.id==cr.id), "Other Community Reports for URI")
 }
