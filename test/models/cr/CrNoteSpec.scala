@@ -38,9 +38,9 @@ class CrNoteSpec extends Specification {
       running(FakeApplication()) {
         val id = crId
         CrNote.create(id, author, "For the Forsaken!")
-        val cr = CrNote.findByCr(id).head
-        cr.delete() must beTrue
-        CrNote.find(cr.id) must beNone
+        val note = CrNote.find(CrNote.findByCr(id).head.id).get
+        note.delete() must beTrue
+        CrNote.find(note.id) must beNone
       } 
   	}
     
@@ -48,9 +48,20 @@ class CrNoteSpec extends Specification {
       running(FakeApplication()) {
         val id = crId
         CrNote.create(id, author, "For the Forsaken!")
-        val cr = CrNote.findByCr(id).headOption
-        cr must beSome
-        CrNote.find(cr.get.id) must beSome
+        val note = CrNote.findByCr(id).headOption
+        note must beSome
+        CrNote.find(note.get.id) must beSome
+      } 
+  	}
+    
+    "find CrNotes with author name" in {
+      running(FakeApplication()) {
+        val id = crId
+        CrNote.create(id, author, "For the Forsaken!")
+        val note = CrNote.findByCr(id).head
+        val notes = CrNote.findByCr(id)
+        notes.nonEmpty must beTrue
+        notes.map(_.id).contains(note.id) must beTrue
       } 
   	}
     

@@ -49,6 +49,17 @@ object ReviewNote {
     		.on("authorId" -> authorId)().map(mapFromRow).flatten.toList).getOrElse(List.empty[ReviewNote])
   }
   
+  def findByReview(reviewId: Int): List[Note] = DB.withConnection { implicit conn =>
+    return try {
+      SQL("""SELECT review_notes.id, username, note, review_notes.created_at FROM review_notes JOIN users ON 
+        author=users.id WHERE review_id={reviewId} ORDER BY review_notes.created_at ASC""")
+        .on("reviewId" -> reviewId)().map(Note.mapFromRow).flatten.toList
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      List()
+    }
+  }
+  
   private def mapFromRow(row: SqlRow): Option[ReviewNote] = {
     return try {
       Some(ReviewNote(

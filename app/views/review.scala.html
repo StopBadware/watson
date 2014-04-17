@@ -25,7 +25,6 @@
 		<h4><label>Status:</label><span id="status" class="sbw-red review-status enum">@details.review.status</span> 
 		<span id="status-updated" class="unixtime-full">@if(details.review.status != ReviewStatus.NEW){@details.review.statusUpdatedAt}</span>
 		</h4>
-		<span id="review-id" class="non-vis" data-id="@details.review.id"></span>
 		@if(user.hasRole(Role.REVIEWER)) {
 			@defining(if (details.review.isOpen) "" else "disabled") { disabled =>
 			<button type="button" class="btn btn-default update-review is-open" @disabled data-status="pending-bad">Bad</button>
@@ -53,20 +52,10 @@
 			}
 		}
 		</div>
-		<ul id="review-notes" class="list-style-none margin-top-1em margin-bottom-none width-100 notes">
-		@details.review.notes.map { note =>
-			<li id="note-@note.id">
-				<label>@note.author<span class="unixtime">@note.createdAt</span></label><span>@note.note</span>
-			</li>			
-		}
-		</ul>
-		<form id="add-review-note-form">
-			<input type="text" name="review-note" id="review-note" class="input-large form-control inline width-50" placeholder="Add note">
-			<button type="submit" id="add-review-note" class="btn btn-default inline">Add</button>
-		</form>
+		@partials.notes(ReviewNote.findByReview(details.review.id), "review", details.review.id)
 	</div>
 	<div id="review-summary-status">
-	@partials.ajaxstatus("Unable to add note", "Adding note", "Note added", "review-note-status")()
+	@partials.notestatus()
 	@partials.ajaxstatus("Unable to update review", "Updating review", "Review Updated", "review-update-status")()
 	</div>
 	

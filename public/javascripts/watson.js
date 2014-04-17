@@ -67,15 +67,10 @@ $(document).ready(function($) {
 		updateReviewStatus($("#review-id").data("id"), $(this).data("status"));
 	});
 	
-	$("#add-cr-note-form").submit(function(e) {
+	$(".add-note-form").submit(function(e) {
 		e.preventDefault();
-		//TODO WTSN-16 add cr note
-	});
-	
-	$("#add-review-note-form").submit(function(e) {
-		e.preventDefault();
-		$("#add-review-note-form button").blur();
-		addReviewNote($("#review-id").data("id"), $("#review-note").val());
+		$(".add-note-form button").blur();
+		addNote($(this).data("model"), $(this).data("id"), $("#note").val());
 	});
 	
 	$("#review-test-data-save").click(function() {
@@ -132,12 +127,12 @@ $(document).ready(function($) {
 	
 	$(".date-picker").daterangepicker({
 		ranges: {
-			'Today': [new Date(), new Date()],
-			'Yesterday': [moment().subtract('days', 1), moment().subtract('days', 1)],
-			'Last 7 Days': [moment().subtract('days', 6), new Date()],
-			'Last 30 Days': [moment().subtract('days', 29), new Date()],
-			'This Month': [moment().startOf('month'), moment().endOf('month')],
-			'Last Month': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
+			"Today": [new Date(), new Date()],
+			"Yesterday": [moment().subtract("days", 1), moment().subtract("days", 1)],
+			"Last 7 Days": [moment().subtract("days", 6), new Date()],
+			"Last 30 Days": [moment().subtract("days", 29), new Date()],
+			"This Month": [moment().startOf("month"), moment().endOf("month")],
+			"Last Month": [moment().subtract("month", 1).startOf("month"), moment().subtract("month", 1).endOf("month")]
 		},
 		format: "DD MMM YYYY",
 		opens: "left"
@@ -318,9 +313,9 @@ function requestReview(uris, email, notes) {
 			$(".form-info").show();
 			scrollToBottom();
 			var obj = {
-				"uris" : uris,
-				"email" : email,
-				"notes" : notes
+				"uris": uris,
+				"email": email,
+				"notes": notes
 			};
 			appRoute.requestReview().ajax({
 				contentType: jsonContentType,
@@ -357,8 +352,8 @@ function updateReviewStatus(reviewId, status) {
 		$(".alert").hide();
 		$(ajaxStatus+".form-info").show();
 		var obj = {
-			"id" : reviewId,
-			"status" : status
+			"id": reviewId,
+			"status": status
 		};
 		appRoute.updateReviewStatus().ajax({
 			contentType: jsonContentType,
@@ -391,47 +386,6 @@ function toggleReviewButtons(status, isOpen) {
 	}
 }
 
-function addReviewNote(reviewId, note) {
-	var ajaxStatus = ".review-note-status ";
-	if ($(ajaxStatus+".form-info").is(":hidden")) {
-		$(".alert").hide();
-		$(ajaxStatus+".form-info").show();
-		var obj = {
-			"id" : reviewId,
-			"note" : note
-		};
-		appRoute.addReviewNote().ajax({
-			contentType: jsonContentType,
-			data: JSON.stringify(obj)
-		}).done(function(res) {
-			if (res.notes) {
-				res.notes.map(function(n) {
-					var noteId = "#note-"+n.id;
-					if ($(noteId).length == 0) {
-						renderNote(n);
-						getDatesFromUnix(noteId+" .unixtime", false);
-						$(noteId+" span").animate({"background-color": "#DFF0D8"}, 25);
-						$(noteId+" span").animate({"background-color": "rgba(0, 0, 0, 0)"}, 5000);
-					}
-				});
-			}
-			$("#review-note").val("");
-			$(ajaxStatus+".form-success").show();
-		}).fail(function() {
-			$(ajaxStatus+".form-alert").show();
-		}).always(function() {
-			$(ajaxStatus+".form-info").hide();
-		});
-	}	
-}
-
-function renderNote(note) {
-	var li = "<li id=\"note-"+note.id+"\"><label>"+note.author+"<span class=\"unixtime\">"+note.created_at+"</span>"+
-		"</label><span class=\"note\"></span></li>";
-	$("#review-notes").append(li);
-	$("#note-"+note.id+" .note").text(note.note).html();
-}
-
 function saveReviewTestData(markBad, advance) {
 	var reviewId = $("#review-id").data("id");
 	var category = $("#badware-category").val();
@@ -456,12 +410,12 @@ function saveReviewTestData(markBad, advance) {
 		$(".alert").hide();
 		$(ajaxStatus+".form-info").show();
 		var obj = {
-			"id" : reviewId,
-			"category" : category,
-			"sha256" : sha256,
-			"bad_code" : badCode,
-			"associated_uris" : associatedUris,
-			"mark_bad" : markBad
+			"id": reviewId,
+			"category": category,
+			"sha256": sha256,
+			"bad_code": badCode,
+			"associated_uris": associatedUris,
+			"mark_bad": markBad
 		};
 		appRoute.updateReviewTestData().ajax({
 			contentType: jsonContentType,
@@ -498,8 +452,8 @@ function updateReviewRequest(requestId, reason) {
 		$(".form-alert, .form-success").hide();
 		$(".form-info").show();
 		var obj = {
-			"id" : requestId,
-			"reason" : reason
+			"id": requestId,
+			"reason": reason
 		};
 		appRoute.closeReviewRequest().ajax({
 			contentType: jsonContentType,
@@ -527,8 +481,8 @@ function updateReviewRequests(requestIds, reason) {
 		$(".form-alert, .form-success").hide();
 		$(".form-info").show();
 		var obj = {
-			"ids" : requestIds,
-			"reason" : reason
+			"ids": requestIds,
+			"reason": reason
 		};
 		appRoute.closeReviewRequests().ajax({
 			contentType: jsonContentType,
@@ -546,6 +500,48 @@ function updateReviewRequests(requestIds, reason) {
 	}	
 }
 
+function addNote(model, id, note) {
+	var ajaxStatus = ".note-status ";
+	if ($(ajaxStatus+".form-info").is(":hidden")) {
+		$(".alert").hide();
+		$(ajaxStatus+".form-info").show();
+		var obj = {
+			"model": model,
+			"id": id,
+			"note": note
+		};
+		appRoute.addNote().ajax({
+			contentType: jsonContentType,
+			data: JSON.stringify(obj)
+		}).done(function(res) {
+			if (res.notes) {
+				res.notes.map(function(n) {
+					var noteId = "#note-"+n.id;
+					if ($(noteId).length == 0) {
+						renderNote(n);
+						getDatesFromUnix(noteId+" .unixtime", false);
+						$(noteId+" span").animate({"background-color": "#DFF0D8"}, 25);
+						$(noteId+" span").animate({"background-color": "rgba(0, 0, 0, 0)"}, 7500);
+					}
+				});
+			}
+			$("#note").val("");
+			$(ajaxStatus+".form-success").show();
+		}).fail(function() {
+			$(ajaxStatus+".form-alert").show();
+		}).always(function() {
+			$(ajaxStatus+".form-info").hide();
+		});
+	}	
+}
+
+function renderNote(note) {
+	var li = "<li id=\"note-"+note.id+"\"><label>"+note.author+"<span class=\"unixtime\">"+note.created_at+"</span>"+
+		"</label><span class=\"note\"></span></li>";
+	$(".notes").append(li);
+	$("#note-"+note.id+" .note").text(note.note).html();
+}
+
 function addCommunityReports(uris, description, badCode, crType, crSource) {
 	var hasUris = uris && uris.length > 0;
 	if ($(".form-info").is(":hidden")) {
@@ -554,11 +550,11 @@ function addCommunityReports(uris, description, badCode, crType, crSource) {
 			$(".form-info").show();
 			scrollToBottom();
 			var obj = {
-				"uris" : uris,
-				"description" : description,
-				"bad_code" : badCode,
-				"type" : crType,
-				"source" : crSource
+				"uris": uris,
+				"description": description,
+				"bad_code": badCode,
+				"type": crType,
+				"source": crSource
 			};
 			appRoute.submitCommunityReports().ajax({
 				contentType: jsonContentType,
@@ -592,8 +588,8 @@ function loginSubmit() {
 			$(".form-alert").hide();
 			$(".form-info").show();
 			var obj = {
-				"email" : email,
-				"pw" : $("#input-password").val()
+				"email": email,
+				"pw": $("#input-password").val()
 			};
 			appRoute.login().ajax({
 				contentType: jsonContentType,
@@ -620,8 +616,8 @@ function registerSubmit() {
 		$(".form-alert").hide();
 		$(".form-info").show();
 		var obj = {
-			"email" : $("#input-email").val(),
-			"pw" : $("#input-password").val()
+			"email": $("#input-email").val(),
+			"pw": $("#input-password").val()
 		};
 		appRoute.createAccount().ajax({
 			contentType: jsonContentType,
@@ -649,7 +645,7 @@ function resetPwSubmit() {
 			$(".form-alert").hide();
 			$(".form-info").show();
 			var obj = {
-				"email" : email,
+				"email": email,
 			};
 			appRoute.sendPwResetEmail().ajax({
 				contentType: jsonContentType,

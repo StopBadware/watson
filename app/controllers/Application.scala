@@ -135,21 +135,30 @@ object Application extends Controller with Secured with Cookies {
     }
   }
   
-  def addReviewNote = withAuth { userId => implicit request =>
+  def addNote = withAuth { userId => implicit request =>
     val json = request.body.asJson
     val user = User.find(userId.get)
     val id = json.get.\("id").asOpt[Int]
     val note = json.get.\("note").asOpt[String]
-    if (json.isDefined && user.isDefined && id.isDefined && note.isDefined) {
-      val created = ReviewNote.create(id.get, user.get.id, note.get)
+    val model = json.get.\("model").asOpt[String]
+    if (json.isDefined && user.isDefined && id.isDefined && note.isDefined && model.isDefined) {
+      val created = model.get match {
+        case "review" => ReviewNote.create(id.get, user.get.id, note.get)
+        case "cr" => CrNote.create(id.get, user.get.id, note.get)
+        case _ => false
+      }
       if (created) {
-        val notes = Review.find(id.get).get.notes.map { n =>
-          Json.obj("id" -> n.id,
-            "author" -> n.author,
-            "note" -> n.note,
-            "created_at" -> n.createdAt)
-        }.toList
-        Ok(Json.obj("notes" -> notes)) 
+        val notes = (model.get match {
+	        case "review" => ReviewNote.findByReview(id.get)
+	        case "cr" => CrNote.findByCr(id.get)
+	        case _ => List.empty[Note]
+        }).map { n =>
+	        Json.obj("id" -> n.id,
+	          "author" -> n.author,
+	          "note" -> n.note,
+	          "created_at" -> n.createdAt)
+	      }.toList
+        Ok(Json.obj("notes" -> notes))
       } else {
         InternalServerError
       }
@@ -418,8 +427,8 @@ object Application extends Controller with Secured with Cookies {
       routes.javascript.Application.closeReviewRequest,
       routes.javascript.Application.updateReviewStatus,
       routes.javascript.Application.updateReviewTestData,
-      routes.javascript.Application.addReviewNote,
-      routes.javascript.Application.submitCommunityReports
+      routes.javascript.Application.submitCommunityReports,
+      routes.javascript.Application.addNote
 		)).as("text/javascript")
   }
   

@@ -216,19 +216,6 @@ case class Review(
   
   def addNote(authorId: Int, note: String): Boolean = ReviewNote.create(id, authorId, note)
   
-  def notes: List[Note] = DB.withConnection { implicit conn =>
-    return try {
-      SQL("""SELECT review_notes.id, username, note, review_notes.created_at FROM review_notes JOIN users ON 
-        author=users.id WHERE review_id={reviewId} ORDER BY review_notes.created_at ASC""")
-        .on("reviewId" -> id)().map { row =>
-        	Note(row[Int]("id"), row[String]("username"), row[String]("note"), row[Date]("created_at").getTime / 1000)
-      }.toList
-    } catch {
-      case e: PSQLException => Logger.error(e.getMessage)
-      List()
-    }
-  }
-  
   def details: ReviewDetails = ReviewDetails(Review.find(this.id).get)
   
   def siblings: Map[String, Option[Int]] = DB.withConnection { implicit conn =>
@@ -415,3 +402,20 @@ case class ReviewDetails(review: Review) {
 }
 
 case class Note(id: Int, author: String, note: String, createdAt: Long)
+
+object Note {
+  
+  def mapFromRow(row: SqlRow): Option[Note] = {
+    return try {
+      Some(Note(
+      	row[Int]("id"), 
+			  row[String]("username"),
+			  row[String]("note"),
+			  row[Date]("created_at").getTime / 1000
+      ))
+    } catch {
+      case e: Exception => None
+    }
+  }
+  
+}

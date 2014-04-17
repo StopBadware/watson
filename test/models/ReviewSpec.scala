@@ -169,7 +169,7 @@ class ReviewSpec extends Specification {
       running(FakeApplication()) {
         val rev = createAndFind
         rev.addNote(testUser, "FOR THE FORSAKEN!") must beTrue
-        rev.notes.nonEmpty must beTrue
+        ReviewNote.findByReview(rev.id).nonEmpty must beTrue
       }
     }
     
