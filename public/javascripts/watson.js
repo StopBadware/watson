@@ -67,6 +67,11 @@ $(document).ready(function($) {
 		updateReviewStatus($("#review-id").data("id"), $(this).data("status"));
 	});
 	
+	$("#add-cr-note-form").submit(function(e) {
+		e.preventDefault();
+		//TODO WTSN-16 add cr note
+	});
+	
 	$("#add-review-note-form").submit(function(e) {
 		e.preventDefault();
 		$("#add-review-note-form button").blur();

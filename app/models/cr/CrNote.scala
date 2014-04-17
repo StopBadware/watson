@@ -52,12 +52,42 @@ object CrNote {
       .on("crId" -> crId)().map(mapFromRow).flatten.toList).getOrElse(List.empty[CrNote])
   }
   
+  def findByCrWithAuthor(crId: Int): List[CrNoteWithAuthor] = DB.withConnection { implicit conn =>
+    return Try(SQL("""SELECT cr_notes.id, cr_notes.note, cr_notes.created_at, users.username FROM cr_notes 
+      JOIN users ON author=users.id WHERE cr_id={crId} ORDER BY cr_notes.created_at ASC""")
+      .on("crId" -> crId)().map(CrNoteWithAuthor.mapFromRow).flatten.toList).getOrElse(List.empty[CrNoteWithAuthor])
+  }
+  
   private def mapFromRow(row: SqlRow): Option[CrNote] = {
     return try {
       Some(CrNote(
       	row[Int]("id"), 
 			  row[Int]("cr_id"),
 			  row[Int]("author"),
+			  row[String]("note"),
+			  row[Date]("created_at").getTime / 1000
+      ))
+    } catch {
+      case e: Exception => None
+    }
+  }
+  
+}
+
+case class CrNoteWithAuthor(
+    id: Int,
+		author: String,
+		note: String,
+		createdAt: Long
+  ) {}
+
+object CrNoteWithAuthor {
+  
+  def mapFromRow(row: SqlRow): Option[CrNoteWithAuthor] = {
+    return try {
+      Some(CrNoteWithAuthor(
+      	row[Int]("id"), 
+			  row[String]("username"),
 			  row[String]("note"),
 			  row[Date]("created_at").getTime / 1000
       ))

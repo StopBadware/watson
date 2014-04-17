@@ -14,6 +14,18 @@
 	<h4><label>Type:</label>@Try(CrType.find(cr.crTypeId.get).get.crType).toOption</h4>
 	<h4><label>Description:</label>@cr.description</h4>
 	<h4><label>Bad Code:</label>@cr.badCode</h4>
+	
+	<ul id="cr-notes" class="list-style-none margin-top-1em margin-bottom-none width-100 notes">
+	@CrNote.findByCrWithAuthor(cr.id).map { note =>
+		<li id="note-@note.id">
+			<label>@note.author<span class="unixtime">@note.createdAt</span></label><span>@note.note</span>
+		</li>			
+	}
+	</ul>
+	<form id="add-cr-note-form">
+		<input type="text" name="cr-note" id="cr-note" class="input-large form-control inline width-50" placeholder="Add note">
+		<button type="submit" id="add-cr-note" class="btn btn-default inline">Add</button>
+	</form>
 </div>
 @tables.blacklistsummaries(events, "Blacklist history for URI")
 @tables.crsummaries(summaries.filterNot(_.id==cr.id), "Other Community Reports for URI")
