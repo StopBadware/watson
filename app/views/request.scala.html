@@ -16,7 +16,10 @@
 		<h4><label>Review:</label><a href="/reviews/@request.reviewId">@request.reviewId</a></h4>
 		<h4><label>Email:</label>@request.email</h4>
 		<h4><label>IP:</label>@if(request.ip.nonEmpty){<a href="/ips/@request.ip" class="ipv4">@request.ip</a>}</h4>
-		<h4><label>Notes:</label>@request.requesterNotes</h4>
+		<h4><label>Requester Notes:</label>@request.requesterNotes</h4>
+		@request.responses.map { case (q, a) =>
+		<h4><label>@q:</label>@a</h4>	
+		}
 		@if(user.hasRole(Role.VERIFIER)) {
 			<span id="request-id" class="non-vis" data-id="@request.id"></span>
 			@defining(if (request.open) "" else "disabled") { disabled =>

@@ -43,6 +43,17 @@ case class ReviewRequest(
     }
   }
   
+  def responses: Map[String, String] = DB.withConnection { implicit conn =>
+    return try {
+    	SQL("""SELECT question, answer FROM request_responses AS rr JOIN request_questions ON rr.question_id=request_questions.id 
+  	    JOIN request_answers on rr.answer_id=request_answers.id WHERE review_request_id={id} ORDER BY question ASC""")
+  	    .on("id" -> id)().map(row => (row[String]("question"), row[String]("answer"))).toMap
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      Map()
+    }
+  }
+  
   def close(reason: ClosedReason, closedAt: Option[Long]=None): Boolean = DB.withConnection { implicit conn =>
     val updatedReason = if (closedReason.equals(Some(REVIEWED_CLEAN)) && reason.equals(NO_PARTNERS_REPORTING)) {
       REVIEWED_CLEAN.toString
@@ -91,7 +102,7 @@ case class ReviewRequest(
       case _ => Logger.info("Sending no notification for review request "+id+" closed as "+reason)
     }
   }
-
+  
 }
 
 object ReviewRequest {
