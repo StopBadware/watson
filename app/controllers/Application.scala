@@ -337,6 +337,10 @@ object Application extends Controller with Secured with Cookies {
   
   def ip(ip: Long) = TODO	//TODO WTSN-59 view ip
   
+  def responses = withAuth { userId => implicit request =>
+    Ok(views.html.responses(User.find(userId.get).get))
+  }
+  
   def apiKeys = withAuth { userId => implicit request =>
     val user = User.find(userId.get).get
     if (user.hasRole(Role.ADMIN)) {

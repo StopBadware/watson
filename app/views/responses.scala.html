@@ -1,0 +1,43 @@
+@(user: User)
+@import models.enums.Role
+@main("Request Responses") {
+@defining(user.hasRole(Role.VERIFIER) || user.hasRole(Role.ADMIN)) { canModify =>
+	<div id="view-request-responses" class="well well-lg">
+		@RequestResponse.allResponses.groupBy(_.question).map { case (question, summaries) =>
+			<label>@question</label>
+			@if(canModify) {
+				@defining(if (summaries.head.questionEnabled) "Enabled" else "Disabled") { txt =>
+				<button type="button" class="btn @(if (summaries.head.questionEnabled) "btn-success" else "btn-danger") btn-xs">@txt</button>
+				}
+			}
+			<table class="table table-condensed auto-width">
+				<thead>
+					<tr>
+						<th>answer</th>
+						<th>count</th>
+						@if(canModify) {
+							<th></th>
+						}
+					</tr>
+				</thead>
+				@summaries.map { summary =>
+				<tr>
+					<td>@summary.answer</td>
+					<td class="text-right">@summary.count</td>
+					@if(canModify) {
+						@defining(if (summary.answerEnabled) "Enabled" else "Disabled") { txt =>
+						<td><button type="button" class="btn @(if (summary.answerEnabled) "btn-success" else "btn-danger") btn-xs">@txt</button></td>
+						}
+					}
+				</tr>
+				}
+			</table>
+		}
+	</div>
+	@if(canModify) {
+	<div id="add-request-responses" class="well well-lg">
+	admin
+	</div>	
+	}
+}
+}

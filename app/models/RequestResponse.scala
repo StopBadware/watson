@@ -39,6 +39,19 @@ object RequestResponse {
       .map(mapFromRow).flatten.toList).getOrElse(List())
   }
   
+  def allResponses: List[ResponseSummary] = DB.withConnection { implicit conn =>
+    return try {
+      SQL("""SELECT question, questions.id AS question_id, questions.enabled AS question_enabled, answer, answers.id AS answer_id, 
+        answers.enabled AS answer_enabled, COUNT(*) AS count FROM request_responses AS rr JOIN request_questions AS questions 
+        ON rr.question_id=questions.id JOIN request_answers AS answers ON rr.answer_id=answers.id GROUP BY question, answer, 
+        questions.enabled, answers.enabled, questions.id, answers.id ORDER BY question_enabled DESC, question ASC, count DESC""")()
+        .map(ResponseSummary.mapFromRow).flatten.toList
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      List()
+    }
+  }
+  
   private def mapFromRow(row: SqlRow): Option[RequestResponse] = {
     return try {
       Some(RequestResponse(
@@ -47,6 +60,37 @@ object RequestResponse {
 			  row[Int]("question_id"),
 			  row[Option[Int]]("answer_id"),
 			  row[Date]("responded_at").getTime / 1000
+      ))
+    } catch {
+      case e: Exception => None
+    }
+  }
+  
+}
+
+case class ResponseSummary(
+    question: String,
+    questionId: Int, 
+    questionEnabled: Boolean, 
+    answer: String, 
+    answerId: Int,
+    answerEnabled: Boolean, 
+    count: Int) {
+  
+}
+
+object ResponseSummary {
+  
+  def mapFromRow(row: SqlRow): Option[ResponseSummary] = {
+    return try {
+      Some(ResponseSummary(
+      	row[String]("question"),
+      	row[Int]("question_id"),
+			  row[Boolean]("question_enabled"),
+			  row[String]("answer"),
+			  row[Int]("answer_id"),
+			  row[Boolean]("answer_enabled"),
+			  row[Long]("count").toInt
       ))
     } catch {
       case e: Exception => None
