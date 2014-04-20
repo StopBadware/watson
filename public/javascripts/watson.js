@@ -99,6 +99,12 @@ $(document).ready(function($) {
 		addCommunityReports(uris, description, badCode, crType, crSource)
 	});
 	
+	$("#add-request-responses").submit(function(e) {
+		e.preventDefault();
+		$("#"+this.id+" button").focus().blur();
+		//TODO WTSN-62 add questions
+	});
+	
 	$(".refresh").click(function() {
 		location.reload(true);
 	});
