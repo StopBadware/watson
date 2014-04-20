@@ -35,7 +35,7 @@
 		}
 	</div>
 	@if(canModify) {
-	<form id="add-request-responses" class="form-box form-horizontal well well-lg" role="form">
+	<form id="add-request-response" class="form-box form-horizontal well well-lg" role="form">
 		<div class="form-group">
 			<label class="control-label col-md-1" for="question">Question</label>
 			<div class="col-md-11">
@@ -47,7 +47,7 @@
 			<div class="col-md-11">
 			@for(i <- 0 to 6) {
 				@defining(if (i < 2) "Required" else "Optional") { req =>
-				<input type="text" class="input-large form-control" id="answer-@i" name="answer-@i" placeholder="@req">
+				<input type="text" class="input-large form-control answer" id="answer-@i" name="answer-@i" placeholder="@req">
 				}
 			}
 			</div>

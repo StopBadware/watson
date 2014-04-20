@@ -275,7 +275,7 @@ input[type=checkbox]:focus {
 #executable-hash {
 	width: calc(100% - 220px);
 }
-#add-request-responses input {
+#add-request-response input {
 	margin-bottom: 0.5em;
 }
 /* DATE PICKER */

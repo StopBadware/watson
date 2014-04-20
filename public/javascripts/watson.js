@@ -99,10 +99,18 @@ $(document).ready(function($) {
 		addCommunityReports(uris, description, badCode, crType, crSource)
 	});
 	
-	$("#add-request-responses").submit(function(e) {
+	$("#add-request-response").submit(function(e) {
 		e.preventDefault();
 		$("#"+this.id+" button").focus().blur();
-		//TODO WTSN-62 add questions
+		var question = $("#question").val();
+		var answers = new Array();
+		$("#add-request-response .answer").each(function() {
+			var answer = $(this).val();
+			if (answer) {
+				answers.push(answer);
+			}
+		});
+		addRequestResponse(question, answers);
 	});
 	
 	$(".refresh").click(function() {
@@ -314,10 +322,10 @@ function requestReview(uris, email, notes) {
 	var validEmail = isValidEmail(email);
 	var hasUris = uris && uris.length > 0;
 	if ($(".form-info").is(":hidden")) {
+		scrollToBottom();
 		if (validEmail && hasUris) {
 			$(".form-alert, .form-success").hide();
 			$(".form-info").show();
-			scrollToBottom();
 			var obj = {
 				"uris": uris,
 				"email": email,
@@ -551,10 +559,10 @@ function renderNote(note) {
 function addCommunityReports(uris, description, badCode, crType, crSource) {
 	var hasUris = uris && uris.length > 0;
 	if ($(".form-info").is(":hidden")) {
+		scrollToBottom();
 		if (hasUris) {
 			$(".form-alert, .form-success").hide();
 			$(".form-info").show();
-			scrollToBottom();
 			var obj = {
 				"uris": uris,
 				"description": description,
@@ -581,6 +589,35 @@ function addCommunityReports(uris, description, badCode, crType, crSource) {
 			});
 		} else {
 			$(".alert-msg").text("URI required!");
+			$(".form-alert").show();
+		}
+	}
+}
+
+function addRequestResponse(question, answers) {
+	var valid = question && answers && answers.length >= 2;
+	if ($(".form-info").is(":hidden")) {
+		scrollToBottom();
+		if (valid) {
+			$(".form-alert, .form-success").hide();
+			$(".form-info").show();
+			var obj = {
+				"question": question,
+				"answers": answers
+			};
+			appRoute.addResponse().ajax({
+				contentType: jsonContentType,
+				data: JSON.stringify(obj)
+			}).done(function() {
+				$(".form-success").show();
+			}).fail(function(res) {
+				$(".form-alert").show();
+			}).always(function() {
+				$(".form-info").hide();
+			});
+		} else {
+			var msg = (!question) ? "Question required!" : "At least TWO answers are required";
+			$(".alert-msg").text(msg);
 			$(".form-alert").show();
 		}
 	}
