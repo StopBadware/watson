@@ -364,6 +364,30 @@ object Application extends Controller with Secured with Cookies {
     }
   }
   
+  def toggleResponse = withAuth { userId => implicit request =>
+    val user = User.find(userId.get)
+    if (user.isDefined && user.get.hasRole(Role.VERIFIER)) {
+    	val json = request.body.asJson
+	    val id = json.get.\("id").asOpt[String].getOrElse("")
+	    val disable = json.get.\("disable").asOpt[Boolean]
+	    try {
+	      val dbId = id.split("-").last.toInt
+	      val toggled = if (id.startsWith("question")) {
+	        if (disable.get) RequestQuestion.find(dbId).get.disable else RequestQuestion.find(dbId).get.enable
+	      } else if (id.startsWith("answer")) {
+	        if (disable.get) RequestAnswer.find(dbId).get.disable else RequestAnswer.find(dbId).get.enable
+	      } else {
+	        false
+	      }
+	      if (toggled) Ok else BadRequest
+	    } catch {
+	      case _: Exception => BadRequest
+	    }
+    } else {
+      Unauthorized
+    }
+  }
+  
   def apiKeys = withAuth { userId => implicit request =>
     val user = User.find(userId.get).get
     if (user.hasRole(Role.ADMIN)) {
@@ -456,7 +480,8 @@ object Application extends Controller with Secured with Cookies {
       routes.javascript.Application.updateReviewTestData,
       routes.javascript.Application.submitCommunityReports,
       routes.javascript.Application.addNote,
-      routes.javascript.Application.addResponse
+      routes.javascript.Application.addResponse,
+      routes.javascript.Application.toggleResponse
 		)).as("text/javascript")
   }
   

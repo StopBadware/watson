@@ -198,6 +198,10 @@ td a {
 .table-hover>tbody>tr:hover>td {
 	background-color: #E8F1F3;
 }
+#request-responses th {
+	color: #90B9C3;
+	background: none;
+}
 /* FORMS */
 .form-control:focus {
 	border-color: #90B9C3;
@@ -277,6 +281,10 @@ input[type=checkbox]:focus {
 }
 #add-request-response input {
 	margin-bottom: 0.5em;
+}
+.toggle-response {
+	width: 5em;
+	margin-left: 1em;
 }
 /* DATE PICKER */
 .form-inline .form-control.date-picker {

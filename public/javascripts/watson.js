@@ -113,6 +113,11 @@ $(document).ready(function($) {
 		addRequestResponse(question, answers);
 	});
 	
+	$(".toggle-response").click(function() {
+		$(this).focus().blur();
+		toggleResponse(this.id);
+	});
+	
 	$(".refresh").click(function() {
 		location.reload(true);
 	});
@@ -621,6 +626,31 @@ function addRequestResponse(question, answers) {
 			$(".form-alert").show();
 		}
 	}
+}
+
+function toggleResponse(id) {
+	var button = $("#"+id);
+	var isEnabled = button.hasClass("btn-success");
+	var obj = {
+		"id": id,
+		"disable": isEnabled
+	};
+	appRoute.toggleResponse().ajax({
+		contentType: jsonContentType,
+		data: JSON.stringify(obj)
+	}).done(function() {
+		if (isEnabled) {
+			button.addClass("btn-danger");
+			button.removeClass("btn-success");
+			button.text("Disabled");
+		} else {
+			button.addClass("btn-success");
+			button.removeClass("btn-danger");
+			button.text("Enabled");
+		}
+	}).fail(function(res) {
+		alert("Toggle failed");
+	});
 }
 
 function loginSubmit() {

@@ -6,11 +6,13 @@
 		@RequestResponse.allResponses.groupBy(_.question).map { case (question, summaries) =>
 			<label>@question</label>
 			@if(canModify) {
-				@defining(if (summaries.head.questionEnabled) "Enabled" else "Disabled") { txt =>
-				<button type="button" class="btn @(if (summaries.head.questionEnabled) "btn-success" else "btn-danger") btn-xs">@txt</button>
+			@defining(if (summaries.head.questionEnabled) "Enabled" else "Disabled") { txt =>
+				@defining(if (summaries.head.questionEnabled) "btn-success" else "btn-danger") { btnType =>
+				<button id="question-@summaries.head.questionId" type="button" class="btn @btnType btn-xs toggle-response">@txt</button>
 				}
 			}
-			<table class="table table-condensed auto-width">
+			}
+			<table id="request-responses" class="table table-condensed auto-width">
 				<thead>
 					<tr>
 						<th>answer</th>
@@ -25,9 +27,11 @@
 					<td>@summary.answer</td>
 					<td class="text-right">@summary.count</td>
 					@if(canModify) {
-						@defining(if (summary.answerEnabled) "Enabled" else "Disabled") { txt =>
-						<td><button type="button" class="btn @(if (summary.answerEnabled) "btn-success" else "btn-danger") btn-xs">@txt</button></td>
+					@defining(if (summary.answerEnabled) "Enabled" else "Disabled") { txt =>
+						@defining(if (summary.answerEnabled) "btn-success" else "btn-danger") { btnType =>
+						<td><button id="answer-@summary.answerId" type="button" class="btn @btnType btn-xs toggle-response">@txt</button></td>
 						}
+					}
 					}
 				</tr>
 				}
