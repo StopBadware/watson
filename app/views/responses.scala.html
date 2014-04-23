@@ -47,36 +47,26 @@
 			</table>
 		}
 	</div>
-	<div class="well well-lg tab-pane fade" id="all">TODO WTSN-62 ALL
-		@RequestResponse.allResponses.groupBy(_.question).map { case (question, summaries) =>
-			<label>@question</label>
+	<div class="well well-lg tab-pane fade" id="all">
+		@RequestQuestion.all.map { question =>
+			<label>@question.question</label>
 			@if(canModify) {
-			@defining(if (summaries.head.questionEnabled) "Enabled" else "Disabled") { txt =>
-				@defining(if (summaries.head.questionEnabled) "btn-success" else "btn-danger") { btnType =>
-				@defining("question-"+summaries.head.questionId) { id =>
+			@defining(if (question.enabled) "Enabled" else "Disabled") { txt =>
+				@defining(if (question.enabled) "btn-success" else "btn-danger") { btnType =>
+				@defining("question-"+question.id) { id =>
 				<button data-qa-id="@id" type="button" class="btn @btnType btn-xs toggle-response @id">@txt</button>
 				}
 				}
 			}
 			}
 			<table id="all-request-responses" class="table table-condensed auto-width">
-				<thead>
-					<tr>
-						<th>answer</th>
-						<th>count</th>
-						@if(canModify) {
-							<th></th>
-						}
-					</tr>
-				</thead>
-				@summaries.map { summary =>
+				@question.answers.map { answer =>
 				<tr>
-					<td>@summary.answer</td>
-					<td class="text-right">@summary.count</td>
+					<td>@answer.answer</td>
 					@if(canModify) {
-					@defining(if (summary.answerEnabled) "Enabled" else "Disabled") { txt =>
-						@defining(if (summary.answerEnabled) "btn-success" else "btn-danger") { btnType =>
-						@defining("answer-"+summary.answerId) { id =>
+					@defining(if (answer.enabled) "Enabled" else "Disabled") { txt =>
+						@defining(if (answer.enabled) "btn-success" else "btn-danger") { btnType =>
+						@defining("answer-"+answer.id) { id =>
 						<td><button data-qa-id="@id" type="button" class="btn @btnType btn-xs toggle-response @id">@txt</button></td>
 						}
 						}

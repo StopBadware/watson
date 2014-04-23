@@ -60,6 +60,15 @@ class RequestQuestionSpec extends Specification {
       }
     }
     
+    "find all RequestQuestions" in {
+      running(FakeApplication()) {
+        val rq = question
+        val all = RequestQuestion.all
+        all.nonEmpty must beTrue
+        all.map(_.id).contains(rq.id) must beTrue
+      }
+    }
+    
   }
 
 }

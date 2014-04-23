@@ -70,6 +70,10 @@ object RequestQuestion {
     return Try(SQL("SELECT * FROM request_questions WHERE enabled=true")().map(mapFromRow).flatten.toList).getOrElse(List())
   }
   
+  def all: List[RequestQuestion] = DB.withConnection { implicit conn =>
+    return Try(SQL("SELECT * FROM request_questions ORDER BY enabled DESC, created_at DESC")().map(mapFromRow).flatten.toList).getOrElse(List())
+  }
+  
   private def mapFromRow(row: SqlRow): Option[RequestQuestion] = {
     return try {
       Some(RequestQuestion(
