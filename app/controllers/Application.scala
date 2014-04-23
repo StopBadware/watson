@@ -341,6 +341,10 @@ object Application extends Controller with Secured with Cookies {
     Ok(views.html.responses(User.find(userId.get).get))
   }
   
+  def newQuestion = withAuth { userId => implicit request =>
+    Ok(views.html.newquestion(User.find(userId.get).get))
+  }
+  
   def addResponse = withAuth { userId => implicit request =>
     val user = User.find(userId.get)
     if (user.isDefined && user.get.hasRole(Role.VERIFIER)) {

@@ -39,28 +39,9 @@
 		}
 	</div>
 	@if(canModify) {
-	<form id="add-request-response" class="form-box form-horizontal well well-lg" role="form">
-		<div class="form-group">
-			<label class="control-label col-md-1" for="question">Question</label>
-			<div class="col-md-11">
-				<input type="text" class="input-large form-control" id="question" name="question" placeholder="Required">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="control-label col-md-1" for="answer-0">Answers</label>
-			<div class="col-md-11">
-			@for(i <- 0 to 6) {
-				@defining(if (i < 2) "Required" else "Optional") { req =>
-				<input type="text" class="input-large form-control answer" id="answer-@i" name="answer-@i" placeholder="@req">
-				}
-			}
-			</div>
-		</div>
-		<div class="text-center">
-			<button type="submit" id="btn-add-request-response" class="btn btn-default form-btn">Add Question</button>
-		</div>
-	</form>
-	@partials.ajaxstatus("Unable to add question", "Adding question", "Question added!")()
+	<div class="well well-lg watson-green-bg text-center">
+		<a href="/requests/responses/new"><button type="button" class="btn btn-default">Add New Question</button></a>
+	</div>
 	}
 }
 }
