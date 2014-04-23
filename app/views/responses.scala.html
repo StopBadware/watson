@@ -2,17 +2,24 @@
 @import models.enums.Role
 @main("Request Responses") {
 @defining(user.hasRole(Role.VERIFIER) || user.hasRole(Role.ADMIN)) { canModify =>
-	<div id="view-request-responses" class="well well-lg">
+<ul class="nav nav-pills panel">
+	<li class="active"><a href="#responded" data-toggle="tab">Responded</a></li>
+	<li><a href="#all" data-toggle="tab">All</a></li>
+</ul>
+<div class="tab-content">
+	<div id="responded" class="well well-lg tab-pane fade in active">
 		@RequestResponse.allResponses.groupBy(_.question).map { case (question, summaries) =>
 			<label>@question</label>
 			@if(canModify) {
 			@defining(if (summaries.head.questionEnabled) "Enabled" else "Disabled") { txt =>
 				@defining(if (summaries.head.questionEnabled) "btn-success" else "btn-danger") { btnType =>
-				<button id="question-@summaries.head.questionId" type="button" class="btn @btnType btn-xs toggle-response">@txt</button>
+				@defining("question-"+summaries.head.questionId) { id =>
+				<button data-qa-id="@id" type="button" class="btn @btnType btn-xs toggle-response @id">@txt</button>
+				}
 				}
 			}
 			}
-			<table id="request-responses" class="table table-condensed auto-width">
+			<table id="responded-request-responses" class="table table-condensed auto-width">
 				<thead>
 					<tr>
 						<th>answer</th>
@@ -29,7 +36,9 @@
 					@if(canModify) {
 					@defining(if (summary.answerEnabled) "Enabled" else "Disabled") { txt =>
 						@defining(if (summary.answerEnabled) "btn-success" else "btn-danger") { btnType =>
-						<td><button id="answer-@summary.answerId" type="button" class="btn @btnType btn-xs toggle-response">@txt</button></td>
+						@defining("answer-"+summary.answerId) { id =>
+						<td><button data-qa-id="@id" type="button" class="btn @btnType btn-xs toggle-response @id">@txt</button></td>
+						}
 						}
 					}
 					}
@@ -38,6 +47,47 @@
 			</table>
 		}
 	</div>
+	<div class="well well-lg tab-pane fade" id="all">TODO WTSN-62 ALL
+		@RequestResponse.allResponses.groupBy(_.question).map { case (question, summaries) =>
+			<label>@question</label>
+			@if(canModify) {
+			@defining(if (summaries.head.questionEnabled) "Enabled" else "Disabled") { txt =>
+				@defining(if (summaries.head.questionEnabled) "btn-success" else "btn-danger") { btnType =>
+				@defining("question-"+summaries.head.questionId) { id =>
+				<button data-qa-id="@id" type="button" class="btn @btnType btn-xs toggle-response @id">@txt</button>
+				}
+				}
+			}
+			}
+			<table id="all-request-responses" class="table table-condensed auto-width">
+				<thead>
+					<tr>
+						<th>answer</th>
+						<th>count</th>
+						@if(canModify) {
+							<th></th>
+						}
+					</tr>
+				</thead>
+				@summaries.map { summary =>
+				<tr>
+					<td>@summary.answer</td>
+					<td class="text-right">@summary.count</td>
+					@if(canModify) {
+					@defining(if (summary.answerEnabled) "Enabled" else "Disabled") { txt =>
+						@defining(if (summary.answerEnabled) "btn-success" else "btn-danger") { btnType =>
+						@defining("answer-"+summary.answerId) { id =>
+						<td><button data-qa-id="@id" type="button" class="btn @btnType btn-xs toggle-response @id">@txt</button></td>
+						}
+						}
+					}
+					}
+				</tr>
+				}
+			</table>
+		}	
+	</div>
+</div>	
 	@if(canModify) {
 	<div class="well well-lg watson-green-bg text-center">
 		<a href="/requests/responses/new"><button type="button" class="btn btn-default">Add New Question</button></a>

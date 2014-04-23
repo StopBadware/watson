@@ -198,7 +198,8 @@ td a {
 .table-hover>tbody>tr:hover>td {
 	background-color: #E8F1F3;
 }
-#request-responses th {
+#responded-request-responses th,
+#all-request-responses th {
 	color: #90B9C3;
 	background: none;
 }

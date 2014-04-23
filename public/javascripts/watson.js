@@ -115,7 +115,7 @@ $(document).ready(function($) {
 	
 	$(".toggle-response").click(function() {
 		$(this).focus().blur();
-		toggleResponse(this.id);
+		toggleResponse($(this).data("qa-id"));
 	});
 	
 	$(".refresh").click(function() {
@@ -629,7 +629,7 @@ function addRequestResponse(question, answers) {
 }
 
 function toggleResponse(id) {
-	var button = $("#"+id);
+	var button = $("."+id);
 	var isEnabled = button.hasClass("btn-success");
 	var obj = {
 		"id": id,
