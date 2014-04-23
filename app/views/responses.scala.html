@@ -6,17 +6,16 @@
 	<li class="active"><a href="#responded" data-toggle="tab">Responded</a></li>
 	<li><a href="#all" data-toggle="tab">All</a></li>
 </ul>
+@defining(if (canModify) "" else "disabled") { disabled =>
 <div class="tab-content">
 	<div id="responded" class="well well-lg tab-pane fade in active">
 		@RequestResponse.allResponses.groupBy(_.question).map { case (question, summaries) =>
 			<label>@question</label>
-			@if(canModify) {
 			@defining(if (summaries.head.questionEnabled) "Enabled" else "Disabled") { txt =>
-				@defining(if (summaries.head.questionEnabled) "btn-success" else "btn-danger") { btnType =>
-				@defining("question-"+summaries.head.questionId) { id =>
-				<button data-qa-id="@id" type="button" class="btn @btnType btn-xs toggle-response @id">@txt</button>
-				}
-				}
+			@defining(if (summaries.head.questionEnabled) "btn-success" else "btn-danger") { btnType =>
+			@defining("question-"+summaries.head.questionId) { id =>
+			<button data-qa-id="@id" type="button" class="btn @btnType btn-xs toggle-response @id" @disabled>@txt</button>
+			}
 			}
 			}
 			<table id="responded-request-responses" class="table table-condensed auto-width">
@@ -24,22 +23,18 @@
 					<tr>
 						<th>answer</th>
 						<th>count</th>
-						@if(canModify) {
-							<th></th>
-						}
+						<th></th>
 					</tr>
 				</thead>
 				@summaries.map { summary =>
 				<tr>
 					<td>@summary.answer</td>
 					<td class="text-right">@summary.count</td>
-					@if(canModify) {
 					@defining(if (summary.answerEnabled) "Enabled" else "Disabled") { txt =>
-						@defining(if (summary.answerEnabled) "btn-success" else "btn-danger") { btnType =>
-						@defining("answer-"+summary.answerId) { id =>
-						<td><button data-qa-id="@id" type="button" class="btn @btnType btn-xs toggle-response @id">@txt</button></td>
-						}
-						}
+					@defining(if (summary.answerEnabled) "btn-success" else "btn-danger") { btnType =>
+					@defining("answer-"+summary.answerId) { id =>
+					<td><button data-qa-id="@id" type="button" class="btn @btnType btn-xs toggle-response @id" @disabled>@txt</button></td>
+					}
 					}
 					}
 				</tr>
@@ -50,26 +45,22 @@
 	<div class="well well-lg tab-pane fade" id="all">
 		@RequestQuestion.all.map { question =>
 			<label>@question.question</label>
-			@if(canModify) {
 			@defining(if (question.enabled) "Enabled" else "Disabled") { txt =>
-				@defining(if (question.enabled) "btn-success" else "btn-danger") { btnType =>
-				@defining("question-"+question.id) { id =>
-				<button data-qa-id="@id" type="button" class="btn @btnType btn-xs toggle-response @id">@txt</button>
-				}
-				}
+			@defining(if (question.enabled) "btn-success" else "btn-danger") { btnType =>
+			@defining("question-"+question.id) { id =>
+			<button data-qa-id="@id" type="button" class="btn @btnType btn-xs toggle-response @id" @disabled>@txt</button>
+			}
 			}
 			}
 			<table id="all-request-responses" class="table table-condensed auto-width">
 				@question.answers.map { answer =>
 				<tr>
 					<td>@answer.answer</td>
-					@if(canModify) {
 					@defining(if (answer.enabled) "Enabled" else "Disabled") { txt =>
-						@defining(if (answer.enabled) "btn-success" else "btn-danger") { btnType =>
-						@defining("answer-"+answer.id) { id =>
-						<td><button data-qa-id="@id" type="button" class="btn @btnType btn-xs toggle-response @id">@txt</button></td>
-						}
-						}
+					@defining(if (answer.enabled) "btn-success" else "btn-danger") { btnType =>
+					@defining("answer-"+answer.id) { id =>
+					<td><button data-qa-id="@id" type="button" class="btn @btnType btn-xs toggle-response @id" @disabled>@txt</button></td>
+					}
 					}
 					}
 				</tr>
@@ -77,7 +68,8 @@
 			</table>
 		}	
 	</div>
-</div>	
+</div>
+}
 	@if(canModify) {
 	<div class="well well-lg watson-green-bg text-center">
 		<a href="/requests/responses/new"><button type="button" class="btn btn-default">Add New Question</button></a>
