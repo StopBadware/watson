@@ -4,7 +4,7 @@
 
 CREATE TABLE request_questions (
   id SERIAL PRIMARY KEY,
-  question VARCHAR(128) NOT NULL,
+  question VARCHAR(128) UNIQUE NOT NULL,
   enabled BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -16,10 +16,11 @@ CREATE TABLE request_answers (
   question_id INTEGER NOT NULL REFERENCES request_questions (id) ON DELETE RESTRICT,
   answer VARCHAR(64) NOT NULL,
   enabled BOOLEAN NOT NULL DEFAULT TRUE,
-  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE (question_id, answer)
 );
 
-CREATE INDEX ON request_answers (question_id);
+CREATE INDEX ON request_answers (question_id, enabled);
 
 CREATE TABLE request_responses (
   id SERIAL PRIMARY KEY,
