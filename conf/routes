@@ -25,6 +25,7 @@ GET		/ips/:ip							controllers.Application.ip(ip: Long)
 GET		/crs								controllers.Application.communityReports
 GET		/crs/new							controllers.Application.newCommunityReport
 GET		/crs/:id							controllers.Application.communityReport(id: Int)
+GET		/emailtemplates						controllers.Application.emailTemplates
 
 
 # AJAX ROUTES
@@ -41,6 +42,7 @@ POST	/reviews/updatestatus				controllers.Application.updateReviewStatus
 POST	/reviews/updatetestdata				controllers.Application.updateReviewTestData
 POST	/crs/submit							controllers.Application.submitCommunityReports
 POST	/note								controllers.Application.addNote
+POST	/emailtemplates/update				controllers.Application.updateEmailTemplate
 
 # API ENDPOINTS
 GET     /blacklists/timeoflast/:source   	controllers.Api.timeoflast(source)

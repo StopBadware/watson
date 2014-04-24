@@ -1,0 +1,29 @@
+@main("Email Templates") {
+@defining("([A-Z][a-z]+)".r) { regex =>
+@EmailTemplate.all.map { template =>
+	<div class="well well-lg">
+		<h4>@regex.findAllMatchIn(template.name).mkString(" ")</h4>
+		<form class="form-box form-horizontal update-email-template" role="form">
+			<div class="form-group">
+			@defining(template.name+"-subject") { id =>
+				<label class="control-label col-md-2" for="@id">Subject</label>
+				<div class="col-md-10">
+					<textarea id="@id" class="input-large form-control has-char-counter" rows="1" maxlength="128" name="@id" spellcheck="true" placeholder="Required"></textarea>
+					@partials.charcounter(id, 128)
+				</div>
+			}
+			</div>
+			<div class="form-group">
+			@defining(template.name+"-body") { id =>
+				<label class="control-label col-md-2" for="@id">Body</label>
+				<div class="col-md-10">
+					<textarea id="@id" class="input-large form-control has-char-counter" rows="6" maxlength="4096" name="@id" spellcheck="true" placeholder="Required"></textarea>
+					@partials.charcounter(id, 4096)
+				</div>
+			}
+			</div>
+		</form>
+	</div>
+}
+}
+}

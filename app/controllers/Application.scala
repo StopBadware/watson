@@ -392,6 +392,33 @@ object Application extends Controller with Secured with Cookies {
     }
   }
   
+  def emailTemplates = withAuth { userId => implicit request =>
+    Ok(views.html.emailtemplates())
+  }
+  
+  def updateEmailTemplate = withAuth { userId => implicit request =>
+    val user = User.find(userId.get)
+    if (user.isDefined && user.get.hasRole(Role.USER)) {
+    	val json = request.body.asJson
+	    val question = json.get.\("question").asOpt[String]
+	    val answers = json.get.\("answers").asOpt[List[String]].getOrElse(List())
+	    if (question.isDefined && answers.size >= 2) {
+	      RequestQuestion.create(question.get)
+	      val q = RequestQuestion.findByText(question.get)
+	      if (q.isDefined) {
+	        answers.foreach(RequestAnswer.create(_, q.get.id))
+	        Ok
+	      } else {
+	      	BadRequest
+	      }
+	    } else {
+	      BadRequest
+	    }
+    } else {
+      Unauthorized
+    }
+  }
+  
   def apiKeys = withAuth { userId => implicit request =>
     val user = User.find(userId.get).get
     if (user.hasRole(Role.ADMIN)) {
@@ -485,7 +512,8 @@ object Application extends Controller with Secured with Cookies {
       routes.javascript.Application.submitCommunityReports,
       routes.javascript.Application.addNote,
       routes.javascript.Application.addResponse,
-      routes.javascript.Application.toggleResponse
+      routes.javascript.Application.toggleResponse,
+      routes.javascript.Application.updateEmailTemplate
 		)).as("text/javascript")
   }
   
