@@ -51,6 +51,16 @@ class EmailTemplateSpec extends Specification {
       }
     }
     
+    "find all templates" in {
+      running(FakeApplication()) {
+        val name = "TEST_ALL_" + nowHex
+        EmailTemplate.create(name, testSubject, testBody) must beTrue
+        val all = EmailTemplate.all
+        all.nonEmpty must beTrue
+        all.map(_.name).contains(name) must beTrue
+      }
+    }
+    
     "delete a template" in {
       running(FakeApplication()) {
         val name = "TEST_DEL_" + nowHex

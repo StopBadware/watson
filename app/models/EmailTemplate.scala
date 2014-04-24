@@ -1,18 +1,20 @@
 package models
 
+import java.util.Date
 import anorm._
 import play.api.db._
 import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
+import scala.util.Try
 
-case class EmailTemplate(name: String, subject: String, body: String, userId: Option[Int]) {
+case class EmailTemplate(name: String, subject: String, body: String, modifiedBy: Option[Int], modifiedAt: Long) {
   
-  def update(newSubject: String, newBody: String, modifiedBy: Option[Int]=None): Boolean = DB.withConnection { implicit conn =>
+  def update(newSubject: String, newBody: String, modifiedById: Option[Int]=None): Boolean = DB.withConnection { implicit conn =>
     return try {
-    	SQL("UPDATE email_templates SET subject={subject}, body={body}, modified_by={modifiedBy} WHERE name={name}")
-      .on("name" -> name, "subject" -> newSubject, "body" -> newBody, "modifiedBy" -> modifiedBy)
-      .executeUpdate() > 0
+    	SQL("UPDATE email_templates SET subject={subject}, body={body}, modified_by={modifiedById}, modified_at=NOW() WHERE name={name}")
+	      .on("name" -> name, "subject" -> newSubject, "body" -> newBody, "modifiedById" -> modifiedById)
+	      .executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       false
@@ -44,16 +46,24 @@ object EmailTemplate {
   }
   
   def find(name: String): Option[EmailTemplate] = DB.withConnection { implicit conn =>
+    return Try(mapFromRow(SQL("SELECT * FROM email_templates WHERE name={name} LIMIT 1").on("name"->name)().head)).getOrElse(None)
+  }
+  
+  def all: List[EmailTemplate] = DB.withConnection { implicit conn =>
+    return Try(SQL("SELECT * FROM email_templates ORDER BY name ASC")().map(mapFromRow).flatten.toList).getOrElse(List())
+  }
+  
+  private def mapFromRow(row: SqlRow): Option[EmailTemplate] = {
     return try {
-      SQL("SELECT * FROM email_templates WHERE name={name} LIMIT 1").on("name"->name)().map { row =>
-	      val subject = row[String]("subject")
-	      val body = row[String]("body")
-	      val userId = row[Option[Int]]("modified_by")
-	      EmailTemplate(name, subject, body, userId)
-	    }.headOption
+      Some(EmailTemplate(
+      	row[String]("name"), 
+			  row[String]("subject"),
+			  row[String]("body"),
+			  row[Option[Int]]("modified_by"),
+			  row[Date]("modified_at").getTime / 1000
+      ))
     } catch {
-      case e: PSQLException => Logger.error(e.getMessage)
-      None
+      case e: Exception => None
     }
   }
   
