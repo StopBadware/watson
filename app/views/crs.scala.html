@@ -7,14 +7,6 @@
 <div class="panel panel-default">
 	<div class="panel-body">
 		<form id="crs-filter" class="form-inline text-center">
-			<label class="control-label" for="type">Type</label>
-			<select id="type" name="type" class="form-control">
-				<option value="">Any</option>
-				@CrType.all.map { t =>
-				<option value="@t">@t</option>
-				}
-			</select>
-			
 			<label class="control-label" for="source">Source</label>
 			<select id="source" name="source" class="form-control">
 				<option value="">Any</option>
@@ -33,10 +25,8 @@
     	<thead>
     		<tr>
     			<th title="Click URI to view CR details">URI</th>
-    			<th>Description</th>
-    			<th>Type</th>
     			<th>Source</th>
-    			<th>IP</th>
+    			<th>Reporter IP</th>
     			<th>Reported</th>
     		</tr>
     	</thead>
@@ -45,15 +35,9 @@
     		<tr>
 	    		<td title="View details for CR @summary.id" class="nowrap">
 	    			<a href="/crs/@summary.id">
-	    				@(if (summary.uri.length>45) summary.uri.slice(0, 45)+"..." else summary.uri)
+	    				@(if (summary.uri.length>65) summary.uri.slice(0, 65)+"..." else summary.uri)
 	    			</a>
 	    		</td>
-	   			<td class="nowrap">
-	   			@if(summary.description.isDefined) {
-	   				@(if (summary.description.get.length>20) summary.description.get.slice(0, 20)+"..." else summary.description.get)
-	   			}
-	   			</td>
-	   			<td>@summary.crType</td>
 	   			<td>@summary.crSource</td>
 	   			@if(summary.ip.nonEmpty){
    					<td class="text-right" title="View details for IP @summary.ip"><a href="/ips/@summary.ip" class="ipv4">@summary.ip</a></td>

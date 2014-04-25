@@ -277,10 +277,9 @@ object Application extends Controller with Secured with Cookies {
   }
   
   def communityReports = withAuth { userId => implicit request =>
-    val crType = Try(CrType.findByType(request.getQueryString("type").get).get.id).toOption
     val crSource = Try(CrSource.findByName(request.getQueryString("source").get).get.id).toOption
     val times = PostgreSql.parseTimes(request.getQueryString("reported").getOrElse(""))
-    Ok(views.html.crs(CommunityReport.findSummaries(crType, crSource, times, limit), limit))
+    Ok(views.html.crs(CommunityReport.findSummaries(None, crSource, times, limit), limit))
     	.withCookies(cookies(request, List("type", "source", "reported")):_*)
   }
   

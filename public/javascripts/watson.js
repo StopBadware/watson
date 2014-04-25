@@ -207,7 +207,7 @@ $(document).ready(function($) {
 	
 	var tableFilters = [{id:"#reviews-table",fields:["status", "blacklisted", "created"]},
 	                    {id:"#requests-table",fields:["status", "email", "requested"]},
-	                    {id:"#crs-table",fields:["type", "source", "reported"]}];
+	                    {id:"#crs-table",fields:["source", "reported"]}];
 	tableFilters.map(function(table) {
 		if ($(table.id).length) {
 			if ($(table.id+" tbody tr").length == 0) {
@@ -224,7 +224,7 @@ $(document).ready(function($) {
 	              {id:"#reviews-rescans-table",sortOn:3},
 	              {id:"#reviews-table",sortOn:4},
 	              {id:"#requests-table",sortOn:4},
-	              {id:"#crs-table",sortOn:5}];
+	              {id:"#crs-table",sortOn:3}];
 	tableSorts.map(function(table) {
 		initSortTable(table.id, table.sortOn);
 	});
