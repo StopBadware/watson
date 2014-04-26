@@ -119,37 +119,30 @@ $(document).ready(function($) {
 	});
 	
 	$(".edit-email-template").click(function() {
-		var template = "#" + $(this).data("template") + "-";
-		$(this).prop("disabled", true);
-		$(template+"cancel").prop("disabled", false);
-		$(template+"save").prop("disabled", false);
-		$(template+"subject").prop("disabled", false);
-		$(template+"body").prop("disabled", false);
+		toggleEmailTemplateInputs($(this).data("template"), true);
 	});
 	
 	$(".cancel-email-template").click(function() {
-		var template = "#" + $(this).data("template") + "-";
-		$(template+"edit").prop("disabled", false);
-		$(this).prop("disabled", true);
-		$(template+"save").prop("disabled", true);
-		$(template+"subject").prop("disabled", true);
-		$(template+"body").prop("disabled", true);
-		$(template+"subject").val($(template+"subject").data("orig"));
-		$(template+"body").val($(template+"body").data("orig"));
+		toggleEmailTemplateInputs($(this).data("template"), false);
 	});
 	
 	$(".send-email-template").click(function() {
+		$(this).focus().blur();
 		var templateName = $(this).data("template");
 		var template = "#" + templateName + "-";
 		var subject = $(template+"subject").val();
 		var body = $(template+"body").val();
+		sendEmailTemplatePreview(templateName, subject, body);
 	});
 	
-	$(".save-email-template").click(function() {
+	$(".save-email-template").click(function(e) {
+		e.preventDefault();
+		$(this).focus().blur();
 		var templateName = $(this).data("template");
 		var template = "#" + templateName + "-";
 		var subject = $(template+"subject").val();
 		var body = $(template+"body").val();
+		updateEmailTemplate(templateName, subject, body);
 	});
 	
 	$(".refresh").click(function() {
@@ -689,6 +682,86 @@ function toggleResponse(id) {
 	}).fail(function(res) {
 		alert("Toggle failed");
 	});
+}
+
+function sendEmailTemplatePreview(template, subject, body) {
+	var templateClass = "." + template + "-send-update-status ";
+	if ($(templateClass+".form-info").is(":hidden")) {
+		if (subject && body) {
+			$(".form-alert, .form-success").hide();
+			$(templateClass+".form-info").show();
+			var obj = {
+				"template": template,
+				"subject": subject,
+				"body": body
+			};
+			appRoute.sendEmailTemplatePreview().ajax({
+				contentType: jsonContentType,
+				data: JSON.stringify(obj)
+			}).done(function() {
+				$(templateClass+".form-success").show();
+			}).fail(function() {
+				$(templateClass+".alert-msg").text("Unable to send email");
+				$(templateClass+".form-alert").show();
+			}).always(function() {
+				$(".form-info").hide();
+			});
+		} else {
+			$(templateClass+".alert-msg").text("A subject and body are both required!");
+			$(templateClass+".form-alert").show();
+		}
+	}	
+}
+
+function updateEmailTemplate(template, subject, body) {
+	var templateClass = "." + template + "-save-update-status ";
+	if ($(templateClass+".form-info").is(":hidden")) {
+		if (subject && body) {
+			$(".form-alert, .form-success").hide();
+			$(templateClass+".form-info").show();
+			var obj = {
+				"template": template,
+				"subject": subject,
+				"body": body
+			};
+			appRoute.updateEmailTemplate().ajax({
+				contentType: jsonContentType,
+				data: JSON.stringify(obj)
+			}).done(function() {
+				$("#"+template+"-subject").data("orig", subject);
+				$("#"+template+"-body").data("orig", body);
+				toggleEmailTemplateInputs(template, false);
+				$(templateClass+".form-success").show();
+			}).fail(function() {
+				$(templateClass+".alert-msg").text("Unable to update template");
+				$(templateClass+".form-alert").show();
+			}).always(function() {
+				$(".form-info").hide();
+			});
+		} else {
+			$(templateClass+".alert-msg").text("A subject and body are both required!");
+			$(templateClass+".form-alert").show();
+		}
+	}	
+}
+
+function toggleEmailTemplateInputs(templateName, enableEditing) {
+	var template = "#" + templateName + "-";
+	if (enableEditing) {
+		$(template+"edit").prop("disabled", true);
+		$(template+"cancel").prop("disabled", false);
+		$(template+"save").prop("disabled", false);
+		$(template+"subject").prop("disabled", false);
+		$(template+"body").prop("disabled", false);
+	} else {
+		$(template+"edit").prop("disabled", false);
+		$(template+"cancel").prop("disabled", true);
+		$(template+"save").prop("disabled", true);
+		$(template+"subject").prop("disabled", true);
+		$(template+"body").prop("disabled", true);
+		$(template+"subject").val($(template+"subject").data("orig"));
+		$(template+"body").val($(template+"body").data("orig"));
+	}
 }
 
 function loginSubmit() {

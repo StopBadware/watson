@@ -37,19 +37,22 @@ object Mailer extends Controller {
   		"<h2>"+secret+"</h2><h1 style='color: #FF0000'>KEEP THIS KEY SECURE</h1>"
     val json = sendReqJson(email, "Watson API", body, "API secret")
     return future(if (email.endsWith("@stopbadware.org")) send(json) else false)
-  } 
+  }
   
   private def sendTemplate(templateName: String, email: String, uri: String, badCode: String=""): Future[Boolean] = {
-  	val template = EmailTemplate.find(templateName)
+    val template = EmailTemplate.find(templateName)
+    return if (template.isDefined) {
+      sendEmail(template.get.subject, template.get.body, email, uri, badCode, templateName)
+    } else {
+      Logger.error("No email template found for "+templateName)
+      future(false)
+    }
+  }
+  
+  def sendEmail(subject: String, body: String, email: String, uri: String, badCode: String="", tag: String="TEST"): Future[Boolean] = {
     return future {
-	    if (template.isDefined) {
-	      val body = replacePlaceholders(template.get.body, uri, badCode)
-	      val json = sendReqJson(email, template.get.subject, body, templateName)
-	      if (sendMail || email.endsWith("@stopbadware.org")) send(json) else json.nonEmpty
-	    } else {
-	      Logger.error("No email template found for "+templateName)
-	      false
-	    }
+      val json = sendReqJson(email, subject, replacePlaceholders(body, uri, badCode), tag)
+      if (sendMail || email.endsWith("@stopbadware.org")) send(json) else json.nonEmpty
     }
   }
   
@@ -59,7 +62,7 @@ object Mailer extends Controller {
     return content
   		.replaceAllLiterally("[URI]", link)
   		.replaceAllLiterally("[SAFE_URI]", safeLink)
-  		.replaceAllLiterally("[BAD_CODE]", badCode)
+  		.replaceAllLiterally("[BAD_CODE]", xml.Utility.escape(badCode))
   }
   
   private def send(json: String): Boolean = {

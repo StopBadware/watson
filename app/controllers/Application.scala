@@ -395,21 +395,36 @@ object Application extends Controller with Secured with Cookies {
     Ok(views.html.emailtemplates(User.find(userId.get).get.email))
   }
   
+  def sendEmailTemplatePreview = withAuth { userId => implicit request =>
+    val user = User.find(userId.get)
+    if (user.isDefined && user.get.hasRole(Role.USER)) {
+    	val json = request.body.asJson
+	    val subject = json.get.\("subject").asOpt[String]
+	    val body = json.get.\("body").asOpt[String]
+	    val templateName = json.get.\("template").asOpt[String]
+	    if (subject.isDefined && body.isDefined && templateName.isDefined) {
+	    	val sampleUri = "http://www.example.com/"
+	    	val sampleCode = "<iframe src=\"http://ducksarethebest.com/\"></iframe>"
+	      val sent = Mailer.sendEmail(subject.get, body.get, User.find(userId.get).get.email, sampleUri, sampleCode).apply
+	      if (sent) Ok else InternalServerError
+	    } else {
+	      BadRequest
+	    }
+    } else {
+      Unauthorized
+    }
+  }  
+  
   def updateEmailTemplate = withAuth { userId => implicit request =>
     val user = User.find(userId.get)
     if (user.isDefined && user.get.hasRole(Role.USER)) {
     	val json = request.body.asJson
-	    val question = json.get.\("question").asOpt[String]
-	    val answers = json.get.\("answers").asOpt[List[String]].getOrElse(List())
-	    if (question.isDefined && answers.size >= 2) {
-	      RequestQuestion.create(question.get)
-	      val q = RequestQuestion.findByText(question.get)
-	      if (q.isDefined) {
-	        answers.foreach(RequestAnswer.create(_, q.get.id))
-	        Ok
-	      } else {
-	      	BadRequest
-	      }
+	    val subject = json.get.\("subject").asOpt[String]
+	    val body = json.get.\("body").asOpt[String]
+	    val templateName = json.get.\("template").asOpt[String]
+	    if (subject.isDefined && body.isDefined && templateName.isDefined) {
+	      val updated = EmailTemplate.find(templateName.get).get.update(subject.get, body.get, userId)
+	      if (updated) Ok else InternalServerError
 	    } else {
 	      BadRequest
 	    }
@@ -512,6 +527,7 @@ object Application extends Controller with Secured with Cookies {
       routes.javascript.Application.addNote,
       routes.javascript.Application.addResponse,
       routes.javascript.Application.toggleResponse,
+      routes.javascript.Application.sendEmailTemplatePreview,
       routes.javascript.Application.updateEmailTemplate
 		)).as("text/javascript")
   }

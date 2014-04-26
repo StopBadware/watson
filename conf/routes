@@ -43,6 +43,7 @@ POST	/reviews/updatetestdata				controllers.Application.updateReviewTestData
 POST	/crs/submit							controllers.Application.submitCommunityReports
 POST	/note								controllers.Application.addNote
 POST	/emailtemplates/update				controllers.Application.updateEmailTemplate
+POST	/emailtemplates/send				controllers.Application.sendEmailTemplatePreview
 
 # API ENDPOINTS
 GET     /blacklists/timeoflast/:source   	controllers.Api.timeoflast(source)
