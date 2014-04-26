@@ -392,7 +392,7 @@ object Application extends Controller with Secured with Cookies {
   }
   
   def emailTemplates = withAuth { userId => implicit request =>
-    Ok(views.html.emailtemplates())
+    Ok(views.html.emailtemplates(User.find(userId.get).get.email))
   }
   
   def updateEmailTemplate = withAuth { userId => implicit request =>

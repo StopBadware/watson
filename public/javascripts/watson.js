@@ -118,6 +118,40 @@ $(document).ready(function($) {
 		toggleResponse($(this).data("qa-id"));
 	});
 	
+	$(".edit-email-template").click(function() {
+		var template = "#" + $(this).data("template") + "-";
+		$(this).prop("disabled", true);
+		$(template+"cancel").prop("disabled", false);
+		$(template+"save").prop("disabled", false);
+		$(template+"subject").prop("disabled", false);
+		$(template+"body").prop("disabled", false);
+	});
+	
+	$(".cancel-email-template").click(function() {
+		var template = "#" + $(this).data("template") + "-";
+		$(template+"edit").prop("disabled", false);
+		$(this).prop("disabled", true);
+		$(template+"save").prop("disabled", true);
+		$(template+"subject").prop("disabled", true);
+		$(template+"body").prop("disabled", true);
+		$(template+"subject").val($(template+"subject").data("orig"));
+		$(template+"body").val($(template+"body").data("orig"));
+	});
+	
+	$(".send-email-template").click(function() {
+		var templateName = $(this).data("template");
+		var template = "#" + templateName + "-";
+		var subject = $(template+"subject").val();
+		var body = $(template+"body").val();
+	});
+	
+	$(".save-email-template").click(function() {
+		var templateName = $(this).data("template");
+		var template = "#" + templateName + "-";
+		var subject = $(template+"subject").val();
+		var body = $(template+"body").val();
+	});
+	
 	$(".refresh").click(function() {
 		location.reload(true);
 	});

@@ -1,9 +1,10 @@
+@(email: String)
 @main("Email Templates") {
 @defining("([A-Z][a-z]+)".r) { regex =>
 @EmailTemplate.all.map { template =>
 	<div class="well well-lg">
 		<h4>@regex.findAllMatchIn(template.name).mkString(" ")</h4>
-		<form class="form-box form-horizontal update-email-template" role="form">
+		<form class="form-box form-horizontal update-email-template @template.name-form" role="form">
 			<div class="form-group">
 			@defining(template.name+"-subject") { id =>
 				<label class="control-label col-md-2" for="@id">Subject</label>
@@ -23,6 +24,12 @@
 					@partials.charcounter(id, 4096)
 				</div>
 			}
+			</div>
+			<div class="text-center">
+				<button type="button" id="@template.name-edit" class="btn btn-default form-btn edit-email-template" data-template="@template.name">Edit</button>
+				<button type="button" id="@template.name-send" class="btn btn-default form-btn send-email-template" title="Send a test email to @email" data-template="@template.name">Send Preview</button>
+				<button type="button" id="@template.name-cancel" class="btn btn-default form-btn cancel-email-template" data-template="@template.name" disabled>Cancel</button>
+				<button type="submit" id="@template.name-save" class="btn btn-default form-btn save-email-template" data-template="@template.name" disabled>Save</button>
 			</div>
 		</form>
 	</div>
