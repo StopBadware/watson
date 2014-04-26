@@ -161,6 +161,10 @@ $(document).ready(function($) {
 		$("#"+this.id+"-used-char-ctr").text($(this).val().length);
 	});
 	
+	$(".has-char-counter").each(function() {
+		$(this).trigger("keyup");
+	});
+	
 	$("#badware-category").change(function() {
 		if ($("#badware-category").val() == "EXECUTABLE") {
 			$("#executable-hash").prop("disabled", false);

@@ -8,7 +8,8 @@
 			@defining(template.name+"-subject") { id =>
 				<label class="control-label col-md-2" for="@id">Subject</label>
 				<div class="col-md-10">
-					<textarea id="@id" class="input-large form-control has-char-counter" rows="1" maxlength="128" name="@id" spellcheck="true" placeholder="Required"></textarea>
+					<textarea id="@id" class="input-large form-control has-char-counter" rows="1" maxlength="128" disabled 
+					name="@id" spellcheck="true" placeholder="Required" data-orig="@template.subject">@template.subject</textarea>
 					@partials.charcounter(id, 128)
 				</div>
 			}
@@ -17,7 +18,8 @@
 			@defining(template.name+"-body") { id =>
 				<label class="control-label col-md-2" for="@id">Body</label>
 				<div class="col-md-10">
-					<textarea id="@id" class="input-large form-control has-char-counter" rows="6" maxlength="4096" name="@id" spellcheck="true" placeholder="Required"></textarea>
+					<textarea id="@id" class="input-large form-control has-char-counter" rows="6" maxlength="4096" disabled 
+					name="@id" spellcheck="true" placeholder="Required" data-orig="@template.body">@template.body</textarea>
 					@partials.charcounter(id, 4096)
 				</div>
 			}

@@ -91,8 +91,8 @@ case class ReviewRequest(
     reason match {
       case NO_PARTNERS_REPORTING => Mailer.sendNoLongerBlacklisted(email, uri)
       case REVIEWED_BAD => {
-        val notes = ""	//TODO WTSN-18 retrieve notes from review
-        Mailer.sendReviewClosedBad(email, uri, notes)
+        val badCode = Try(ReviewCode.findByReview(reviewId).get.badCode.get).getOrElse("")
+        Mailer.sendReviewClosedBad(email, uri, badCode)
       }
       case REVIEWED_CLEAN => {
         if (BlacklistEvent.findBlacklistedByUri(uriId).filter(_.source==Source.TTS).nonEmpty) {

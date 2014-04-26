@@ -27,8 +27,8 @@ object Mailer extends Controller {
   
   def sendReviewRequestReceived(email: String, uri: String): Future[Boolean] = sendTemplate(reviewRequestReceived, email, uri)
   
-  def sendReviewClosedBad(email: String, uri: String, notes: String): Future[Boolean] = {
-    sendTemplate(reviewClosedBad, email, uri, notes)
+  def sendReviewClosedBad(email: String, uri: String, badCode: String): Future[Boolean] = {
+    sendTemplate(reviewClosedBad, email, uri, badCode)
   }
   
   def sendSecret(email: String, secret: String): Future[Boolean] = {
@@ -39,11 +39,11 @@ object Mailer extends Controller {
     return future(if (email.endsWith("@stopbadware.org")) send(json) else false)
   } 
   
-  private def sendTemplate(templateName: String, email: String, uri: String, notes: String=""): Future[Boolean] = {
+  private def sendTemplate(templateName: String, email: String, uri: String, badCode: String=""): Future[Boolean] = {
   	val template = EmailTemplate.find(templateName)
     return future {
 	    if (template.isDefined) {
-	      val body = replacePlaceholders(template.get.body, uri, notes)
+	      val body = replacePlaceholders(template.get.body, uri, badCode)
 	      val json = sendReqJson(email, template.get.subject, body, templateName)
 	      if (sendMail || email.endsWith("@stopbadware.org")) send(json) else json.nonEmpty
 	    } else {
@@ -53,13 +53,13 @@ object Mailer extends Controller {
     }
   }
   
-  private def replacePlaceholders(content: String, uri: String, notes: String=""): String = {
+  private def replacePlaceholders(content: String, uri: String, badCode: String=""): String = {
     val link = "<a href='"+uri+"'>"+uri+"</a>"
     val safeLink = "<a href='"+"https://www.stopbadware.org/clearinghouse/search/?exactonly=true&url="+uri+"'>"+uri+"</a>"
     return content
   		.replaceAllLiterally("[URI]", link)
   		.replaceAllLiterally("[SAFE_URI]", safeLink)
-  		.replaceAllLiterally("[TESTER_NOTES]", notes)
+  		.replaceAllLiterally("[BAD_CODE]", badCode)
   }
   
   private def send(json: String): Boolean = {
