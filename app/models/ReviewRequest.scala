@@ -107,7 +107,8 @@ case class ReviewRequest(
 
 object ReviewRequest {
   
-  def create(uriId: Int,
+  def create(
+    uriId: Int,
     email: String,
     ip: Option[Long]=None,
     notes: Option[String]=None): Boolean = DB.withConnection { implicit conn =>
@@ -133,7 +134,8 @@ object ReviewRequest {
     created
   }
   
-  def createAndFind(uriId: Int,
+  def createAndFind(
+    uriId: Int,
     email: String,
     ip: Option[Long]=None,
     notes: Option[String]=None): Option[ReviewRequest] = DB.withConnection { implicit conn =>

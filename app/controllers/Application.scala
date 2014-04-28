@@ -312,13 +312,13 @@ object Application extends Controller with Secured with Cookies {
   
   def createCommunityReports(json: JsValue): Int = {
     return try {
-	    val uris = Uri.findOrCreateIds(json.\("uris").as[String].split("\\n").toList)
+	    val uriIds = Uri.findOrCreateIds(json.\("uris").as[String].split("\\n").toList)
 	    val ip = json.\("ip").asOpt[Long]
 	    val desc = json.\("description").asOpt[String]
 	    val badCode = json.\("bad_code").asOpt[String]
 	    val crType = Try(CrType.findByType(json.\("type").as[String]).get.id).toOption
 	    val crSource = Try(CrSource.findByName(json.\("source").as[String]).get.id).toOption
-      CommunityReport.bulkCreate(uris, ip, desc, badCode, crType, crSource)
+      CommunityReport.bulkCreate(uriIds, ip, desc, badCode, crType, crSource)
     } catch {
       case _: Exception => 0
     }

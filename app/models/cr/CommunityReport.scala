@@ -34,7 +34,8 @@ case class CommunityReport(
 
 object CommunityReport {
   
-  def create(uriId: Int,
+  def create(
+    uriId: Int,
     ip: Option[Long]=None,
     description: Option[String]=None,
     badCode: Option[String]=None,
@@ -57,7 +58,8 @@ object CommunityReport {
     }
   }
   
-  def bulkCreate(uriIds: List[Int],
+  def bulkCreate(
+    uriIds: List[Int],
     ip: Option[Long]=None,
     description: Option[String]=None,
     badCode: Option[String]=None,
