@@ -82,6 +82,12 @@ object Email {
   
 }
 
+object Text {
+  
+  def truncate(str: String, max: Int): String = if (str.length > max) str.slice(0, max)+"..." else str
+  
+}
+
 object PostgreSql {
   
   def isNotDupeError(err: String): Boolean = !err.startsWith("ERROR: duplicate key")

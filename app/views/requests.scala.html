@@ -1,5 +1,6 @@
 @(requests: List[ReviewRequest], uris: Map[Int, String], max: Int, user: User)
 @import models.enums.Role
+@import controllers.Text.truncate
 @main("Requests") {
 @if(requests.size >= max) {
 <h3 class="text-center sbw-red">Limiting display to @max most recent requests</h3>
@@ -57,7 +58,7 @@
     			}
     			@defining(uris(request.uriId)) { uri =>
     			<td class="text-left nowrap" title="View details for @uri">
-    				<a href="/requests/@request.id">@(if (uri.length>40) uri.slice(0, 40)+"..." else uri)</a>
+    				<a href="/requests/@request.id">@truncate(uri, 40)</a>
    				</td>
    				}
     			<td class="text-right">@request.email</td>

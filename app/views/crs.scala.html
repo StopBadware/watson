@@ -1,5 +1,6 @@
 @(summaries: List[models.cr.CommunityReportSummary], max: Int)
 @import models.cr._
+@import controllers.Text.truncate
 @main("Community Reports") {
 @if(summaries.size >= max) {
 <h3 class="text-center sbw-red">Limiting display to @max newest Community Reports</h3>
@@ -34,9 +35,7 @@
     	@summaries.map { summary =>
     		<tr>
 	    		<td title="View details for CR @summary.id" class="nowrap">
-	    			<a href="/crs/@summary.id">
-	    				@(if (summary.uri.length>65) summary.uri.slice(0, 65)+"..." else summary.uri)
-	    			</a>
+	    			<a href="/crs/@summary.id">@truncate(summary.uri, 65)</a>
 	    		</td>
 	   			<td>@summary.crSource</td>
 	   			@if(summary.ip.nonEmpty){

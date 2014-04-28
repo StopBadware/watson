@@ -1,4 +1,5 @@
 @(summaries: List[models.cr.CommunityReportSummary], title: String="Community Reports")
+@import controllers.Text.truncate
 <div class="panel panel-default">
 	<div class="panel-heading">
 		<h3 class="panel-title">@title</h3>
@@ -17,14 +18,10 @@
     	<tbody>
     	@summaries.map { summary =>
     		<tr>
-	    		<td title="View details for CR @summary.id" class="nowrap">
+	    		<td title="View details for CR @summary.id" class="nowrap text-right">
 	    			<a href="/crs/@summary.id">@summary.id</a>
 	    		</td>
-	   			<td class="nowrap">
-	   			@if(summary.description.isDefined) {
-	   				@(if (summary.description.get.length>30) summary.description.get.slice(0, 30)+"..." else summary.description.get)
-	   			}
-	   			</td>
+	   			<td class="nowrap">@truncate(summary.description.getOrElse(""), 30)</td>
 	   			<td>@summary.crType</td>
 	   			<td>@summary.crSource</td>
 	   			@if(summary.ip.nonEmpty){

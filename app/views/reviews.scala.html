@@ -1,4 +1,5 @@
 @(summaries: List[ReviewSummary], max: Int)
+@import controllers.Text.truncate
 @main("Reviews") {
 @if(summaries.size >= max) {
 <h3 class="text-center sbw-red">Limiting display to @max oldest reviews</h3>
@@ -50,9 +51,7 @@
     	@summaries.map { summary =>
     		<tr>
 	    		<td title="View details for @summary.uri" class="nowrap">
-	    			<a href="/reviews/@summary.reviewId">
-	    				@(if (summary.uri.length>75) summary.uri.slice(0, 75)+"..." else summary.uri)
-	    			</a>
+	    			<a href="/reviews/@summary.reviewId">@truncate(summary.uri, 75)</a>
 	    		</td>
 	   			<td class="text-center enum">@summary.status</td>
 	   			<td>
