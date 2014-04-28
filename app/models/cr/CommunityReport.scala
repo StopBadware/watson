@@ -120,7 +120,8 @@ object CommunityReport {
           "crSourceId" -> crSourceId,
           "uriId" -> uriId,
           "start" -> times._1,
-          "end" -> times._2)().map(CommunityReportSummary.mapFromRow).flatten.toList)
+          "end" -> times._2
+      )().map(CommunityReportSummary.mapFromRow).flatten.toList)
       .getOrElse(List.empty[CommunityReportSummary])
   }
   
