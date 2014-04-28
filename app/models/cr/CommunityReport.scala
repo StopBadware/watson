@@ -125,8 +125,8 @@ object CommunityReport {
   }
   
   private def mapFromRow(row: SqlRow): Option[CommunityReport] = {
-    return try {
-      Some(CommunityReport(
+    return Try {
+      CommunityReport(
       	row[Int]("id"), 
 			  row[Int]("uri_id"),
 			  row[Option[Long]]("ip"),
@@ -135,10 +135,8 @@ object CommunityReport {
 			  row[Option[Int]]("cr_type_id"),
 			  row[Option[Int]]("cr_source_id"),
 			  row[Date]("reported_at").getTime / 1000
-      ))
-    } catch {
-      case e: Exception => None
-    }
+      )
+    }.toOption
   }
   
 }
@@ -156,8 +154,8 @@ case class CommunityReportSummary(
 object CommunityReportSummary {
   
   def mapFromRow(row: SqlRow): Option[CommunityReportSummary] = {
-    return try {
-      Some(CommunityReportSummary(
+    return Try {
+      CommunityReportSummary(
       	row[Int]("id"), 
 			  row[String]("uri"),
 			  row[Option[Long]]("ip"),
@@ -165,10 +163,8 @@ object CommunityReportSummary {
 			  row[Option[String]]("cr_type"),
 			  row[Option[String]]("full_name"),
 			  row[Date]("reported_at").getTime / 1000
-      ))
-    } catch {
-      case e: Exception => None
-    }
+      )
+    }.toOption
   }
   
 }

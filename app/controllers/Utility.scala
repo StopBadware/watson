@@ -15,13 +15,11 @@ import com.fasterxml.jackson.core.JsonParseException
 object Hash {
   
   def sha256(msg: String): Option[String] = {
-    return try {
+    return Try {
       val md = MessageDigest.getInstance("SHA-256").digest(msg.getBytes)
       val sha2 = (new BigInteger(1, md)).toString(16)
-      Some(sha2.format("%64s", sha2).replace(' ', '0'))
-    } catch {
-      case e: Exception => None
-    }
+      sha2.format("%64s", sha2).replace(' ', '0')
+    }.toOption
   }
   
 }
@@ -45,20 +43,17 @@ object Ip {
   def toDots(ip: Int): Option[String] = toDots(ip.toLong) 
   
   def toDots(ip: Long): Option[String] = {
-    return try {
-    	if (ip >= 0 && ip <= 4294967295L) {
-    	  val octets = List(
-  	      (ip >> 24) & 0xFF,
-    	    (ip >> 16) & 0xFF,
-  	      (ip >> 8) & 0xFF,
-  	      ip & 0xFF)
-    	  Some(octets.mkString("."))
-    	} else {
-    	  None
-    	}
-    } catch {
-      case e: Exception => None
-    }
+  	return if (ip >= 0 && ip <= 4294967295L) {
+  	  Try {val octets = List(
+	      (ip >> 24) & 0xFF,
+  	    (ip >> 16) & 0xFF,
+	      (ip >> 8) & 0xFF,
+	      ip & 0xFF)
+  	  octets.mkString(".")
+  	  }.toOption
+  	} else {
+  	  None
+  	}
   }
   
 }
@@ -113,11 +108,7 @@ object PostgreSql {
   
   def toTimestamp(date: String): Option[Timestamp] = {
     val df = new SimpleDateFormat(Consts.FromStrFormat)
-    return try {
-      Some(new Timestamp(df.parse(date).getTime))
-    } catch {
-      case e: ParseException => None
-    }
+    return Try(new Timestamp(df.parse(date).getTime)).toOption
   }
   
   def parseTimes(datesStr: String): (Timestamp, Timestamp) = {

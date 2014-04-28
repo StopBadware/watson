@@ -55,17 +55,15 @@ object CrNote {
   }
   
   private def mapFromRow(row: SqlRow): Option[CrNote] = {
-    return try {
-      Some(CrNote(
+    return Try {
+      CrNote(
       	row[Int]("id"), 
 			  row[Int]("cr_id"),
 			  row[Int]("author"),
 			  row[String]("note"),
 			  row[Date]("created_at").getTime / 1000
-      ))
-    } catch {
-      case e: Exception => None
-    }
+      )
+    }.toOption
   }
   
 }

@@ -123,8 +123,8 @@ object ReviewTag {
   }
   
   private def mapFromRow(row: SqlRow): Option[ReviewTag] = {
-    return try {  
-	    Some(ReviewTag(
+    return Try {  
+	    ReviewTag(
 		    row[Int]("id"),
 		    row[String]("name"),
 		    row[Option[String]]("description"),
@@ -132,10 +132,8 @@ object ReviewTag {
 		    row[Boolean]("open_only"),
 		    row[Boolean]("is_category"),
 		    row[Boolean]("active")
-  		))
-    } catch {
-      case e: Exception => None
-    }
+  		)
+    }.toOption
   }
   
 }

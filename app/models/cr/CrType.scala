@@ -59,15 +59,13 @@ object CrType {
   }
   
   private def mapFromRow(row: SqlRow): Option[CrType] = {
-    return try {
-      Some(CrType(
+    return Try {
+      CrType(
       	row[Int]("id"), 
 			  row[String]("cr_type"),
 			  row[Date]("created_at").getTime / 1000
-      ))
-    } catch {
-      case e: Exception => None
-    }
+      )
+    }.toOption
   }
   
 }

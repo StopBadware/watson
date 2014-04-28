@@ -67,16 +67,14 @@ object CrSource {
   }
   
   private def mapFromRow(row: SqlRow): Option[CrSource] = {
-    return try {
-      Some(CrSource(
+    return Try {
+      CrSource(
       	row[Int]("id"), 
 			  row[String]("short_name"),
 			  row[String]("full_name"),
 			  row[Date]("created_at").getTime / 1000
-      ))
-    } catch {
-      case e: Exception => None
-    }
+      )
+    }.toOption
   }
   
 }

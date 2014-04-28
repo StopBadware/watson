@@ -61,17 +61,15 @@ object ReviewNote {
   }
   
   private def mapFromRow(row: SqlRow): Option[ReviewNote] = {
-    return try {
-      Some(ReviewNote(
+    return Try {
+      ReviewNote(
       	row[Int]("id"), 
 			  row[Int]("review_id"),
 			  row[Int]("author"),
 			  row[String]("note"),
 			  row[Date]("created_at").getTime / 1000
-      ))
-    } catch {
-      case e: Exception => None
-    }
+      )
+    }.toOption
   }
   
 }

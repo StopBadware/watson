@@ -78,18 +78,16 @@ object ReviewCode {
   }
   
   private def mapFromRow(row: SqlRow): Option[ReviewCode] = {
-    return try {
-      Some(ReviewCode(
+    return Try {
+      ReviewCode(
       	row[Int]("id"), 
 			  row[Int]("review_id"),
 			  row[Option[String]]("bad_code"),
 			  row[Option[String]]("exec_sha2_256"),
 			  row[Date]("created_at").getTime / 1000,
 			  row[Date]("updated_at").getTime / 1000
-      ))
-    } catch {
-      case e: Exception => None
-    }
+      )
+    }.toOption
   }
   
 }

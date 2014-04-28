@@ -53,17 +53,15 @@ object RequestResponse {
   }
   
   private def mapFromRow(row: SqlRow): Option[RequestResponse] = {
-    return try {
-      Some(RequestResponse(
+    return Try {
+      RequestResponse(
       	row[Int]("id"), 
 			  row[Int]("review_request_id"),
 			  row[Int]("question_id"),
 			  row[Option[Int]]("answer_id"),
 			  row[Date]("responded_at").getTime / 1000
-      ))
-    } catch {
-      case e: Exception => None
-    }
+      )
+    }.toOption
   }
   
 }
@@ -82,8 +80,8 @@ case class ResponseSummary(
 object ResponseSummary {
   
   def mapFromRow(row: SqlRow): Option[ResponseSummary] = {
-    return try {
-      Some(ResponseSummary(
+    return Try {
+      ResponseSummary(
       	row[String]("question"),
       	row[Int]("question_id"),
 			  row[Boolean]("question_enabled"),
@@ -91,10 +89,8 @@ object ResponseSummary {
 			  row[Int]("answer_id"),
 			  row[Boolean]("answer_enabled"),
 			  row[Long]("count").toInt
-      ))
-    } catch {
-      case e: Exception => None
-    }
+      )
+    }.toOption
   }
   
 }

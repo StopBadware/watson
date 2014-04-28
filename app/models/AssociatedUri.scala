@@ -84,8 +84,8 @@ object AssociatedUri {
   }
   
   private def mapFromRow(row: SqlRow): Option[AssociatedUri] = {
-    return try {
-      Some(AssociatedUri(
+    return Try {
+      AssociatedUri(
       	row[Int]("id"), 
 			  row[Int]("review_id"),
 			  row[Int]("uri_id"),
@@ -93,10 +93,8 @@ object AssociatedUri {
 			  row[Option[UriType]]("uri_type"),
 			  row[Option[UriIntent]]("intent"),
 			  row[Date]("associated_at").getTime / 1000
-      ))
-    } catch {
-      case e: Exception => None
-    }
+      )
+    }.toOption
   }
   
 }

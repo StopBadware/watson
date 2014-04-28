@@ -101,8 +101,8 @@ object User {
     } else {
       None
     }
-    return try {
-      Some(User(
+    return Try {
+      User(
       	row[Int]("id"), 
 			  row[Option[Array[Role]]]("roles").getOrElse(Array()).toSet,
 			  row[String]("username"),
@@ -110,10 +110,8 @@ object User {
 			  row[Int]("logins"),
 			  lastLogin,
 			  row[Date]("created_at").getTime / 1000
-      ))
-    } catch {
-      case e: Exception => None
-    }
+      )
+    }.toOption
   }
   
 }

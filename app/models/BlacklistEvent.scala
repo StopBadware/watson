@@ -292,23 +292,21 @@ object BlacklistEvent {
   }
   
   private def mapFromRow(row: SqlRow): Option[BlacklistEvent] = {
-    return try {
+    return Try {
       val unblacklistedAt = if (row[Option[Date]]("unblacklisted_at").isDefined) {
         Some(row[Option[Date]]("unblacklisted_at").get.getTime / 1000)
       } else {
         None
       }
-	    Some(BlacklistEvent(
+	    BlacklistEvent(
 		    row[Int]("id"),
 		    row[Int]("uri_id"),
 		    row[Source]("source"),
 		    row[Boolean]("blacklisted"),
 		    row[Date]("blacklisted_at").getTime / 1000,
 		    unblacklistedAt
-  		))
-    } catch {
-      case e: Exception => None
-    }
+  		)
+    }.toOption
   }
   
 }

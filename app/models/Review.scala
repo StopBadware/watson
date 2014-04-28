@@ -342,8 +342,8 @@ object Review {
   }
   
   private def mapFromRow(row: SqlRow): Option[Review] = {
-    return try {
-      Some(Review(
+    return Try {
+      Review(
       	row[Int]("id"), 
 			  row[Int]("uri_id"),
 			  row[Option[Int]]("reviewed_by"),
@@ -352,10 +352,8 @@ object Review {
 			  row[ReviewStatus]("status"),
 			  row[Date]("created_at").getTime / 1000,
 			  row[Date]("status_updated_at").getTime / 1000
-      ))
-    } catch {
-      case e: Exception => None
-    }
+      )
+    }.toOption
   }
   
 }
@@ -406,16 +404,14 @@ case class Note(id: Int, author: String, note: String, createdAt: Long)
 object Note {
   
   def mapFromRow(row: SqlRow): Option[Note] = {
-    return try {
-      Some(Note(
+    return Try {
+      Note(
       	row[Int]("id"), 
 			  row[String]("username"),
 			  row[String]("note"),
 			  row[Date]("created_at").getTime / 1000
-      ))
-    } catch {
-      case e: Exception => None
-    }
+      )
+    }.toOption
   }
   
 }

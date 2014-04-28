@@ -8,6 +8,7 @@ import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
 import controllers.PostgreSql
+import scala.util.Try
 
 case class GoogleRescan(
     id: Int,
@@ -63,18 +64,16 @@ object GoogleRescan {
   }
   
   private def mapFromRow(row: SqlRow): Option[GoogleRescan] = {
-    return try {
-	    Some(GoogleRescan(
+    return Try {
+	    GoogleRescan(
 		    row[Int]("id"),
 		    row[Int]("uri_id"),
 		    row[Option[Int]]("related_uri_id"),
 		    row[String]("status"),
 		    row[String]("requested_via"),
 		    row[Date]("rescanned_at").getTime / 1000
-  		))
-    } catch {
-      case e: Exception => None
-    }
+  		)
+    }.toOption
   }  
   
 }

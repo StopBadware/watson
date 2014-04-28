@@ -233,8 +233,8 @@ object Uri {
   }
   
   private def mapFromRow(row: SqlRow): Option[Uri] = {
-    return try {  
-	    Some(Uri(
+    return Try {  
+	    Uri(
 		    row[Int]("id"),
 		    row[String]("uri"),
 		    row[String]("reversed_host"),
@@ -242,10 +242,8 @@ object Uri {
 		    row[Option[String]]("path").getOrElse(""),
 		    row[String]("sha2_256"),
 		    row[Date]("created_at").getTime / 1000    
-  		))
-    } catch {
-      case e: Exception => None
-    }
+  		)
+    }.toOption
   }  
   
 }

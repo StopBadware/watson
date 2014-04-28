@@ -257,8 +257,8 @@ object ReviewRequest {
     } else {
       None
     }
-    return try {  
-	    Some(ReviewRequest(
+    return Try {  
+	    ReviewRequest(
 		    row[Int]("id"),
 		    row[Int]("uri_id"),
 		    row[Boolean]("open"),
@@ -269,10 +269,8 @@ object ReviewRequest {
 		    closedAt,
 		    row[Option[ClosedReason]]("closed_reason"),
 		    row[Int]("review_id")
-  		))
-    } catch {
-      case e: Exception => None
-    }
+  		)
+    }.toOption
   }   
   
 }

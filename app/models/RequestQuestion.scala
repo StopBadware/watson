@@ -75,16 +75,14 @@ object RequestQuestion {
   }
   
   private def mapFromRow(row: SqlRow): Option[RequestQuestion] = {
-    return try {
-      Some(RequestQuestion(
+    return Try {
+      RequestQuestion(
       	row[Int]("id"), 
 			  row[String]("question"),
 			  row[Boolean]("enabled"),
 			  row[Date]("created_at").getTime / 1000
-      ))
-    } catch {
-      case e: Exception => None
-    }
+      )
+    }.toOption
   }
   
 }

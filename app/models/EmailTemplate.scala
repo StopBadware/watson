@@ -54,17 +54,15 @@ object EmailTemplate {
   }
   
   private def mapFromRow(row: SqlRow): Option[EmailTemplate] = {
-    return try {
-      Some(EmailTemplate(
+    return Try {
+      EmailTemplate(
       	row[String]("name"), 
 			  row[String]("subject"),
 			  row[String]("body"),
 			  row[Option[Int]]("modified_by"),
 			  row[Date]("modified_at").getTime / 1000
-      ))
-    } catch {
-      case e: Exception => None
-    }
+      )
+    }.toOption
   }
   
 }

@@ -53,17 +53,15 @@ object RequestAnswer {
   }
   
   def mapFromRow(row: SqlRow): Option[RequestAnswer] = {
-    return try {
-      Some(RequestAnswer(
+    return Try {
+      RequestAnswer(
       	row[Int]("id"),
       	row[Int]("question_id"),
       	row[String]("answer"),
       	row[Boolean]("enabled"),
 			  row[Date]("created_at").getTime / 1000
-      ))
-    } catch {
-      case e: Exception => None
-    }
+      )
+    }.toOption
   }
   
 }
