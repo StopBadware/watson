@@ -7,6 +7,7 @@
 	<li><a href="#all" data-toggle="tab">All</a></li>
 </ul>
 @defining(if (canModify) "" else "disabled") { disabled =>
+@defining(if (canModify) "Click to toggle" else "VERIFIER role required to change") { hovertext =>
 <div class="tab-content">
 	<div id="responded" class="well well-lg tab-pane fade in active">
 		@RequestResponse.allResponses.groupBy(_.question).map { case (question, summaries) =>
@@ -14,7 +15,9 @@
 			@defining(if (summaries.head.questionEnabled) "Enabled" else "Disabled") { txt =>
 			@defining(if (summaries.head.questionEnabled) "btn-success" else "btn-danger") { btnType =>
 			@defining("question-"+summaries.head.questionId) { id =>
-			<button data-qa-id="@id" type="button" class="btn @btnType btn-xs toggle-response @id" @disabled>@txt</button>
+			<div title="@hovertext" class="inline">
+				<button data-qa-id="@id" type="button" class="btn @btnType btn-xs toggle-response @id" @disabled>@txt</button>
+			</div>
 			}
 			}
 			}
@@ -33,7 +36,7 @@
 					@defining(if (summary.answerEnabled) "Enabled" else "Disabled") { txt =>
 					@defining(if (summary.answerEnabled) "btn-success" else "btn-danger") { btnType =>
 					@defining("answer-"+summary.answerId) { id =>
-					<td><button data-qa-id="@id" type="button" class="btn @btnType btn-xs toggle-response @id" @disabled>@txt</button></td>
+					<td title="@hovertext"><button data-qa-id="@id" type="button" class="btn @btnType btn-xs toggle-response @id" @disabled>@txt</button></td>
 					}
 					}
 					}
@@ -48,7 +51,9 @@
 			@defining(if (question.enabled) "Enabled" else "Disabled") { txt =>
 			@defining(if (question.enabled) "btn-success" else "btn-danger") { btnType =>
 			@defining("question-"+question.id) { id =>
-			<button data-qa-id="@id" type="button" class="btn @btnType btn-xs toggle-response @id" @disabled>@txt</button>
+			<div title="@hovertext" class="inline">
+				<button data-qa-id="@id" type="button" class="btn @btnType btn-xs toggle-response @id" @disabled>@txt</button>
+			</div>
 			}
 			}
 			}
@@ -59,7 +64,7 @@
 					@defining(if (answer.enabled) "Enabled" else "Disabled") { txt =>
 					@defining(if (answer.enabled) "btn-success" else "btn-danger") { btnType =>
 					@defining("answer-"+answer.id) { id =>
-					<td><button data-qa-id="@id" type="button" class="btn @btnType btn-xs toggle-response @id" @disabled>@txt</button></td>
+					<td title="@hovertext"><button data-qa-id="@id"type="button" class="btn @btnType btn-xs toggle-response @id" @disabled>@txt</button></td>
 					}
 					}
 					}
@@ -75,5 +80,6 @@
 		<a href="/requests/responses/new"><button type="button" class="btn btn-default">Add New Question</button></a>
 	</div>
 	}
+}
 }
 }
