@@ -25,6 +25,7 @@
 		<h4><label>Status:</label><span id="status" class="sbw-red review-status enum">@details.review.status</span> 
 		<span id="status-updated" class="unixtime-full">@if(details.review.status != ReviewStatus.NEW){@details.review.statusUpdatedAt}</span>
 		</h4>
+		<span id="review-id" class="non-vis" data-id="@details.review.id"></span>
 		@if(user.hasRole(Role.REVIEWER)) {
 			@defining(if (details.review.isOpen) "" else "disabled") { disabled =>
 			<button type="button" class="btn btn-default update-review is-open" @disabled data-status="pending-bad">Bad</button>
