@@ -56,7 +56,18 @@ class SchedulerSpec extends Specification {
 	      events.nonEmpty must beTrue
 	      events.filter(_.blacklistedAt == time).nonEmpty must beTrue
       }      
-    }    
+    }
+    
+    "send rescan requests to Google" in {
+      running(FakeApplication()) {
+        val testStr = System.nanoTime.toHexString
+        Redis.addToGoogleRescanQueue(testStr) must beTrue
+        Redis.getGoogleRescanQueue.contains(testStr) must beTrue
+        val queueHandler = GoogleRescanQueue()
+        queueHandler.sendQueue() must be_>(0)
+        Redis.getGoogleRescanQueue.contains(testStr) must beFalse
+      }      
+    }
     
   }
 

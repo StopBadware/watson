@@ -13,9 +13,12 @@ object Scheduler {
   	
   def main(args: Array[String]): Unit = {
     Play.start(new DefaultApplication(new File("."), Scheduler.getClass.getClassLoader, None, Mode.Prod))
-    val interval = new FiniteDuration(60, TimeUnit.SECONDS)
-    val system = ActorSystem("ImportBlacklistQueue")
-    system.scheduler.schedule(Duration.Zero, interval, BlacklistQueue())
+    val minute = new FiniteDuration(1, TimeUnit.MINUTES)
+    val hour = new FiniteDuration(1, TimeUnit.HOURS)
+    val importBlacklistSystem = ActorSystem("ImportBlacklistQueue")
+    importBlacklistSystem.scheduler.schedule(Duration.Zero, minute, BlacklistQueue())
+    val sendGoogleRescanQueue = ActorSystem("SendGoogleRescanQueue")
+    sendGoogleRescanQueue.scheduler.schedule(Duration.Zero, hour, GoogleRescanQueue())
   }
   
 }
@@ -41,5 +44,17 @@ case class BlacklistQueue() extends Runnable {
   }
   
   def run() = importQueue()
+  
+}
+
+case class GoogleRescanQueue() extends Runnable {
+  
+  def sendQueue(): Int = {
+    val sent = 0	//TODO WTSN-12 send URIs from queue to Google
+    Logger.info("Sent " + sent + " rescan requests to Google")
+    return sent
+  }
+  
+  def run() = sendQueue()
   
 }
