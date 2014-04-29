@@ -50,8 +50,8 @@ object Application extends Controller with Secured with Cookies {
     	  val r = review.get
     	  val u = user.get.id
   			val updated = status.get match {
-    	    case ReviewStatus.PENDING_BAD => r.closeClean(u) 
-    	    case ReviewStatus.CLOSED_CLEAN => r.markPendingBad(u)
+    	    case ReviewStatus.PENDING_BAD => r.markPendingBad(u)
+    	    case ReviewStatus.CLOSED_CLEAN => r.closeClean(u)
 		      case ReviewStatus.CLOSED_WITHOUT_REVIEW => r.closeWithoutReview(u)
 		      case ReviewStatus.CLOSED_BAD => r.verifyBad(u)
 		      case ReviewStatus.REJECTED => r.reject(u)
