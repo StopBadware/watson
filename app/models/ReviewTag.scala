@@ -114,7 +114,7 @@ object ReviewTag {
   }
   
   def categories: List[ReviewTag] = DB.withConnection { implicit conn =>
-    Try(SQL("SELECT * FROM review_tags WHERE is_category=true")().map(mapFromRow).flatten.toList).getOrElse(List())
+    Try(SQL("SELECT * FROM review_tags WHERE is_category=true ORDER BY active DESC, name ASC")().map(mapFromRow).flatten.toList).getOrElse(List())
   }
   
   def findByName(name: String): Option[ReviewTag] = DB.withConnection { implicit conn =>
