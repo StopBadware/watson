@@ -8,7 +8,7 @@ import play.api.db._
 import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
-import controllers.{Email, Mailer}
+import controllers.{Email, Mailer, Redis}
 import models.enums._
 
 case class ReviewRequest(
@@ -128,8 +128,13 @@ object ReviewRequest {
     }
     
     if (created) {
-      val uri = Try(Uri.find(uriId).get.uri).getOrElse("")
-      Mailer.sendReviewRequestReceived(email, uri)
+      val uri = Uri.find(uriId)
+      if (uri.isDefined) {
+	      Mailer.sendReviewRequestReceived(email, uri.get.uri)
+	      if (uri.get.isBlacklistedBy(Source.GOOG)) {
+	      	Redis.addToGoogleRescanQueue(uri.get.uri)
+	      }
+      }
     }
     created
   }

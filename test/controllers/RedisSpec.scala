@@ -46,6 +46,18 @@ class RedisSpec extends Specification with AfterExample {
       Redis.blacklistTimes(source).contains(field) must beTrue
     }
     
+    "add to Google rescan queue" in {
+      Redis.addToGoogleRescanQueue(System.nanoTime.toHexString) must beTrue
+    }
+    
+    "retrieve Google rescan queue" in {
+      val str = System.nanoTime.toHexString
+      Redis.addToGoogleRescanQueue(str) must beTrue
+      val queue = Redis.getGoogleRescanQueue
+      queue.nonEmpty must beTrue
+      queue.contains(str) must beTrue
+    }
+    
   }
 
 }

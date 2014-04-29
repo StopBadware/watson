@@ -10,6 +10,7 @@ import org.postgresql.util.PSQLException
 import scala.util.Try
 import models.enums._
 import controllers.PostgreSql._
+import controllers.Redis
 
 case class Review(
 	  id: Int, 
@@ -100,8 +101,9 @@ case class Review(
       }
       ReviewRequest.findByUri(uriId).filter(_.open).foreach(_.close(reason))
       
-      if (newStatus==CLOSED_CLEAN && BlacklistEvent.findBlacklistedByUri(uriId, Some(Source.GOOG)).nonEmpty) {
-      	//TODO WTSN-12 add to Google rescan queue       
+      val uri = Uri.find(uriId)
+      if (newStatus==CLOSED_CLEAN && uri.isDefined && uri.get.isBlacklistedBy(Source.GOOG)) {
+        Redis.addToGoogleRescanQueue(uri.get.uri)
       }
     }
     
@@ -237,9 +239,7 @@ case class Review(
 object Review {
   
   def create(uriId: Int): Boolean = DB.withConnection { implicit conn =>
-    //TODO WTSN-12 if blacklisted by Google add to rescan queue
-    //TODO WTSN-24 add to scanning queue
-    return try {
+    val created = try {
       SQL("""INSERT INTO reviews (uri_id) SELECT {uriId} WHERE NOT EXISTS 
         (SELECT 1 FROM reviews WHERE uri_id={uriId} AND status<='PENDING_BAD'::REVIEW_STATUS)""")
         .on("uriId" -> uriId).executeUpdate() > 0
@@ -247,6 +247,12 @@ object Review {
       case e: PSQLException => Logger.error(e.getMessage)
       false
     }
+    
+    if (created) {
+      //TODO WTSN-24 add to scanning queue
+    }
+    
+    return created
   }
   
   def findOpenOrCreate(uriId: Int): Option[Review] = DB.withConnection { implicit conn =>

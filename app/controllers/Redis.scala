@@ -9,6 +9,7 @@ import models.enums.Source
 
 object Redis extends Controller {
   
+  private val googleRescanQueue = "GOOG_RESCAN_QUEUE"
   private val redisUrl = new URI(sys.env("REDIS_URL"))
   private lazy val redisPw = redisUrl.getUserInfo match {
     case s: String => Some(if (s.contains(":")) s.substring(s.indexOf(":")+1) else s)
@@ -37,6 +38,14 @@ object Redis extends Controller {
   
   def dropBlacklist(source: Source, time: Long): Long = {
     return pool.withClient(client => client.hdel(source, time).getOrElse(0L))
+  }
+  
+  def addToGoogleRescanQueue(uri: String): Boolean = {
+    return pool.withClient(client => client.sadd(googleRescanQueue, uri)) == Some(1)
+  }  
+  
+  def getGoogleRescanQueue: Set[String] = {
+    return pool.withClient(client => client.smembers(googleRescanQueue)).get.flatten
   }
 
 }
