@@ -15,17 +15,17 @@
     	</thead>
     	<tbody>
     	@summaries.map { summary =>
-    		<tr>
-	    		<td title="View details for CR @summary.id" class="nowrap text-right">
+    		<tr class="text-right">
+	    		<td title="View details for CR @summary.id" class="nowrap">
 	    			<a href="/crs/@summary.id">@summary.id</a>
 	    		</td>
 	   			<td>@summary.crSource</td>
 	   			@if(summary.ip.nonEmpty){
-   					<td class="text-right" title="View details for IP @summary.ip"><a href="/ips/@summary.ip" class="ipv4">@summary.ip</a></td>
+   					<td title="View details for IP @summary.ip"><a href="/ips/@summary.ip" class="ipv4">@summary.ip</a></td>
   				} else {
   					<td></td>
 				}
-	   			<td class="text-right unixtime">@summary.reportedAt</td>
+	   			<td class="unixtime">@summary.reportedAt</td>
    			</tr>
    		}
     	</tbody>
