@@ -31,12 +31,9 @@ object Mailer extends Controller {
     sendTemplate(reviewClosedBad, email, uri, badCode)
   }
   
-  def sendSecret(email: String, secret: String): Future[Boolean] = {
-    val body = "<h1 style='color: #FF0000'>KEEP THIS KEY SECURE</h1>"+
-  		"<h2>Watson API secret key corresponding to the public key given at time of the request:</h2>"+
-  		"<h2>"+secret+"</h2><h1 style='color: #FF0000'>KEEP THIS KEY SECURE</h1>"
-    val json = sendReqJson(email, "Watson API", body, "API secret")
-    return future(if (email.endsWith("@stopbadware.org")) send(json) else false)
+  def sendPublicKey(email: String, key: String): Future[Boolean] = {
+    val body = "<h2>Watson API public key corresponding to the secret key shown at time of request:</h2><h2>"+key+"</h2>"
+		return sendEmail("Watson API Public Key", body, email, tag="API Key")
   }
   
   private def sendTemplate(templateName: String, email: String, uri: String, badCode: String=""): Future[Boolean] = {
@@ -49,7 +46,7 @@ object Mailer extends Controller {
     }
   }
   
-  def sendEmail(subject: String, body: String, email: String, uri: String, badCode: String="", tag: String="TEST"): Future[Boolean] = {
+  def sendEmail(subject: String, body: String, email: String, uri: String="", badCode: String="", tag: String=""): Future[Boolean] = {
     return future {
       val json = sendReqJson(email, subject, replacePlaceholders(body, uri, badCode), tag)
       if (sendMail || email.endsWith("@stopbadware.org")) send(json) else json.nonEmpty

@@ -1,6 +1,10 @@
-@(email: String, public: String)
+@(email: String, secret: String)
 @main("API keys") {
-	<h1 class="text-center">Watson API public key</h1>
-    <h2 class="text-center sbw-red">@public</h2>
-    <h1 class="text-center">Secret key has been sent to @email</h1>
+<div class="text-center">	
+	<h1>Watson API secret key</h1>
+	<h2 class="sbw-red">KEEP THIS KEY SECURE</h2>
+    <h2>@secret</h2>
+    <h2 class="sbw-red">KEEP THIS KEY SECURE</h2>
+    <h2>Public key has been sent to @email</h2>
+</div>
 }

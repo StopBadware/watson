@@ -438,8 +438,8 @@ object Application extends Controller with Secured with Cookies {
 	    val email = user.email
 	    val keys = ApiAuth.newPair
 	    if (keys.isDefined) {
-	      Mailer.sendSecret(email, keys.get._2)
-	    	Ok(views.html.apikeys(email, keys.get._1))
+	      Mailer.sendPublicKey(email, keys.get._1)
+	    	Ok(views.html.apikeys(email, keys.get._2))
 	    } else {
 	      InternalServerError
 	    }
