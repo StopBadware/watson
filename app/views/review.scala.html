@@ -1,6 +1,6 @@
 @(details: ReviewDetails, user: User)
-@import models.enums.ReviewStatus
-@import models.enums.Role
+@import models.cr.CommunityReport
+@import models.enums.{ReviewStatus, Role}
 @main("Review "+details.review.id) {
 	<div class="review-nav">
 	@defining(details.review.siblings) { sibs =>
@@ -107,7 +107,7 @@
 	@partials.ajaxstatus("Unable to save test data", "Saving test data", "Test data saved", "review-test-data-status")()
 	</div>
 	
-	<div class="well well-lg white-bg">
+	<div class="well well-lg white-bg no-panel-headers">
 		<ul class="nav nav-pills panel">
 			<li class="active"><a href="#goog" data-toggle="tab">Google</a></li>
 			<li><a href="#vt" data-toggle="tab">VirusTotal</a></li>
@@ -143,7 +143,7 @@
 			</div>
 			<div class="tab-pane fade" id="vt">TODO WTSN-53 VT</div>
 			<div class="tab-pane fade" id="dsp">TODO WTSN-49 DSP</div>
-			<div class="tab-pane fade" id="sbwcr">TODO WTSN-16 SBWCR</div>
+			<div class="tab-pane fade" id="sbwcr">@tables.crsummaries(CommunityReport.findSummariesByUri(details.uri.id))</div>
 			<div class="tab-pane fade" id="scans">TODO WTSN-24 SCANS</div>
 			<div class="tab-pane fade" id="resolver">TODO WTSN-14 RESOLVER</div>
 		</div>

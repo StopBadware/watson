@@ -8,10 +8,8 @@
     	<thead>
     		<tr>
     			<th title="Click to view CR details">ID</th>
-    			<th>Description</th>
-    			<th>Type</th>
     			<th>Source</th>
-    			<th>IP</th>
+    			<th>Reporter IP</th>
     			<th>Reported</th>
     		</tr>
     	</thead>
@@ -21,8 +19,6 @@
 	    		<td title="View details for CR @summary.id" class="nowrap text-right">
 	    			<a href="/crs/@summary.id">@summary.id</a>
 	    		</td>
-	   			<td class="nowrap">@truncate(summary.description.getOrElse(""), 30)</td>
-	   			<td>@summary.crType</td>
 	   			<td>@summary.crSource</td>
 	   			@if(summary.ip.nonEmpty){
    					<td class="text-right" title="View details for IP @summary.ip"><a href="/ips/@summary.ip" class="ipv4">@summary.ip</a></td>

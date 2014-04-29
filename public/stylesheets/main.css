@@ -203,6 +203,9 @@ td a {
 	color: #90B9C3;
 	background: none;
 }
+.no-panel-headers .panel-heading {
+	display: none;
+}
 /* FORMS */
 .form-control:focus {
 	border-color: #90B9C3;

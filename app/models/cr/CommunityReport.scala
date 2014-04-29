@@ -34,6 +34,8 @@ case class CommunityReport(
 
 object CommunityReport {
   
+  private val defaultLimit = Try(sys.env("FILTER_LIMIT").toInt).getOrElse(500)
+  
   def create(
     uriId: Int,
     ip: Option[Long]=None,
@@ -96,7 +98,7 @@ object CommunityReport {
   }
   
   def findSummariesByUri(uriId: Int): List[CommunityReportSummary] = {
-    findSummaries(None, None, PostgreSql.parseTimes(""), 5000, Some(uriId))
+    findSummaries(None, None, PostgreSql.parseTimes(""), defaultLimit, Some(uriId))
   }
   
   def findSummaries(
