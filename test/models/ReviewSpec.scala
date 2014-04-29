@@ -74,7 +74,7 @@ class ReviewSpec extends Specification {
         val rev = createAndFind
         rev.status must equalTo(ReviewStatus.NEW)
         Thread.sleep(1500)	//make sure status update time will be different w/ second precision 
-        rev.reviewed(testUser, ReviewStatus.CLOSED_BAD)
+        rev.markPendingBad(testUser) must beTrue
         val findRev = Review.find(rev.id).get
         findRev.status must equalTo(ReviewStatus.PENDING_BAD)
         findRev.statusUpdatedAt must be_>(rev.statusUpdatedAt)
@@ -84,8 +84,8 @@ class ReviewSpec extends Specification {
     "verify a review" in {
       running(FakeApplication()) {
         val rev = createAndFind
-        rev.reviewed(testUser, ReviewStatus.CLOSED_BAD) must beTrue
-        rev.verify(testUser, ReviewStatus.CLOSED_BAD) must beTrue
+        rev.markPendingBad(testUser) must beTrue
+        rev.verifyBad(testUser) must beTrue
         Review.find(rev.id).get.status must equalTo(ReviewStatus.CLOSED_BAD)
       }
     }
@@ -116,7 +116,7 @@ class ReviewSpec extends Specification {
     "reject a review" in {
       running(FakeApplication()) {
         val rev = createAndFind
-        rev.reviewed(testUser, ReviewStatus.CLOSED_BAD) must beTrue
+        rev.markPendingBad(testUser) must beTrue
         rev.reject(testUser) must beTrue
         Review.find(rev.id).get.status must equalTo(ReviewStatus.REJECTED)
       }
@@ -315,7 +315,7 @@ class ReviewSpec extends Specification {
         val prevPen = createAndFind
         val pen = createAndFind
         val nextPen = createAndFind
-        List(prevPen, pen, nextPen).foreach(_.reviewed(testUser, ReviewStatus.PENDING_BAD))
+        List(prevPen, pen, nextPen).foreach(_.markPendingBad(testUser))
         
         val prevClosed = createAndFind
         val closed = createAndFind

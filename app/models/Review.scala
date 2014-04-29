@@ -29,24 +29,43 @@ case class Review(
 	  } catch {
 	    case e: PSQLException => Set.empty[Int]
 	  }
-  }  
-  
-  def reviewed(reviewer: Int, verdict: ReviewStatus): Boolean = DB.withConnection { implicit conn =>
-    val newStatus = if (verdict == ReviewStatus.CLOSED_BAD) ReviewStatus.PENDING_BAD else verdict
-    return updateStatus(newStatus)
   }
   
-  def reject(verifier: Int): Boolean = DB.withConnection { implicit conn =>
-    if (User.find(verifier).get.hasRole(Role.VERIFIER)) {
-	    updateStatus(ReviewStatus.REJECTED, Some(verifier))
+  def closeClean(reviewerId: Int): Boolean = {
+    val updated = reviewed(reviewerId, ReviewStatus.CLOSED_CLEAN)
+    if (updated) {
+	    val uri = Uri.find(uriId)
+	    if (uri.isDefined && uri.get.isBlacklistedBy(Source.GOOG)) {
+	      Redis.addToGoogleRescanQueue(uri.get.uri)
+	    }
+    }
+    return updated
+  }
+    
+  def markPendingBad(reviewerId: Int): Boolean = reviewed(reviewerId, ReviewStatus.PENDING_BAD) 
+  
+  private def reviewed(reviewerId: Int, verdict: ReviewStatus): Boolean = DB.withConnection { implicit conn =>
+    return try {
+      SQL("""UPDATE reviews SET status={status}::REVIEW_STATUS, reviewed_by={reviewerId}, 
+        status_updated_at=NOW() WHERE id={id} AND status<='PENDING_BAD'::REVIEW_STATUS""")
+        .on("id" -> id, "status" -> verdict.toString, "reviewerId" -> reviewerId).executeUpdate() > 0
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      false
+    }
+  }
+  
+  def reject(verifierId: Int): Boolean = DB.withConnection { implicit conn =>
+    if (User.find(verifierId).get.hasRole(Role.VERIFIER)) {
+	    updateStatus(ReviewStatus.REJECTED, Some(verifierId))
 	  } else {
 	    false
 	  }
   }
   
-  def verify(verifier: Int, closeAs: ReviewStatus): Boolean = {
-    if (User.find(verifier).get.hasRole(Role.VERIFIER)) {
-	    updateStatus(closeAs, Some(verifier))
+  def verifyBad(verifierId: Int): Boolean = {
+    if (User.find(verifierId).get.hasRole(Role.VERIFIER)) {
+	    updateStatus(ReviewStatus.CLOSED_BAD, Some(verifierId))
 	  } else {
 	    false
 	  }
@@ -56,10 +75,10 @@ case class Review(
   
   def closeWithoutReview(): Boolean = updateStatus(ReviewStatus.CLOSED_WITHOUT_REVIEW)
   
-  def closeWithoutReview(verifier: Int): Boolean = {
-    val user = User.find(verifier)
+  def closeWithoutReview(verifierId: Int): Boolean = {
+    val user = User.find(verifierId)
     if (user.isDefined && user.get.hasRole(Role.VERIFIER)) {
-    	updateStatus(ReviewStatus.CLOSED_WITHOUT_REVIEW, Some(verifier))
+    	updateStatus(ReviewStatus.CLOSED_WITHOUT_REVIEW, Some(verifierId))
     } else {
       false
     }
@@ -84,11 +103,6 @@ case class Review(
         case _ => ClosedReason.ADMINISTRATIVE
       }
       ReviewRequest.findByUri(uriId).filter(_.open).foreach(_.close(reason))
-      
-      val uri = Uri.find(uriId)
-      if (newStatus==CLOSED_CLEAN && uri.isDefined && uri.get.isBlacklistedBy(Source.GOOG)) {
-        Redis.addToGoogleRescanQueue(uri.get.uri)
-      }
     }
     
     return updated
