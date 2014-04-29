@@ -33,23 +33,7 @@ case class Review(
   
   def reviewed(reviewer: Int, verdict: ReviewStatus): Boolean = DB.withConnection { implicit conn =>
     val newStatus = if (verdict == ReviewStatus.CLOSED_BAD) ReviewStatus.PENDING_BAD else verdict
-    val updated = try {
-      if (User.find(reviewer).get.hasRole(Role.REVIEWER)) {
-	      SQL("UPDATE reviews SET status={status}::REVIEW_STATUS, reviewed_by={reviewerId}, status_updated_at=NOW() WHERE id={id}")
-	        .on("id"->id, "status"->newStatus.toString, "reviewerId"->reviewer).executeUpdate() > 0
-      } else {
-        false
-      }
-    } catch {
-      case e: PSQLException => Logger.error(e.getMessage)
-      false
-    }
-    
-    if (updated && verdict == ReviewStatus.CLOSED_CLEAN) {
-      updateStatus(verdict)
-    }
-    
-    return updated
+    return updateStatus(newStatus)
   }
   
   def reject(verifier: Int): Boolean = DB.withConnection { implicit conn =>
