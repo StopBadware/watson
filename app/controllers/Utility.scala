@@ -6,6 +6,7 @@ import java.security.MessageDigest
 import java.sql.Timestamp
 import java.text.{ParseException, SimpleDateFormat}
 import scala.util.Try
+import sun.misc.BASE64Encoder
 import anorm._
 import play.api.mvc._
 import org.postgresql.jdbc4.Jdbc4Array
@@ -85,6 +86,8 @@ object Email {
 object Text {
   
   def truncate(str: String, max: Int): String = if (str.length > max) str.slice(0, max)+"..." else str
+  
+  def encodeBase64(str: String): String = new BASE64Encoder().encode(str.getBytes)
   
 }
 

@@ -6,7 +6,7 @@ import scala.concurrent.duration._
 import java.util.concurrent.TimeUnit
 import play.api.{DefaultApplication, Logger, Mode, Play}
 import play.api.libs.concurrent.Execution.Implicits._
-import controllers.{Blacklist, Redis}
+import controllers.{Blacklist, Mailer, Redis}
 import models.enums.Source
 
 object Scheduler {
@@ -50,9 +50,15 @@ case class BlacklistQueue() extends Runnable {
 case class GoogleRescanQueue() extends Runnable {
   
   def sendQueue(): Int = {
-    val sent = 0	//TODO WTSN-12 send URIs from queue to Google
-    Logger.info("Sent " + sent + " rescan requests to Google")
-    return sent
+    val queue = Redis.getGoogleRescanQueue
+    return if (Mailer.sendGoogleRescanRequest(queue)()) {
+      Redis.removeFromGoogleRescanQueue(queue)
+      Logger.info("Sent " + queue.size + " rescan requests to Google")
+      queue.size
+    } else {
+      Logger.error("Sending rescan requests to Google failed")
+      0
+    }
   }
   
   def run() = sendQueue()

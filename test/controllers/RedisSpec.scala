@@ -50,6 +50,13 @@ class RedisSpec extends Specification with AfterExample {
       Redis.addToGoogleRescanQueue(System.nanoTime.toHexString) must beTrue
     }
     
+    "remove from Google rescan queue" in {
+      val str = System.nanoTime.toHexString
+      Redis.addToGoogleRescanQueue(str) must beTrue
+      Redis.removeFromGoogleRescanQueue(Set(str)) must equalTo(1)
+      Redis.getGoogleRescanQueue.contains(str) must beFalse
+    }
+    
     "retrieve Google rescan queue" in {
       val str = System.nanoTime.toHexString
       Redis.addToGoogleRescanQueue(str) must beTrue

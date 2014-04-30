@@ -24,28 +24,32 @@ object Redis extends Controller {
   def drop(key: String): Boolean = pool.withClient(_.del(key)).getOrElse(0L) > 0L
   
   def addBlacklist(source: Source, time: Long, blacklist: List[String]): Boolean = {
-    return pool.withClient(client => client.hset(source, time, Json.generate(blacklist)))
+    return pool.withClient(_.hset(source, time, Json.generate(blacklist)))
   }  
   
   def getBlacklist(source: Source, time: Long): List[String] = {
-    val json = pool.withClient(client => client.hget(source, time))
+    val json = pool.withClient(_.hget(source, time))
     return if (json.isDefined) Json.parse[List[String]](json.get) else List()
   }
   
   def blacklistTimes(source: Source): List[Long] = {
-    return pool.withClient(client => client.hkeys(source).getOrElse(List()).map(_.toLong))
+    return pool.withClient(_.hkeys(source).getOrElse(List()).map(_.toLong))
   }
   
   def dropBlacklist(source: Source, time: Long): Long = {
-    return pool.withClient(client => client.hdel(source, time).getOrElse(0L))
+    return pool.withClient(_.hdel(source, time).getOrElse(0L))
   }
   
   def addToGoogleRescanQueue(uri: String): Boolean = {
-    return pool.withClient(client => client.sadd(googleRescanQueue, uri)) == Some(1)
+    return pool.withClient(_.sadd(googleRescanQueue, uri)) == Some(1)
   }  
   
   def getGoogleRescanQueue: Set[String] = {
-    return pool.withClient(client => client.smembers(googleRescanQueue)).get.flatten
+    return pool.withClient(_.smembers(googleRescanQueue)).get.flatten
+  }
+  
+  def removeFromGoogleRescanQueue(toRemove: Set[String]): Int = {
+    return pool.withClient(_.srem(googleRescanQueue, "",toRemove.toSeq:_*).get.toInt)
   }
 
 }

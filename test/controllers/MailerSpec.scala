@@ -38,6 +38,13 @@ class MailerSpec extends Specification {
       }
     }
     
+    "send google rescan request email" in {
+      running(FakeApplication()) {
+        val str = System.nanoTime.toHexString
+        Mailer.sendGoogleRescanRequest(Set(uri, str, str.reverse)).apply() must beTrue
+      }
+    }
+    
   }
 
 }

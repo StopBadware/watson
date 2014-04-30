@@ -2,6 +2,8 @@ package controllers
 
 import java.io.OutputStreamWriter
 import java.net.{HttpURLConnection, URL}
+import java.text.SimpleDateFormat
+import java.util.Date
 import scala.util.Try
 import scala.actors.Future
 import scala.actors.Futures.future
@@ -34,6 +36,36 @@ object Mailer extends Controller {
   def sendPublicKey(email: String, key: String): Future[Boolean] = {
     val body = "<h2>Watson API public key corresponding to the secret key shown at time of request:</h2><h2>"+key+"</h2>"
 		return sendEmail("Watson API Public Key", body, email, tag="API Key")
+  }
+  
+  def sendGoogleRescanRequest(uris: Set[String]): Future[Boolean] = {
+    val to = sys.env("GOOG_RESCAN_TO")
+    val cc = Try(sys.env("GOOG_RESCAN_CC")).toOption
+    val sendTo = Array(
+      Map("email" -> to, "type" -> "to") ++ 
+      (if (cc.isDefined) Map("email" -> cc.get, "type" -> "cc") else Map())
+    )
+    val attachment = Array(
+      Map(
+        "type" -> "text/plain", 
+        "name" -> ("Appeals" + (new SimpleDateFormat("MMddyyyy")).format(new Date()) + ".txt"),
+        "content" -> Text.encodeBase64(uris.mkString("\n"))
+      )
+    )
+    val json = generate(Map(
+      "key" -> apiKey, 
+      "message" -> Map(
+	      "from_email" -> "reviews@stopbadware.org",
+	      "from_name" -> "StopBadware Reviews",
+	      "to" -> sendTo,
+	      "subject" -> "StopBadware: New Appeals (assorted)",
+	      "attachments" -> attachment,
+	      "tags" -> Array("GoogleRescanRequest"),
+	      "track_clicks" -> false,
+	      "track_opens" -> false
+      )
+    ))
+    return future(if (sendMail || to.endsWith("@stopbadware.org")) send(json) else uris.nonEmpty)
   }
   
   private def sendTemplate(templateName: String, email: String, uri: String, badCode: String=""): Future[Boolean] = {
@@ -99,6 +131,5 @@ object Mailer extends Controller {
       )
     ))
   }
-  
   
 }
