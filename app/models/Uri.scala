@@ -55,6 +55,14 @@ case class Uri(
 object Uri {
   
   private val BatchSize = Try(sys.env("SQLBATCH_SIZE").toInt).getOrElse(5000)
+  private val schemeCheck = "^[a-zA-Z]+[a-zA-Z0-9+.\\-]+://.*"
+    
+  def ensureScheme(url: String): String = {
+    val withScheme = if (url.matches(schemeCheck)) url.trim else "http://" + url.trim
+    if (withScheme.substring(withScheme.indexOf("//")+2).contains("/")) withScheme else withScheme+"/"
+  }
+  
+  private def sha256(url: String): String = Hash.sha256(ensureScheme(url)).getOrElse("")
   
   def create(uriStr: String): Boolean = {
     return try {
@@ -133,11 +141,15 @@ object Uri {
     }
   }
   
-   def findOrCreateIds(uris: List[String]): List[Int] = {
+  def findOrCreateIds(uris: List[String]): List[Int] = {
   	val writes = create(uris)
-  	Logger.info("Wrote "+writes+" new URIs")
+  	Logger.info("Wrote " + writes + " new URIs")
+  	return findIds(uris)
+  }
+  
+  def findIds(uris: List[String]): List[Int] = {
   	return uris.grouped(10000).foldLeft(List.empty[Int]) { (ids, group) =>
-      ids ++ findBySha256(group.map(u => ReportedUri.sha256(u))).map(_.id)
+      ids ++ findBySha256(group.map(u => sha256(u))).map(_.id)
     }
   } 
   
@@ -257,7 +269,7 @@ object Uri {
 @throws[URISyntaxException]
 class ReportedUri(uriStr: String) {
   
-  val uri: URI = new URI(ReportedUri.valid(uriStr))
+  val uri: URI = new URI(Uri.ensureScheme(uriStr))
   
   /* Using methods instead of vals to keep memory footprint minimal when importing large (million+) blacklists [WTSN-42] */
   def hierarchicalPart: String = uri.getRawAuthority + uri.getRawPath
@@ -273,13 +285,4 @@ class ReportedUri(uriStr: String) {
     }
   }
 
-}
-
-object ReportedUri {
-  private val schemeCheck = "^[a-zA-Z]+[a-zA-Z0-9+.\\-]+://.*"
-  private def valid(url: String): String = {
-    val withScheme = if (url.matches(ReportedUri.schemeCheck)) url.trim else "http://" + url.trim
-    if (withScheme.substring(withScheme.indexOf("//")+2).contains("/")) withScheme else withScheme+"/"
-  }
-  def sha256(url: String): String = Hash.sha256(valid(url)).getOrElse("")
 }

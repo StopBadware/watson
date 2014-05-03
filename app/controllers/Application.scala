@@ -327,8 +327,19 @@ object Application extends Controller with Secured with Cookies {
     Ok(views.html.rescans(Redis.getGoogleRescanQueue.size))	
   }
   
-  def addToRescanQueue = TODO //withAuth { userId => implicit request =>
-//  }
+  def addToRescanQueue = withAuth { userId => implicit request =>
+    val json = request.body.asJson
+    val uriIds = Try(Uri.findIds(json.get.\("uris").as[String].split("\\n").toList)).getOrElse(List())
+    if (uriIds.nonEmpty) {
+    	val blacklistedIds = uriIds.intersect(BlacklistEvent.blacklistedUriIdsEventIds(Source.GOOG).keys.toList)
+    	val added = Uri.find(blacklistedIds).map(_.uri).foldLeft(0) { (cnt, uri) =>
+    	  if (Redis.addToGoogleRescanQueue(uri)) cnt + 1 else cnt
+    	}
+    	Ok(Json.obj("added" -> added, "count" -> Redis.getGoogleRescanQueue.size))
+    } else {
+      BadRequest
+    }
+  }
   
   def tags = TODO	//TODO WTSN-56 view/add/toggle tags
   

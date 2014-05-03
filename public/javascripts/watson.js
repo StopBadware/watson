@@ -145,6 +145,12 @@ $(document).ready(function($) {
 		updateEmailTemplate(templateName, subject, body);
 	});
 	
+	$(".rescan-request-box").submit(function(e) {
+		e.preventDefault();
+		$("#"+this.id+" button").focus().blur();
+		addToRescanQueue($(".rescan-uris").val());
+	});
+	
 	$(".refresh").click(function() {
 		location.reload(true);
 	});
@@ -761,6 +767,40 @@ function toggleEmailTemplateInputs(templateName, enableEditing) {
 		$(template+"body").prop("disabled", true);
 		$(template+"subject").val($(template+"subject").data("orig"));
 		$(template+"body").val($(template+"body").data("orig"));
+	}
+}
+
+function addToRescanQueue(uris) {
+	var hasUris = uris && uris.length > 0;
+	if ($(".form-info").is(":hidden")) {
+		scrollToBottom();
+		if (hasUris) {
+			$(".form-alert, .form-success").hide();
+			$(".form-info").show();
+			var obj = {
+				"uris": uris
+			};
+			appRoute.addToRescanQueue().ajax({
+				contentType: jsonContentType,
+				data: JSON.stringify(obj)
+			}).done(function(res) {
+				var txt = "Added to queue";
+				if (res.added && res.count) {
+					$("#rescan-queue-size").html(res.count);
+					txt = "Added " + res.added + " URIs to rescan queue";
+				}
+				$(".success-msg").html(txt);
+				$(".form-success").show();
+			}).fail(function() {
+				$(".alert-msg").text("Unable to add to queue");
+				$(".form-alert").show();
+			}).always(function() {
+				$(".form-info").hide();
+			});
+		} else {
+			$(".alert-msg").text("URI required!");
+			$(".form-alert").show();
+		}
 	}
 }
 
