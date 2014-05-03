@@ -32,6 +32,23 @@ class GoogleRescanSpec extends Specification {
       }
     }
     
+    "find rescans by URI" in {
+      running(FakeApplication()) {
+        val uri = Uri.findOrCreate(UriSpec.validUri).get
+        GoogleRescan.findByUri(uri.id).isEmpty must beTrue
+      	GoogleRescan.create(uri.id, None, "clean", "autoappeal", uri.createdAt)
+      	GoogleRescan.findByUri(uri.id).nonEmpty must beTrue
+      }
+    }
+    
+    "get time of last rescan" in {
+      running(FakeApplication()) {
+        val uri = Uri.findOrCreate(UriSpec.validUri).get
+      	GoogleRescan.create(uri.id, None, "clean", "autoappeal", uri.createdAt)
+      	GoogleRescan.timeOfLast must be_>=(uri.createdAt)
+      }
+    }
+    
   }
   
 }

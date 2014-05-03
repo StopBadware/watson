@@ -63,6 +63,11 @@ object GoogleRescan {
     return rs().map(mapFromRow).flatten.toList
   }
   
+  def timeOfLast: Long = DB.withConnection { implicit conn =>
+    return SQL("SELECT rescanned_at FROM google_rescans ORDER BY rescanned_at DESC LIMIT 1")()
+  		.map(_[Date]("rescanned_at").getTime / 1000).headOption.getOrElse(0)
+  }
+  
   private def mapFromRow(row: SqlRow): Option[GoogleRescan] = {
     return Try {
 	    GoogleRescan(

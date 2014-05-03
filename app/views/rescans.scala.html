@@ -2,7 +2,7 @@
 @main("Google Rescans") {
 <div class="width-75 auto-margin">
 	<h4><label>Current queue size:</label>@queueSize</h4>
-	<h4><label>Last results received:</label><span class="unixtime-full">TODO WTSN-12</span></h4>
+	<h4><label>Last results received:</label><span class="unixtime-full">@GoogleRescan.timeOfLast</span></h4>
 	<div class="well well-lg white-bg">
 	<p>The below form allows requesting Google to rescan URIs, keep in mind:</p>
 	<ul>
