@@ -54,7 +54,6 @@ case class Uri(
 
 object Uri {
   
-  private val BatchSize = Try(sys.env("SQLBATCH_SIZE").toInt).getOrElse(5000)
   private val schemeCheck = "^[a-zA-Z]+[a-zA-Z0-9+.\\-]+://.*"
     
   def ensureScheme(url: String): String = {
@@ -98,7 +97,7 @@ object Uri {
       val sql = """INSERT INTO uris (uri, reversed_host, hierarchical_part, path, sha2_256) 
     		SELECT ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM uris WHERE sha2_256=?)"""    
       val ps = conn.prepareStatement(sql)
-      uris.grouped(BatchSize).foldLeft(0) { (total, group) =>
+      uris.grouped(PostgreSql.batchSize).foldLeft(0) { (total, group) =>
 	  		group.foreach { uri =>
 	  		  Try(new ReportedUri(uri)).foreach { repUri =>
 		  			ps.setString(1, repUri.uri.toString)
@@ -172,7 +171,7 @@ object Uri {
     return ids.size match {
       case 0 => List()
       case _ => try {
-        ids.grouped(BatchSize).foldLeft(List.empty[Uri]) { case (list, group) =>
+        ids.grouped(PostgreSql.batchSize).foldLeft(List.empty[Uri]) { case (list, group) =>
 		      val sql = "SELECT * FROM uris WHERE id in (?" + (",?"*(group.size-1)) + ")"
 		      val ps = conn.prepareStatement(sql)
 		      for (i <- 1 to group.size) {
@@ -208,7 +207,7 @@ object Uri {
       case 0 => List()
       case 1 => List(findBySha256(sha256s.head)).flatten
       case _ => try {
-        sha256s.grouped(BatchSize).foldLeft(List.empty[Uri]) { case (list, group) =>
+        sha256s.grouped(PostgreSql.batchSize).foldLeft(List.empty[Uri]) { case (list, group) =>
 		      val sql = "SELECT * FROM uris WHERE sha2_256 in (?" + (",?"*(group.size-1)) + ")"
 		      val ps = conn.prepareStatement(sql)
 		      for (i <- 1 to group.size) {

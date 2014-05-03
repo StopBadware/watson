@@ -93,6 +93,8 @@ object Text {
 
 object PostgreSql {
   
+  val batchSize = Try(sys.env("SQLBATCH_SIZE").toInt).getOrElse(5000)
+  
   def isNotDupeError(err: String): Boolean = !err.startsWith("ERROR: duplicate key")
   
   implicit def rowToIntArray: Column[Array[Int]] = {

@@ -35,8 +35,6 @@ case class BlacklistEvent(
 
 object BlacklistEvent {
   
-  private val BatchSize = Try(sys.env("SQLBATCH_SIZE").toInt).getOrElse(5000)
-  
   def timeOfLast(source: Source): Long = DB.withConnection { implicit conn =>
     val sql = SQL("""SELECT blacklisted_at FROM blacklist_events WHERE 
         source={source}::SOURCE ORDER BY blacklisted_at desc LIMIT 1""").on("source" -> source.abbr)
@@ -88,7 +86,7 @@ object BlacklistEvent {
     		SELECT ?, ?::SOURCE, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM blacklist_events 
     	  WHERE uri_id=? AND source=?::SOURCE AND (blacklisted_at=? OR (blacklisted=true AND ?=true)))"""
    	  val ps = conn.prepareStatement(sql)
-   	  urisNotBlacklisted(uriIds, source).grouped(BatchSize).foldLeft(0) { (total, group) =>
+   	  urisNotBlacklisted(uriIds, source).grouped(PostgreSql.batchSize).foldLeft(0) { (total, group) =>
    	    group.foreach { id =>
    	      ps.setInt(1, id)
    	      ps.setString(2, source.abbr)
@@ -128,7 +126,7 @@ object BlacklistEvent {
 	    val sql = """UPDATE blacklist_events SET blacklisted=?, blacklisted_at=?, unblacklisted_at=? WHERE id=? 
 	      AND blacklisted_at>=?"""    
 	    val ps = conn.prepareStatement(sql)
-	    eventIds.grouped(BatchSize).foldLeft(0) { (total, group) =>
+	    eventIds.grouped(PostgreSql.batchSize).foldLeft(0) { (total, group) =>
 	      group.foreach { id =>
 	        ps.setBoolean(1, unblacklistedAt.isEmpty)
 	        ps.setTimestamp(2, blTime)
@@ -160,7 +158,7 @@ object BlacklistEvent {
 	    total + (try {
 		    val sql = "UPDATE blacklist_events SET blacklisted_at=? WHERE id=? AND blacklisted_at>?"    
 		    val ps = conn.prepareStatement(sql)
-		    eventIds.grouped(BatchSize).foldLeft(0) { (ctr, events) =>
+		    eventIds.grouped(PostgreSql.batchSize).foldLeft(0) { (ctr, events) =>
 		      events.foreach { id =>
 		        ps.setTimestamp(1, blTime)
 		        ps.setInt(2, id)
@@ -188,7 +186,7 @@ object BlacklistEvent {
     return try {
       SQL("DROP TABLE IF EXISTS temp_uris").execute()
       SQL("CREATE TEMP TABLE temp_uris (uri_id INTEGER PRIMARY KEY)").execute()
-      uriIds.toSet.grouped(BatchSize).foreach { group =>
+      uriIds.toSet.grouped(PostgreSql.batchSize).foreach { group =>
         val sql = "INSERT INTO temp_uris VALUES (?)" + (",(?)"*(group.size-1))
         val ps = conn.prepareStatement(sql)
         group.foldLeft(1) { (i, id) =>
@@ -224,7 +222,7 @@ object BlacklistEvent {
     return try {
 	    val sql = "UPDATE blacklist_events SET blacklisted=false, unblacklisted_at=? WHERE id=?"    
 	    val ps = conn.prepareStatement(sql)
-	    eventIds.grouped(BatchSize).foldLeft(0) { (total, group) =>
+	    eventIds.grouped(PostgreSql.batchSize).foldLeft(0) { (total, group) =>
 	      group.foreach { id =>
 	        ps.setTimestamp(1, unblTime)
 	        ps.setInt(2, id)
@@ -250,7 +248,7 @@ object BlacklistEvent {
     val toUnblacklist = try {
       SQL("DROP TABLE IF EXISTS temp_uris").execute()
       SQL("CREATE TEMP TABLE temp_uris (uri_id INTEGER PRIMARY KEY)").execute()
-      uris.toSet.grouped(BatchSize).foreach { group =>
+      uris.toSet.grouped(PostgreSql.batchSize).foreach { group =>
         val sql = "INSERT INTO temp_uris VALUES (?)" + (",(?)"*(group.size-1))
         val ps = conn.prepareStatement(sql)
         group.foldLeft(1) { (i, id) =>
