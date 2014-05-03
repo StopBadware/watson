@@ -1,0 +1,30 @@
+@(queueSize: Int)
+@main("Google Rescans") {
+<div class="width-75 auto-margin">
+	<h4><label>Current queue size:</label>@queueSize</h4>
+	<h4><label>Last results received:</label><span class="unixtime-full">TODO WTSN-12</span></h4>
+	<div class="well well-lg white-bg">
+	<p>The below form allows requesting Google to rescan URIs, keep in mind:</p>
+	<ul>
+		<li>rescan requests are sent once an hour, adding URIs below will add them to the queue for the next scheduled request</li>
+		<li>Google has asked us to notify them ahead of time before submitting ~1000 URIs in a single request, be mindful of the current queue size if adding a large number of URIs</li>
+		<li>only URIs presently blackisted by Google will be added to the queue</li>
+		<li>URIs already on the rescan queue will be ignored</li>
+		<li>though there is no set schedule for Google to send rescan results, it is <span class="ital">typically</span> within two or three hours of our request</li>
+	</ul>
+</div>
+	<div class="well well-lg watson-green-bg text-center tab-pane">
+		<form id="rescan-request" class="form-box form-horizontal rescan-request-box" role="form">
+			<div id="uri-form-group" class="form-group">
+				<label class="control-label col-md-2" for="uris">URIs</label>
+				<div class="col-md-10">
+					<textarea id="uris" class="input-large form-control has-char-counter rescan-uris" rows="14" maxlength="4096" name="uris" spellcheck="false" placeholder="Required (one URI per line)" autofocus></textarea>
+					@partials.charcounter("uris", 4096)
+				</div>
+			</div>
+			<button type="submit" id="btn-request-rescan" class="btn btn-default form-btn">Request Rescan</button>
+		</form>
+	</div>
+	@partials.ajaxstatus("Unable to add to queue", "Adding to rescan queue", "Added to queue!")()
+</div>
+}

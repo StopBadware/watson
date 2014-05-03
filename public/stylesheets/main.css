@@ -44,6 +44,9 @@ h4 label {
 .no-dec:hover {
 	text-decoration: none;
 }
+.ital {
+	font-style: italic;
+}
 a,
 .wrap {
 	overflow-wrap: break-word;

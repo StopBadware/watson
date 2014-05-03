@@ -26,6 +26,7 @@ GET		/crs								controllers.Application.communityReports
 GET		/crs/new							controllers.Application.newCommunityReport
 GET		/crs/:id							controllers.Application.communityReport(id: Int)
 GET		/emailtemplates						controllers.Application.emailTemplates
+GET		/rescans							controllers.Application.rescans
 
 
 # AJAX ROUTES
@@ -44,6 +45,7 @@ POST	/crs/submit							controllers.Application.submitCommunityReports
 POST	/note								controllers.Application.addNote
 POST	/emailtemplates/update				controllers.Application.updateEmailTemplate
 POST	/emailtemplates/send				controllers.Application.sendEmailTemplatePreview
+POST	/rescans/submit						controllers.Application.addToRescanQueue
 
 # API ENDPOINTS
 GET     /blacklists/timeoflast/:source   	controllers.Api.timeoflast(source)

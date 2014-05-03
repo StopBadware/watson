@@ -323,6 +323,13 @@ object Application extends Controller with Secured with Cookies {
     }
   }
   
+  def rescans = withAuth { userId => implicit request =>
+    Ok(views.html.rescans(Redis.getGoogleRescanQueue.size))	
+  }
+  
+  def addToRescanQueue = TODO //withAuth { userId => implicit request =>
+//  }
+  
   def tags = TODO	//TODO WTSN-56 view/add/toggle tags
   
   def tag(name: String) = TODO	//TODO WTSN-56 view tag
@@ -527,7 +534,8 @@ object Application extends Controller with Secured with Cookies {
       routes.javascript.Application.addResponse,
       routes.javascript.Application.toggleResponse,
       routes.javascript.Application.sendEmailTemplatePreview,
-      routes.javascript.Application.updateEmailTemplate
+      routes.javascript.Application.updateEmailTemplate,
+      routes.javascript.Application.addToRescanQueue
 		)).as("text/javascript")
   }
   
