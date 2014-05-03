@@ -1,6 +1,6 @@
 @(details: ReviewDetails, user: User)
 @import models.cr.CommunityReport
-@import models.enums.{ReviewStatus, Role}
+@import models.enums.{ReviewStatus, Role, Source}
 @main("Review "+details.review.id) {
 	<div class="review-nav">
 	@defining(details.review.siblings) { sibs =>
@@ -142,7 +142,10 @@
 						</tr>			
 					}
 			    	</tbody>
-		    	</table>		
+		    	</table>
+		    	@if(details.uri.isBlacklistedBy(Source.GOOG)) {
+		    		@partials.requestrescan(details.uri.uri)
+		    	}		
 			</div>
 			<div class="tab-pane fade" id="vt">TODO WTSN-53 VT</div>
 			<div class="tab-pane fade" id="dsp">TODO WTSN-49 DSP</div>

@@ -775,8 +775,9 @@ function addToRescanQueue(uris) {
 	if ($(".form-info").is(":hidden")) {
 		scrollToBottom();
 		if (hasUris) {
+			var ajaxStatus = ".rescan-status ";
 			$(".form-alert, .form-success").hide();
-			$(".form-info").show();
+			$(ajaxStatus+".form-info").show();
 			var obj = {
 				"uris": uris
 			};
@@ -784,22 +785,22 @@ function addToRescanQueue(uris) {
 				contentType: jsonContentType,
 				data: JSON.stringify(obj)
 			}).done(function(res) {
-				var txt = "Added to queue";
-				if (res.added && res.count) {
+				var txt = "Added to rescan queue";
+				if (res.added && res.count && $("#rescan-queue-size").length) {
 					$("#rescan-queue-size").html(res.count);
 					txt = "Added " + res.added + " URIs to rescan queue";
 				}
-				$(".success-msg").html(txt);
-				$(".form-success").show();
+				$(ajaxStatus+".success-msg").html(txt);
+				$(ajaxStatus+".form-success").show();
 			}).fail(function() {
-				$(".alert-msg").text("Unable to add to queue");
-				$(".form-alert").show();
+				$(ajaxStatus+".alert-msg").text("Unable to add to queue");
+				$(ajaxStatus+".form-alert").show();
 			}).always(function() {
 				$(".form-info").hide();
 			});
 		} else {
-			$(".alert-msg").text("URI required!");
-			$(".form-alert").show();
+			$(ajaxStatus+".alert-msg").text("URI required!");
+			$(ajaxStatus+".form-alert").show();
 		}
 	}
 }

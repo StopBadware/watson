@@ -1,0 +1,8 @@
+@(uri: String)
+<div class="text-center">
+	<form id="rescan-request" class="rescan-request-box" role="form">
+		<input type="text" class="rescan-uris non-vis" name="uris" value="@uri">
+		<button type="submit" id="btn-request-rescan" class="btn btn-primary form-btn">Request Rescan</button>
+	</form>
+	@partials.ajaxstatus("Unable to add to queue", "Adding to rescan queue", "Added to queue!", "rescan-status width-50 margin-top-1em")()
+</div>
