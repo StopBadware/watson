@@ -143,6 +143,9 @@ a,
 	font-size: 1.4em;
 	color: #FFFFFF;
 }
+.navbar-default .navbar-nav>.open>a, 
+.navbar-default .navbar-nav>.open>a:hover, 
+.navbar-default .navbar-nav>.open>a:focus,
 .navbar-default .navbar-nav>li>a:hover {
 	color: #FFFFFF;
 	background-color: #2B373A;
