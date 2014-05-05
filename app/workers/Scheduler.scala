@@ -56,7 +56,9 @@ case class GoogleRescanQueue() extends Runnable {
       Logger.info("Sent " + queue.size + " rescan requests to Google")
       queue.size
     } else {
-      Logger.error("Sending rescan requests to Google failed")
+      if (queue.nonEmpty) {
+      	Logger.error("Sending rescan requests to Google failed")
+      }
       0
     }
   }
