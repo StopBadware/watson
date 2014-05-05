@@ -3,6 +3,7 @@ package workers
 import java.io.File
 import akka.actor.ActorSystem
 import scala.concurrent.duration._
+import scala.util.Try
 import java.util.concurrent.TimeUnit
 import play.api.{DefaultApplication, Logger, Mode, Play}
 import play.api.libs.concurrent.Execution.Implicits._
@@ -13,12 +14,18 @@ object Scheduler {
   	
   def main(args: Array[String]): Unit = {
     Play.start(new DefaultApplication(new File("."), Scheduler.getClass.getClassLoader, None, Mode.Prod))
-    val minute = new FiniteDuration(1, TimeUnit.MINUTES)
-    val hour = new FiniteDuration(1, TimeUnit.HOURS)
+    val everyMinute = new FiniteDuration(1, TimeUnit.MINUTES)
+    val everyHour = new FiniteDuration(1, TimeUnit.HOURS)
+    val resolverHours = new FiniteDuration(Try(sys.env("RESOLVER_INTERVAL_HOURS").toLong).getOrElse(12), TimeUnit.HOURS)
+    
     val importBlacklistSystem = ActorSystem("ImportBlacklistQueue")
-    importBlacklistSystem.scheduler.schedule(Duration.Zero, minute, BlacklistQueue())
+    importBlacklistSystem.scheduler.schedule(Duration.Zero, everyMinute, BlacklistQueue())
+    
     val sendGoogleRescanQueue = ActorSystem("SendGoogleRescanQueue")
-    sendGoogleRescanQueue.scheduler.schedule(Duration.Zero, hour, GoogleRescanQueue())
+    sendGoogleRescanQueue.scheduler.schedule(Duration.Zero, everyHour, GoogleRescanQueue())
+    
+    val ipAsResolver = ActorSystem("IpAsResolver")
+    ipAsResolver.scheduler.schedule(Duration.Zero, resolverHours, IpAsResolver())
   }
   
 }
@@ -64,5 +71,21 @@ case class GoogleRescanQueue() extends Runnable {
   }
   
   def run() = sendQueue()
+  
+}
+
+case class IpAsResolver() extends Runnable {
+  
+  def sendToResolver(): Boolean = {
+    val sent = false	//TODO WTSN-14
+    if (sent) {
+      Logger.info("Sent hosts to IP/AS resolver")
+    } else {
+    	Logger.error("Sending hosts to IP/AS resovler failed")
+    }
+    return sent
+  }
+  
+  def run() = sendToResolver()
   
 }
