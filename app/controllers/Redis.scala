@@ -49,7 +49,11 @@ object Redis extends Controller {
   }
   
   def removeFromGoogleRescanQueue(toRemove: Set[String]): Int = {
-    return pool.withClient(_.srem(googleRescanQueue, "",toRemove.toSeq:_*).get.toInt)
+    return pool.withClient { client =>
+      	toRemove.foldLeft(0) { (cnt, str) =>
+      	cnt + client.srem(googleRescanQueue, str).get.toInt
+      }
+    }
   }
 
 }
