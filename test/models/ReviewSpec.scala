@@ -376,6 +376,16 @@ class ReviewSpec extends Specification {
       }
     }
     
+    "get unique uri status counts" in {
+      running(FakeApplication()) {
+        val rev = createAndFind
+        Review.uniqueUrisByStatus.nonEmpty must beTrue
+        Review.uniqueUrisByStatus.contains(ReviewStatus.NEW) must beTrue
+        rev.closeNoLongerBlacklisted
+        Review.uniqueUrisByStatus.contains(ReviewStatus.CLOSED_NO_LONGER_REPORTED) must beTrue
+      }
+    }
+    
   }
   
 }

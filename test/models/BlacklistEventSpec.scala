@@ -260,6 +260,13 @@ class BlacklistEventSpec extends Specification {
       }
     }    
     
+    "get count of unique URIs currently blacklisted" in {
+      running(FakeApplication()) {
+        BlacklistEvent.createOrUpdate(blacklistedEvent) must beTrue
+        BlacklistEvent.currentUniqueUriCount must be_>(0)
+      }
+    }
+    
   }
 
 }

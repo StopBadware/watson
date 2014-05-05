@@ -345,6 +345,14 @@ object Review {
     }
   }
   
+  def uniqueUrisByStatus: Map[ReviewStatus, Int] = DB.withConnection { implicit conn =>
+    return Try {
+      SQL("SELECT COUNT(DISTINCT uri_id) AS cnt, status FROM reviews GROUP BY status")().map { row =>
+        (row[ReviewStatus]("status"), row[Long]("cnt").toInt)
+      }.toMap
+    }.getOrElse(Map.empty[ReviewStatus, Int])
+  }
+  
   private def mapFromRow(row: SqlRow): Option[Review] = {
     return Try {
       Review(

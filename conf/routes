@@ -1,6 +1,12 @@
 # Routes
 # ~~~~~~
 
+# API ENDPOINTS
+GET     /reviews/counts					   	controllers.Api.counts
+GET     /blacklists/timeoflast/:source   	controllers.Api.timeoflast(source)
+POST    /blacklists/add/:source				controllers.Api.importList(source)
+POST    /reviews/request					controllers.Api.requestReview
+
 # VIEWS
 GET     /                           		controllers.Application.index
 GET  	/*path/								controllers.Application.untrail(path)
@@ -46,11 +52,6 @@ POST	/note								controllers.Application.addNote
 POST	/emailtemplates/update				controllers.Application.updateEmailTemplate
 POST	/emailtemplates/send				controllers.Application.sendEmailTemplatePreview
 POST	/rescans/submit						controllers.Application.addToRescanQueue
-
-# API ENDPOINTS
-GET     /blacklists/timeoflast/:source   	controllers.Api.timeoflast(source)
-POST    /blacklists/add/:source				controllers.Api.importList(source)
-POST    /reviews/request					controllers.Api.requestReview
 
 # MISC RESOURCES
 GET     /robots.txt		               		controllers.Assets.at(path="/public", file="robots.txt")

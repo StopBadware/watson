@@ -5,13 +5,20 @@ import scala.actors.Futures.future
 import scala.util.Try
 import scala.io.{Source => IoSource}
 import play.api._
+import play.api.libs.json.Json
 import play.api.mvc._
 import org.jasypt.encryption.pbe.StandardPBEStringEncryptor
-import models.{BlacklistEvent, Uri}
-import models.enums.Source
+import models.{BlacklistEvent, Review, Uri}
+import models.enums.{ReviewStatus, Source}
 import models.cr._
 
 object Api extends Controller with ApiSecured {
+  
+  def counts = withAuth { implicit request =>
+    val byStatus = Review.uniqueUrisByStatus
+    val helped = Try(byStatus(ReviewStatus.CLOSED_CLEAN) + byStatus(ReviewStatus.CLOSED_NO_LONGER_REPORTED)).getOrElse(0)
+    Ok(Json.obj("current" -> BlacklistEvent.currentUniqueUriCount, "helped" -> helped))
+  }
   
 	def timeoflast(abbr: String) = withAuth { implicit request =>
 		val source = Source.withAbbr(abbr)

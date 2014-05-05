@@ -35,9 +35,13 @@ case class BlacklistEvent(
 
 object BlacklistEvent {
   
+  def currentUniqueUriCount: Int = DB.withConnection { implicit conn =>
+    return Try(SQL("SELECT COUNT(DISTINCT uri_id) AS cnt FROM blacklist_events WHERE blacklisted=true")().head[Long]("cnt").toInt).getOrElse(0)
+  }
+  
   def timeOfLast(source: Source): Long = DB.withConnection { implicit conn =>
     val sql = SQL("""SELECT blacklisted_at FROM blacklist_events WHERE 
-        source={source}::SOURCE ORDER BY blacklisted_at desc LIMIT 1""").on("source" -> source.abbr)
+        source={source}::SOURCE ORDER BY blacklisted_at DESC LIMIT 1""").on("source" -> source.abbr)
     return (sql().map(_[Date]("blacklisted_at").getTime / 1000).headOption).getOrElse(0)
   }
   
