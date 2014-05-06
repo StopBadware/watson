@@ -42,7 +42,7 @@ object Api extends Controller with ApiSecured {
 	  if (body.isSuccess) {
 	    val json = body.get
 	    val hostsIps = json.\("host_to_ip").asOpt[Map[String, Long]].getOrElse(Map())
-	    val ipsAsns = json.\("ip_to_as").asOpt[Map[String, Asn]].getOrElse(Map()).map(t => (t._1.toInt, t._2))
+	    val ipsAsns = json.\("ip_to_as").asOpt[Map[String, Asn]].getOrElse(Map()).map(t => (t._1.toLong, t._2))
 	    val ipAsnMappings = ipsAsns.map(t => (t._1, t._2.asn))
 	    val asns = ipsAsns.map(_._2).toSet
 	    val parseSuccess = (hostsIps.size == json.\("host_to_ip_size").as[Int]) && (ipsAsns.size == json.\("ip_to_as_size").as[Int]) 
