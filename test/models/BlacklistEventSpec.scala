@@ -240,7 +240,7 @@ class BlacklistEventSpec extends Specification {
       }
     }
     
-    "find currently blacklisted Uri IDs" in {
+    "find currently blacklisted Uri & event IDs" in {
       running(FakeApplication()) {
         val time = System.currentTimeMillis / 1000
         val blacklist = (1 to numInBulk).foldLeft(List.empty[ReportedEvent]) { (list, _) =>
@@ -248,6 +248,19 @@ class BlacklistEventSpec extends Specification {
         }
         blacklist.foreach(BlacklistEvent.createOrUpdate(_))
         val uriIds = BlacklistEvent.blacklistedUriIdsEventIds(source, Some(time+1)).keySet
+        blacklist.map(event => uriIds.contains(event.uriId) must beTrue)
+      }
+    }
+    
+    "find currently blacklisted Uri IDs" in {
+      running(FakeApplication()) {
+        val time = System.currentTimeMillis / 1000
+        val blacklist = (1 to numInBulk).foldLeft(List.empty[ReportedEvent]) { (list, _) =>
+          list :+ ReportedEvent(validUri.id, source, time, None)
+        }
+        blacklist.foreach(BlacklistEvent.createOrUpdate(_))
+        val uriIds = BlacklistEvent.blacklistedUriIds
+        blacklist.nonEmpty must beTrue
         blacklist.map(event => uriIds.contains(event.uriId) must beTrue)
       }
     }

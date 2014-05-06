@@ -50,6 +50,8 @@ case class Uri(
     return ReviewRequest.create(id, email, ip, notes)
   }
   
+  def host: String = Host.reverse(reversedHost)
+  
 }
 
 object Uri {

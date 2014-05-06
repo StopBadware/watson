@@ -31,6 +31,17 @@ object Api extends Controller with ApiSecured {
 		}
   }
 	
+	def blacklistedHosts = withAuth { implicit request =>
+	  val hosts = Uri.find(BlacklistEvent.blacklistedUriIds.toList).map(_.host).toSet
+    Ok(Json.obj("hosts" -> hosts))	//TODO WTSN-14
+  }
+	
+	def addResolved = withAuth { implicit request =>
+	  val json = request.body.asJson
+	  println(json)	//DELME WTSN-14
+    Ok	//TODO WTSN-14
+  }
+	
 	def importList(abbr: String) = withAuth { implicit request =>
 	  Logger.info("Received import for " + abbr)
 	  val source = Source.withAbbr(abbr)

@@ -69,7 +69,10 @@ object BlacklistEvent {
       SQL(base).on("source"->source.abbr)
     }
     return rs().map(row => (row[Int]("uri_id"), row[Int]("id"))).toMap
-    
+  }
+  
+  def blacklistedUriIds: Set[Int] = DB.withConnection { implicit conn =>
+    return Try(SQL("SELECT uri_id FROM blacklist_events WHERE blacklisted=true")().map(_[Int]("uri_id")).toSet).getOrElse(Set())
   } 
   
   def find(id: Int): Option[BlacklistEvent] = DB.withConnection { implicit conn =>
