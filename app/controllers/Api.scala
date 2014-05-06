@@ -5,10 +5,11 @@ import scala.actors.Futures.future
 import scala.util.Try
 import scala.io.{Source => IoSource}
 import play.api._
-import play.api.libs.json.Json
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
 import play.api.mvc._
 import org.jasypt.encryption.pbe.StandardPBEStringEncryptor
-import models.{BlacklistEvent, Review, Uri}
+import models._
 import models.enums.{ReviewStatus, Source}
 import models.cr._
 
@@ -33,14 +34,32 @@ object Api extends Controller with ApiSecured {
 	
 	def blacklistedHosts = withAuth { implicit request =>
 	  val hosts = Uri.find(BlacklistEvent.blacklistedUriIds.toList).map(_.host).toSet
-    Ok(Json.obj("hosts" -> hosts))	//TODO WTSN-14
+    Ok(Json.obj("hosts" -> hosts))
   }
 	
 	def addResolved = withAuth { implicit request =>
-	  val json = request.body.asJson
-	  println(json)	//DELME WTSN-14
-    Ok	//TODO WTSN-14
-  }
+	  val body = Try(request.body.asJson.get)
+	  if (body.isSuccess) {
+	    val json = body.get
+	    val hostsIps = json.\("host_to_ip").asOpt[Map[String, Long]].getOrElse(Map())
+	    val ipsAsns = json.\("ip_to_as").asOpt[Map[String, Asn]].getOrElse(Map()).map(t => (t._1.toInt, t._2))
+	    val ipAsnMappings = ipsAsns.map(t => (t._1, t._2.asn))
+	    val asns = ipsAsns.map(_._2).toSet
+	    val parseSuccess = (hostsIps.size == json.\("host_to_ip_size").as[Int]) && (ipsAsns.size == json.\("ip_to_as_size").as[Int]) 
+	    //TODO WTSN-14 write host=>ip mappings
+	    //TODO WTSN-14 write ip=>asn mappings
+	    //TODO WTSN-14 upsert AS info
+	    if (parseSuccess) Ok else InternalServerError
+	  } else {
+	    UnsupportedMediaType
+	  }
+	}
+	
+	private implicit val asnReads: Reads[Asn] = (
+	  (JsPath \ "asn").read[Int] and
+	  (JsPath \ "country").read[String] and
+	  (JsPath \ "name").read[String]
+	)(Asn.apply _)
 	
 	def importList(abbr: String) = withAuth { implicit request =>
 	  Logger.info("Received import for " + abbr)
