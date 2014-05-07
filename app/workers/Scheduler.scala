@@ -7,6 +7,7 @@ import scala.util.Try
 import java.util.concurrent.TimeUnit
 import play.api.{DefaultApplication, Logger, Mode, Play}
 import play.api.libs.concurrent.Execution.Implicits._
+import io.iron.ironmq.{Client, Cloud, Queue}
 import controllers.{Blacklist, Mailer, Redis}
 import models.enums.Source
 
@@ -76,16 +77,23 @@ case class GoogleRescanQueue() extends Runnable {
 
 case class IpAsResolver() extends Runnable {
   
-  def sendToResolver(): Boolean = {
-    val sent = false	//TODO WTSN-14
-    if (sent) {
-      Logger.info("Sent hosts to IP/AS resolver")
+  private val ironMqProjectId = sys.env("IRON_MQ_PROJECT_ID")
+  private val ironMqToken = sys.env("IRON_MQ_TOKEN")
+  private val cloud = Cloud.ironAWSUSEast
+  
+  def addResolveRequestToQueue(): Boolean = {
+    val client = new Client(ironMqProjectId, ironMqToken, cloud)
+    val queue = client.queue("resolve_queue")
+    val added = Try(queue.push("WTSN")).isSuccess
+    
+    if (added) {
+      Logger.info("Added resolve request for WTSN to resolver queue")
     } else {
-    	Logger.error("Sending hosts to IP/AS resovler failed")
+    	Logger.error("Adding message to resovler queue failed")
     }
-    return sent
+    return added
   }
   
-  def run() = sendToResolver()
+  def run() = addResolveRequestToQueue()
   
 }

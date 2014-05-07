@@ -71,10 +71,8 @@ class SchedulerSpec extends Specification {
     
     "send currently blacklisted hosts to IP/AS resolver" in {
       running(FakeApplication()) {
-        val time = System.currentTimeMillis / 1000
-        Blacklist.importBlacklist(BlacklistSpec.json(time, List("example.com", "http://www.example.com/" + time)), source)
         val resolverHandler = IpAsResolver()
-        resolverHandler.sendToResolver() must beTrue
+        resolverHandler.addResolveRequestToQueue() must beTrue
       }      
     }
     

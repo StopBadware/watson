@@ -17,7 +17,8 @@ object ApplicationBuild extends Build {
     "postgresql" % "postgresql" % "9.1-901.jdbc4",
     "org.jasypt" % "jasypt" % "1.9.2",
     "com.stormpath.sdk" % "stormpath-sdk-api" % "0.9.1",
-    "com.stormpath.sdk" % "stormpath-sdk-httpclient" % "0.9.1"
+    "com.stormpath.sdk" % "stormpath-sdk-httpclient" % "0.9.1",
+    "io.iron.ironmq" % "ironmq" % "0.0.15"
   )
   
   val main = play.Project(appName, appVersion, appDependencies).settings(
