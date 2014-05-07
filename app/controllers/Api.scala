@@ -46,10 +46,14 @@ object Api extends Controller with ApiSecured {
 	    val ipAsnMappings = ipsAsns.map(t => (t._1, t._2.asn))
 	    val asns = ipsAsns.map(_._2).toSet
 	    val parseSuccess = (hostsIps.size == json.\("host_to_ip_size").as[Int]) && (ipsAsns.size == json.\("ip_to_as_size").as[Int]) 
-	    //TODO WTSN-14 write host=>ip mappings
-	    //TODO WTSN-14 write ip=>asn mappings
-	    //TODO WTSN-14 upsert AS info
-	    if (parseSuccess) Ok else InternalServerError
+	    if (parseSuccess) {
+		    //TODO WTSN-14 write host=>ip mappings
+		    //TODO WTSN-14 write ip=>asn mappings
+		    //TODO WTSN-14 upsert AS info
+	      Ok
+	    } else {
+	      InternalServerError
+	    }
 	  } else {
 	    UnsupportedMediaType
 	  }
