@@ -34,6 +34,7 @@ case class AutonomousSystem(number: Int, name: String, country: String, updatedA
 object AutonomousSystem {
   
   private def create(number: Int, name: String, country: String): Boolean = DB.withConnection { implicit conn =>
+    println(number, name, country, country.length)	//DELME WTSN-14
     return try {
       SQL("""INSERT INTO autonomous_systems (number, name, country) SELECT {number}, {name}, {country}  
     		WHERE NOT EXISTS (SELECT 1 FROM autonomous_systems WHERE number={number})""")

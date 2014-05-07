@@ -43,13 +43,23 @@ object Api extends Controller with ApiSecured {
 	    val json = body.get
 	    val hostsIps = json.\("host_to_ip").asOpt[Map[String, Long]].getOrElse(Map())
 	    val ipsAsns = json.\("ip_to_as").asOpt[Map[String, Asn]].getOrElse(Map()).map(t => (t._1.toLong, t._2))
-	    val ipAsnMappings = ipsAsns.map(t => (t._1, t._2.asn))
 	    val asns = ipsAsns.map(_._2).toSet
 	    val parseSuccess = (hostsIps.size == json.\("host_to_ip_size").as[Int]) && (ipsAsns.size == json.\("ip_to_as_size").as[Int]) 
 	    if (parseSuccess) {
-		    //TODO WTSN-14 write host=>ip mappings
-		    //TODO WTSN-14 write ip=>asn mappings
-		    //TODO WTSN-14 upsert AS info
+	      val asWrites = ipsAsns.map(_._2).toSet.foldLeft(0) { (writes, asn) =>
+	      	if (AutonomousSystem.createOrUpdate(asn.asn, asn.name, asn.country)) writes + 1 else writes
+	      }
+	      Logger.info("Added or updated " + asWrites + " Autonomous Systems")
+	      
+	      val ipAsWrites = ipsAsns.foldLeft(0) { (writes, ipAs) =>
+	        if (IpAsnMapping.create(ipAs._1, ipAs._2.asn)) writes + 1 else writes
+	      }
+	      Logger.info("Wrote " + ipAsWrites + " IP=>AS mappings")
+	      
+	      val hostIpWrites = hostsIps.foldLeft(0) { (writes, hostIp) =>
+	        if (HostIpMapping.create(Host.reverse(hostIp._1), hostIp._2)) writes + 1 else writes
+	      }
+	      Logger.info("Wrote " + hostIpWrites + " host=>IP mappings")
 	      Ok
 	    } else {
 	      InternalServerError
@@ -61,8 +71,8 @@ object Api extends Controller with ApiSecured {
 	
 	private implicit val asnReads: Reads[Asn] = (
 	  (JsPath \ "asn").read[Int] and
-	  (JsPath \ "country").read[String] and
-	  (JsPath \ "name").read[String]
+	  (JsPath \ "name").read[String] and
+	  (JsPath \ "country").read[String]
 	)(Asn.apply _)
 	
 	def importList(abbr: String) = withAuth { implicit request =>
