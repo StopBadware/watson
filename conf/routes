@@ -4,6 +4,8 @@
 # API ENDPOINTS
 GET     /reviews/counts					   	controllers.Api.counts
 GET     /blacklists/hosts				   	controllers.Api.blacklistedHosts
+GET     /asns/top						   	controllers.Api.topAsns
+GET     /ips/top						   	controllers.Api.topIps
 GET     /blacklists/timeoflast/:source   	controllers.Api.timeoflast(source)
 POST    /blacklists/add/:source				controllers.Api.importList(source)
 POST    /hosts/resolved					   	controllers.Api.addResolved

@@ -74,9 +74,16 @@ object Api extends Controller with ApiSecured {
 	  (JsPath \ "country").read[String]
 	)(Asn.apply _)
 	
-	def topIpAs = withAuth { implicit request =>
-	  //TODO WTSN-15
-    Ok(Json.obj("" -> ""))
+	def topIps = withAuth { implicit request =>
+	  val asOf = 0 	//TODO WTSN-15
+	  val topIp = List(Json.obj("ip" -> 0, "asn" -> 0, "name" -> "", "num_hosts" -> 0, "num_urls" -> 0)) //TODO WTSN-15
+    Ok(Json.obj("as_of" -> asOf, "top_ip" -> topIp))
+  }
+	
+	def topAsns = withAuth { implicit request =>
+	  val asOf = 0 	//TODO WTSN-15
+	  val topAs = List(Json.obj("number" -> 0, "name" -> "", "num_ips" -> 0, "num_urls" -> 0)) //TODO WTSN-15
+    Ok(Json.obj("as_of" -> asOf, "top_as" -> topAs))
   }
 	
 	def importList(abbr: String) = withAuth { implicit request =>
