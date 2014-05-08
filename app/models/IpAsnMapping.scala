@@ -1,6 +1,7 @@
 package models
 
 import java.util.Date
+import java.sql.Timestamp
 import anorm._
 import play.api.db._
 import play.api.Play.current
@@ -23,11 +24,11 @@ case class IpAsnMapping(id: Int, ip: Long, asn: Int, mappedAt: Long) {
 
 object IpAsnMapping {
   
-  def create(ip: Long, asn: Int): Boolean = DB.withConnection { implicit conn =>
+  def create(ip: Long, asn: Int, mappedAt: Long): Boolean = DB.withConnection { implicit conn =>
     return try {
-      SQL("""INSERT INTO ip_asn_mappings (ip, asn) SELECT {ip}, {asn} WHERE NOT EXISTS (SELECT 1 FROM 
+      SQL("""INSERT INTO ip_asn_mappings (ip, asn, mapped_at) SELECT {ip}, {asn}, {mappedAt} WHERE NOT EXISTS (SELECT 1 FROM 
         (SELECT asn FROM ip_asn_mappings WHERE ip={ip} ORDER BY mapped_at DESC LIMIT 1) AS asn WHERE asn={asn} LIMIT 1)""")
-        .on("ip" -> ip, "asn" -> asn).executeUpdate() > 0
+        .on("ip" -> ip, "asn" -> asn, "mappedAt" -> new Timestamp(mappedAt)).executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       false

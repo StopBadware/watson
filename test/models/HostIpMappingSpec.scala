@@ -11,6 +11,7 @@ import controllers.Ip
 class HostIpMappingSpec extends Specification {
   
   private val privateIpRangeBegin = Ip.toLong("10.0.0.0").get
+  private val asOf = System.currentTimeMillis / 1000
   
   private def testHost: String = "com." + System.nanoTime.toHexString + ".www" 
   
@@ -24,7 +25,7 @@ class HostIpMappingSpec extends Specification {
     "create a HostIpMapping" in {
       running(FakeApplication()) {
         val host = testHost
-        HostIpMapping.create(host, nextIp(host)) must beTrue
+        HostIpMapping.create(host, nextIp(host), asOf) must beTrue
       }
     }
     
@@ -32,7 +33,7 @@ class HostIpMappingSpec extends Specification {
       running(FakeApplication()) {
         val host = testHost
         val ip = nextIp(host)
-        HostIpMapping.create(host, ip)
+        HostIpMapping.create(host, ip, asOf)
         val found = HostIpMapping.findByHost(host)
         found.nonEmpty must beTrue
         found.map(_.ip).contains(ip) must beTrue
@@ -44,7 +45,7 @@ class HostIpMappingSpec extends Specification {
     "find a HostIpMapping" in {
       running(FakeApplication()) {
         val host = testHost
-        HostIpMapping.create(host, nextIp(host))
+        HostIpMapping.create(host, nextIp(host), asOf)
         HostIpMapping.find(HostIpMapping.findByHost(host).head.id) must beSome
       }
     }
@@ -53,7 +54,7 @@ class HostIpMappingSpec extends Specification {
       running(FakeApplication()) {
         val host = testHost
         val ip = nextIp(host)
-        HostIpMapping.create(host, ip)
+        HostIpMapping.create(host, ip, asOf)
         HostIpMapping.findByIp(ip).map(_.reversedHost).contains(host) must beTrue
       }
     }
@@ -62,7 +63,7 @@ class HostIpMappingSpec extends Specification {
       running(FakeApplication()) {
         val host = testHost
         val ip = nextIp(host)
-        HostIpMapping.create(host, ip)
+        HostIpMapping.create(host, ip, asOf)
         HostIpMapping.findByHost(host).map(_.ip).contains(ip) must beTrue
       }
     }

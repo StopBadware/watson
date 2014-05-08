@@ -1,6 +1,7 @@
 package models
 
 import java.util.Date
+import java.sql.Timestamp
 import anorm._
 import play.api.db._
 import play.api.Play.current
@@ -23,11 +24,13 @@ case class HostIpMapping(id: Int, reversedHost: String, ip: Long, resolvedAt: Lo
 
 object HostIpMapping {
   
-  def create(reversedHost: String, ip: Long): Boolean = DB.withConnection { implicit conn =>
+  def create(reversedHost: String, ip: Long, resolvedAt: Long): Boolean = DB.withConnection { implicit conn =>
     return try {
-      SQL("""INSERT INTO host_ip_mappings (reversed_host, ip) SELECT {reversedHost}, {ip} WHERE NOT EXISTS (SELECT 1 FROM 
-        (SELECT ip FROM host_ip_mappings WHERE reversed_host={reversedHost} ORDER BY resolved_at DESC LIMIT 1) AS ip WHERE ip={ip} LIMIT 1)""")
-        .on("reversedHost" -> reversedHost, "ip" -> ip).executeUpdate() > 0
+      SQL("""INSERT INTO host_ip_mappings (reversed_host, ip, resolved_at) SELECT {reversedHost}, {ip}, {resolvedAt} 
+        WHERE NOT EXISTS (SELECT 1 FROM (SELECT ip FROM host_ip_mappings WHERE reversed_host={reversedHost} 
+        ORDER BY resolved_at DESC LIMIT 1) AS ip WHERE ip={ip} LIMIT 1)""")
+        .on("reversedHost" -> reversedHost, "ip" -> ip, "resolvedAt" -> new Timestamp(resolvedAt))
+        .executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       false

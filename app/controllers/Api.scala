@@ -13,7 +13,7 @@ import models._
 import models.enums.{ReviewStatus, Source}
 import models.cr._
 
-object Api extends Controller with ApiSecured {
+object Api extends Controller with ApiSecured with JsonMapper {
   
   def counts = withAuth { implicit request =>
     val byStatus = Review.uniqueUrisByStatus
@@ -37,42 +37,22 @@ object Api extends Controller with ApiSecured {
   }
 	
 	def addResolved = withAuth { implicit request =>
-	  val body = Try(request.body.asJson.get)
+	  Logger.info("Received resolver results")
+	  val body = Try(request.body.asJson.mkString)
 	  if (body.isSuccess) {
-	    val json = body.get
-	    val hostsIps = json.\("host_to_ip").asOpt[Map[String, Long]].getOrElse(Map())
-	    val ipsAsns = json.\("ip_to_as").asOpt[Map[String, Asn]].getOrElse(Map()).map(t => (t._1.toLong, t._2))
-	    val asns = ipsAsns.map(_._2).toSet
-	    val parseSuccess = (hostsIps.size == json.\("host_to_ip_size").as[Int]) && (ipsAsns.size == json.\("ip_to_as_size").as[Int]) 
-	    if (parseSuccess) {
-	      val asWrites = ipsAsns.map(_._2).toSet.foldLeft(0) { (writes, asn) =>
-	      	if (AutonomousSystem.createOrUpdate(asn.asn, asn.name, asn.country)) writes + 1 else writes
-	      }
-	      Logger.info("Added or updated " + asWrites + " Autonomous Systems")
-	      
-	      val ipAsWrites = ipsAsns.foldLeft(0) { (writes, ipAs) =>
-	        if (IpAsnMapping.create(ipAs._1, ipAs._2.asn)) writes + 1 else writes
-	      }
-	      Logger.info("Wrote " + ipAsWrites + " IP=>AS mappings")
-	      
-	      val hostIpWrites = hostsIps.foldLeft(0) { (writes, hostIp) =>
-	        if (HostIpMapping.create(Host.reverse(hostIp._1), hostIp._2)) writes + 1 else writes
-	      }
-	      Logger.info("Wrote " + hostIpWrites + " host=>IP mappings")
+	    Logger.info("Buffering resolver results")
+	    val buffered = Redis.addResolverResults(body.get)
+	    if (buffered) {
+	      Logger.info("Resolver results added to buffer")
 	      Ok
 	    } else {
+	      Logger.error("Adding resolver results to buffer failed")
 	      InternalServerError
 	    }
 	  } else {
 	    UnsupportedMediaType
 	  }
 	}
-	
-	private implicit val asnReads: Reads[Asn] = (
-	  (JsPath \ "asn").read[Int] and
-	  (JsPath \ "name").read[String] and
-	  (JsPath \ "country").read[String]
-	)(Asn.apply _)
 	
 	def topIps = withAuth { implicit request =>
 	  val asOf = 0 	//TODO WTSN-15

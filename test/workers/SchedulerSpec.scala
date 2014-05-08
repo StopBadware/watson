@@ -5,12 +5,12 @@ import org.junit.runner._
 import org.specs2.runner._
 import play.api.test._
 import play.api.test.Helpers._
-import controllers.{Blacklist, BlacklistSpec, Hash, Redis}
+import controllers.{Blacklist, BlacklistSpec, Hash, Redis, JsonMapper}
 import models.{BlacklistEvent, Uri}
 import models.enums.Source
 
 @RunWith(classOf[JUnitRunner])
-class SchedulerSpec extends Specification {
+class SchedulerSpec extends Specification with JsonMapper {
   
   private val source = Source.GOOG
   
@@ -69,10 +69,17 @@ class SchedulerSpec extends Specification {
       }      
     }
     
-    "send currently blacklisted hosts to IP/AS resolver" in {
+    "submit resolver request" in {
       running(FakeApplication()) {
-        val resolverHandler = IpAsResolver()
-        resolverHandler.addResolveRequestToQueue() must beTrue
+        AddResolverRequest().addResolveRequestToQueue() must beTrue
+      }      
+    }
+    
+    "import resolver results" in {
+      running(FakeApplication()) {
+        val now = System.currentTimeMillis / 1000
+        val testResults = "{\"time\":"+now+",\"host_to_ip_size\":2,\"ip_to_as_size\":1,\"host_to_ip\":{\"www.example"+now+".com\":0,\"example.com\":"+now+"},\"ip_to_as\":{\""+now+"\":{\"asn\":18,\"country\":\"US\",\"name\":\"Horde Networks "+now+" Inc.\"}}}"
+        ImportResolverResults().importResolverResults(mapJson(testResults).get) must beTrue
       }      
     }
     

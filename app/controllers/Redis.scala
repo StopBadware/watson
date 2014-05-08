@@ -10,6 +10,7 @@ import models.enums.Source
 object Redis extends Controller {
   
   private val googleRescanQueue = "GOOG_RESCAN_QUEUE"
+  private val resolverResults = "RESOLVER_RESULTS"
   private val redisUrl = new URI(sys.env("REDIS_URL"))
   private lazy val redisPw = redisUrl.getUserInfo match {
     case s: String => Some(if (s.contains(":")) s.substring(s.indexOf(":")+1) else s)
@@ -55,5 +56,11 @@ object Redis extends Controller {
       }
     }
   }
+  
+  def addResolverResults(json: String): Boolean = set(resolverResults, json)
+  
+  def getResolverResults: Option[String] = get(resolverResults)
+  
+  def dropResolverResults(): Boolean = drop(resolverResults)
 
 }

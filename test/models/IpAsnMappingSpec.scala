@@ -13,12 +13,13 @@ class IpAsnMappingSpec extends Specification {
   private val privateAsRangeBegin = 64512
   private val privateIpRangeBegin = Ip.toLong("10.0.0.0").get
   private val privateIpRangeEnd = Ip.toLong("10.255.255.255").get
+  private val asOf = System.currentTimeMillis / 1000
   
   private def testIp: Long = {
     (privateIpRangeBegin to privateIpRangeEnd).foreach { ip =>
     	if (IpAsnMapping.findByIp(ip).isEmpty) {
     	  AutonomousSystem.createOrUpdate(privateAsRangeBegin, System.currentTimeMillis.toHexString, "US")
-    	  IpAsnMapping.create(ip, privateAsRangeBegin)
+    	  IpAsnMapping.create(ip, privateAsRangeBegin, asOf)
     	  return ip
     	}
     }
@@ -37,7 +38,7 @@ class IpAsnMappingSpec extends Specification {
     "create an IpAsnMapping" in {
       running(FakeApplication()) {
         val ip = testIp
-        IpAsnMapping.create(ip, nextAsn(ip)) must beTrue
+        IpAsnMapping.create(ip, nextAsn(ip), asOf) must beTrue
       }
     }
     
@@ -45,7 +46,7 @@ class IpAsnMappingSpec extends Specification {
       running(FakeApplication()) {
         val ip = testIp
         val asn = nextAsn(ip)
-        IpAsnMapping.create(ip, asn)
+        IpAsnMapping.create(ip, asn, asOf)
         val found = IpAsnMapping.findByIp(ip) 
         found.map(_.asn).contains(asn) must beTrue
         found.filter(_.asn == asn).map(_.delete() must beTrue)
@@ -57,7 +58,7 @@ class IpAsnMappingSpec extends Specification {
       running(FakeApplication()) {
         val ip = testIp
         val asn = nextAsn(ip)
-        IpAsnMapping.create(ip, asn)
+        IpAsnMapping.create(ip, asn, asOf)
         IpAsnMapping.find(IpAsnMapping.findByIp(ip).head.id) must beSome
       }
     }
@@ -66,7 +67,7 @@ class IpAsnMappingSpec extends Specification {
       running(FakeApplication()) {
         val ip = testIp
         val asn = nextAsn(ip)
-        IpAsnMapping.create(ip, asn)
+        IpAsnMapping.create(ip, asn, asOf)
         IpAsnMapping.findByIp(ip).map(_.asn).contains(asn) must beTrue
       }
     }
@@ -75,7 +76,7 @@ class IpAsnMappingSpec extends Specification {
       running(FakeApplication()) {
         val ip = testIp
         val asn = nextAsn(ip)
-        IpAsnMapping.create(ip, asn)
+        IpAsnMapping.create(ip, asn, asOf)
         IpAsnMapping.findByAsn(asn).map(_.ip).contains(ip) must beTrue
       }
     }

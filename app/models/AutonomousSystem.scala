@@ -75,5 +75,3 @@ object AutonomousSystem {
   }
   
 }
-
-case class Asn(asn: Int, name: String, country: String)
