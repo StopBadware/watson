@@ -38,20 +38,18 @@ object Api extends Controller with ApiSecured with JsonMapper {
 	
 	def addResolved = withAuth { implicit request =>
 	  Logger.info("Received resolver results")
-	  val body = Try(request.body.asJson.mkString)
-	  if (body.isSuccess) {
-	    Logger.info("Buffering resolver results")
-	    val buffered = Redis.addResolverResults(body.get)
-	    if (buffered) {
-	      Logger.info("Resolver results added to buffer")
-	      Ok
-	    } else {
-	      Logger.error("Adding resolver results to buffer failed")
-	      InternalServerError
-	    }
-	  } else {
-	    UnsupportedMediaType
-	  }
+	  future(bufferResolverResults(request.body.asJson.mkString))
+	  Ok
+	}
+	
+	private def bufferResolverResults(results: String) = {
+	  Logger.info("Buffering resolver results...")
+    val buffered = Redis.addResolverResults(results)
+    if (buffered) {
+      Logger.info("Resolver results added to buffer")
+    } else {
+      Logger.error("Adding resolver results to buffer failed")
+    }
 	}
 	
 	def topIps = withAuth { implicit request =>
