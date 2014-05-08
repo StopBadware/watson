@@ -54,22 +54,65 @@ object HostIpMapping {
   
   def top(max: Int): List[TopIp] = DB.withConnection { implicit conn =>
     return try {
-      val ipsHosts = SQL("""SELECT ip, COUNT(DISTINCT reversed_host) AS cnt FROM host_ip_mappings WHERE 
-        resolved_at=(SELECT resolved_at FROM host_ip_mappings ORDER BY resolved_at DESC LIMIT 1) 
-        GROUP BY ip LIMIT {limit}""").on("limit" -> max)()
-    		.map(row => (row[Long]("ip"), row[Long]("cnt").toInt)).toMap
-      println(ipsHosts)	//DELME WTSN-15
-      
+      val resolvedAt = lastResolvedAt
       val ipsUris = SQL("""SELECT ip, COUNT(*) AS cnt FROM host_ip_mappings JOIN uris ON host_ip_mappings.reversed_host=uris.reversed_host 
-        WHERE resolved_at=(SELECT resolved_at FROM host_ip_mappings ORDER BY resolved_at DESC LIMIT 1) GROUP BY ip LIMIT {limit}""")
-        .on("limit" -> max)().map(row => (row[Long]("ip"), row[Long]("cnt").toInt)).toMap
+        WHERE resolved_at>={resolvedAt} AND ip>0 GROUP BY ip ORDER BY cnt DESC LIMIT {limit}""")
+        .on("resolvedAt" -> new Timestamp(resolvedAt * 1000), "limit" -> max)()
+        .map(row => (row[Long]("ip"), row[Long]("cnt").toInt)).toMap
       println(ipsUris)	//DELME WTSN-15
       
+      val ipsHosts = ipHostCounts(ipsUris.keySet, resolvedAt)
+      println(ipsHosts)	//DELME WTSN-15
+      
+      val ipsAsns = ipAsInfo(ipsUris.keySet, resolvedAt)
+      println(ipsAsns)	//DELME WTSN-15
+      
+      //TODO WTSN-15
       //TopIp(row[Long]("ip"), row[Int]("num"), row[String]("name"), row[Int]("hosts"), row[Int]("uris"))
       List()				//DELME WTSN-15
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       List()
+    }
+  }
+  
+  private def ipHostCounts(ips: Set[Long], resolvedAt: Long): Map[Long, Int] = DB.withTransaction { implicit conn =>
+    return try {
+      val sql = "SELECT ip, COUNT(DISTINCT reversed_host) AS cnt FROM host_ip_mappings WHERE resolved_at>=? "+
+        "AND ip IN (?" + (",?"*(ips.size-1)) +") GROUP BY ip"
+      val ps = conn.prepareStatement(sql)
+      ps.setTimestamp(1, new Timestamp(resolvedAt * 1000))
+      ips.foldLeft(2) { (i, ip) =>
+        ps.setLong(i, ip)
+        i + 1
+      }
+      val rs = ps.executeQuery
+      Iterator.continually((rs, rs.next())).takeWhile(_._2).map { case (row, hasNext) =>
+        (row.getLong("ip"), row.getInt("cnt"))
+      }.toMap
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      Map()
+    }
+  }
+  
+  private def ipAsInfo(ips: Set[Long], mappedAt: Long): Map[Long, (Int, String)] = DB.withTransaction { implicit conn =>
+    return try {
+      val sql = "SELECT ip, number, name FROM ip_asn_mappings JOIN autonomous_systems ON asn=autonomous_systems.number " + 
+        "WHERE mapped_at>=? AND ip IN (?" + (",?"*(ips.size-1)) + ")"
+      val ps = conn.prepareStatement(sql)
+      ps.setTimestamp(1, new Timestamp(mappedAt * 1000))
+      ips.foldLeft(2) { (i, ip) =>
+        ps.setLong(i, ip)
+        i + 1
+      }
+      val rs = ps.executeQuery
+      Iterator.continually((rs, rs.next())).takeWhile(_._2).map { case (row, hasNext) =>
+        (row.getLong("ip"), (row.getInt("number"), row.getString("name")))
+      }.toMap
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      Map()
     }
   }
   
