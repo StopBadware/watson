@@ -28,7 +28,7 @@ object IpAsnMapping {
     return try {
       SQL("""INSERT INTO ip_asn_mappings (ip, asn, mapped_at) SELECT {ip}, {asn}, {mappedAt} WHERE NOT EXISTS (SELECT 1 FROM 
         (SELECT asn FROM ip_asn_mappings WHERE ip={ip} ORDER BY mapped_at DESC LIMIT 1) AS asn WHERE asn={asn} LIMIT 1)""")
-        .on("ip" -> ip, "asn" -> asn, "mappedAt" -> new Timestamp(mappedAt)).executeUpdate() > 0
+        .on("ip" -> ip, "asn" -> asn, "mappedAt" -> new Timestamp(mappedAt * 1000)).executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       false
