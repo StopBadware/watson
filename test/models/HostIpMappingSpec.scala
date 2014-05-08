@@ -68,6 +68,25 @@ class HostIpMappingSpec extends Specification {
       }
     }
     
+    "get last resolved at time" in {
+      running(FakeApplication()) {
+        val host = testHost
+        HostIpMapping.create(host, nextIp(host), asOf)
+        HostIpMapping.lastResolvedAt must equalTo(asOf)
+        val newTime = Math.max(asOf + 1, System.currentTimeMillis / 1000)
+        HostIpMapping.create(host, nextIp(host), newTime)
+        HostIpMapping.lastResolvedAt must equalTo(newTime)
+      }
+    }
+    
+    "get IPs with most URIs blacklisted" in {
+      running(FakeApplication()) {
+        val host = testHost
+        HostIpMapping.create(host, nextIp(host), asOf)
+        HostIpMapping.top(5).nonEmpty must beTrue
+      }
+    }
+    
   }  
 
 }

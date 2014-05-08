@@ -55,9 +55,10 @@ object Api extends Controller with ApiSecured with JsonMapper {
 	}
 	
 	def topIps = withAuth { implicit request =>
-	  val asOf = 0 	//TODO WTSN-15
-	  val topIp = List(Json.obj("ip" -> 0, "asn" -> 0, "name" -> "", "num_hosts" -> 0, "num_urls" -> 0)) //TODO WTSN-15
-    Ok(Json.obj("as_of" -> asOf, "top_ip" -> topIp))
+    val topIps = HostIpMapping.top(50).map { ip =>
+	    Json.obj("ip" -> ip.ip, "asn" -> ip.asNum, "name" -> ip.asName, "num_hosts" -> ip.numHosts, "num_urls" -> ip.numUris)
+	  }
+	  Ok(Json.obj("as_of" -> HostIpMapping.lastResolvedAt, "top_ip" -> topIps))
   }
 	
 	def topAsns = withAuth { implicit request =>
