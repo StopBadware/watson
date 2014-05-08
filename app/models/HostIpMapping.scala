@@ -60,6 +60,11 @@ object HostIpMapping {
     		.map(row => (row[Long]("ip"), row[Long]("cnt").toInt)).toMap
       println(ipsHosts)	//DELME WTSN-15
       
+      val ipsUris = SQL("""SELECT ip, COUNT(*) AS cnt FROM host_ip_mappings JOIN uris ON host_ip_mappings.reversed_host=uris.reversed_host 
+        WHERE resolved_at=(SELECT resolved_at FROM host_ip_mappings ORDER BY resolved_at DESC LIMIT 1) GROUP BY ip LIMIT {limit}""")
+        .on("limit" -> max)().map(row => (row[Long]("ip"), row[Long]("cnt").toInt)).toMap
+      println(ipsUris)	//DELME WTSN-15
+      
       //TopIp(row[Long]("ip"), row[Int]("num"), row[String]("name"), row[Int]("hosts"), row[Int]("uris"))
       List()				//DELME WTSN-15
     } catch {
