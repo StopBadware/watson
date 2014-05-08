@@ -33,8 +33,7 @@ object Api extends Controller with ApiSecured {
   }
 	
 	def blacklistedHosts = withAuth { implicit request =>
-	  val hosts = Uri.find(BlacklistEvent.blacklistedUriIds.toList).map(_.host).toSet
-    Ok(Json.obj("hosts" -> hosts))
+    Ok(Json.obj("hosts" -> BlacklistEvent.blacklistedHosts))
   }
 	
 	def addResolved = withAuth { implicit request =>
@@ -74,6 +73,11 @@ object Api extends Controller with ApiSecured {
 	  (JsPath \ "name").read[String] and
 	  (JsPath \ "country").read[String]
 	)(Asn.apply _)
+	
+	def topIpAs = withAuth { implicit request =>
+	  //TODO WTSN-15
+    Ok(Json.obj("" -> ""))
+  }
 	
 	def importList(abbr: String) = withAuth { implicit request =>
 	  Logger.info("Received import for " + abbr)

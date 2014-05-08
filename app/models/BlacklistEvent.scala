@@ -9,7 +9,7 @@ import play.api.db._
 import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
-import controllers.PostgreSql
+import controllers.{Host, PostgreSql}
 import models.enums.Source
 
 case class BlacklistEvent(
@@ -73,6 +73,11 @@ object BlacklistEvent {
   
   def blacklistedUriIds: Set[Int] = DB.withConnection { implicit conn =>
     return Try(SQL("SELECT uri_id FROM blacklist_events WHERE blacklisted=true")().map(_[Int]("uri_id")).toSet).getOrElse(Set())
+  }
+  
+  def blacklistedHosts: List[String] = DB.withConnection { implicit conn =>
+    return Try(SQL("""SELECT reversed_host FROM blacklist_events JOIN uris ON blacklist_events.uri_id=uris.id 
+      WHERE blacklisted=true""")().map(_[String]("reversed_host")).toList).getOrElse(List()).map(Host.reverse)
   } 
   
   def find(id: Int): Option[BlacklistEvent] = DB.withConnection { implicit conn =>

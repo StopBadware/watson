@@ -265,6 +265,19 @@ class BlacklistEventSpec extends Specification {
       }
     }
     
+    "find currently blacklisted hosts" in {
+      running(FakeApplication()) {
+        val time = System.currentTimeMillis / 1000
+        val blacklist = (1 to numInBulk).foldLeft(List.empty[ReportedEvent]) { (list, _) =>
+          list :+ ReportedEvent(validUri.id, source, time, None)
+        }
+        blacklist.foreach(BlacklistEvent.createOrUpdate(_))
+        val hosts = BlacklistEvent.blacklistedHosts
+        blacklist.nonEmpty must beTrue
+        blacklist.map(event => hosts.contains(Uri.find(event.uriId).get.host) must beTrue)
+      }
+    }
+    
     "finds the most recent time for a source" in {
       running(FakeApplication()) {
         val event = blacklistedEvent
