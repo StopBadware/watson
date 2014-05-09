@@ -15,7 +15,8 @@ CREATE TABLE ip_asn_mappings (
   id SERIAL PRIMARY KEY,
   ip BIGINT NOT NULL,
   asn INTEGER NOT NULL REFERENCES autonomous_systems (number) ON DELETE RESTRICT,
-  mapped_at TIMESTAMP NOT NULL DEFAULT NOW()
+  first_mapped_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  last_mapped_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX ON ip_asn_mappings (ip);
@@ -25,7 +26,8 @@ CREATE TABLE host_ip_mappings (
   id SERIAL PRIMARY KEY,
   reversed_host VARCHAR(256) NOT NULL,
   ip BIGINT NOT NULL,
-  resolved_at TIMESTAMP NOT NULL DEFAULT NOW()
+  first_resolved_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  last_resolved_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX ON host_ip_mappings (reversed_host);

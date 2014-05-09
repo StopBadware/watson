@@ -9,7 +9,7 @@ import play.api.Logger
 import org.postgresql.util.PSQLException
 import scala.util.Try
 
-case class IpAsnMapping(id: Int, ip: Long, asn: Int, mappedAt: Long) {
+case class IpAsnMapping(id: Int, ip: Long, asn: Int, firstMappedAt: Long, lastMappedAt: Long) {
 
   def delete(): Boolean = DB.withConnection { implicit conn =>
     return try {
@@ -24,11 +24,28 @@ case class IpAsnMapping(id: Int, ip: Long, asn: Int, mappedAt: Long) {
 
 object IpAsnMapping {
   
-  def create(ip: Long, asn: Int, mappedAt: Long): Boolean = DB.withConnection { implicit conn =>
+  private def create(ip: Long, asn: Int, mappedAt: Long): Boolean = DB.withConnection { implicit conn =>
     return try {
-      SQL("""INSERT INTO ip_asn_mappings (ip, asn, mapped_at) SELECT {ip}, {asn}, {mappedAt} WHERE NOT EXISTS (SELECT 1 FROM 
-        (SELECT asn FROM ip_asn_mappings WHERE ip={ip} ORDER BY mapped_at DESC LIMIT 1) AS asn WHERE asn={asn} LIMIT 1)""")
+      SQL("""INSERT INTO ip_asn_mappings (ip, asn, first_mapped_at, last_mapped_at) SELECT {ip}, {asn}, {mappedAt}, {mappedAt} 
+        WHERE NOT EXISTS (SELECT 1 FROM (SELECT asn FROM ip_asn_mappings WHERE ip={ip} ORDER BY last_mapped_at DESC LIMIT 1) 
+        AS asn WHERE asn={asn} LIMIT 1)""")
         .on("ip" -> ip, "asn" -> asn, "mappedAt" -> new Timestamp(mappedAt * 1000)).executeUpdate() > 0
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      false
+    }
+  }
+  
+  def createOrUpdate(ip: Long, asn: Int, mappedAt: Long): Boolean = DB.withConnection { implicit conn =>
+    return try {
+      val found = Try(mapFromRow(SQL("SELECT * FROM ip_asn_mappings WHERE ip={ip} ORDER BY last_mapped_at DESC LIMIT 1")
+        .on("ip" -> ip)().head).get).toOption
+      if (found.isDefined && found.get.asn==asn) {
+        SQL("UPDATE ip_asn_mappings SET last_mapped_at={mappedAt} WHERE id={id}")
+        	.on("id" -> found.get.id, "mappedAt" -> new Timestamp(mappedAt * 1000)).executeUpdate() > 0
+      } else {
+        create(ip, asn, mappedAt)
+      }
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       false
@@ -41,12 +58,12 @@ object IpAsnMapping {
   }
   
   def findByIp(ip: Long): List[IpAsnMapping] = DB.withConnection { implicit conn =>
-    return Try(SQL("SELECT * FROM ip_asn_mappings WHERE ip={ip} ORDER BY mapped_at DESC")
+    return Try(SQL("SELECT * FROM ip_asn_mappings WHERE ip={ip} ORDER BY last_mapped_at DESC")
       .on("ip" -> ip)().map(mapFromRow).flatten.toList).getOrElse(List())
   }
   
   def findByAsn(asn: Int): List[IpAsnMapping] = DB.withConnection { implicit conn =>
-    return Try(SQL("SELECT * FROM ip_asn_mappings WHERE asn={asn} ORDER BY mapped_at DESC")
+    return Try(SQL("SELECT * FROM ip_asn_mappings WHERE asn={asn} ORDER BY last_mapped_at DESC")
       .on("asn" -> asn)().map(mapFromRow).flatten.toList).getOrElse(List())
   }
   
@@ -56,7 +73,8 @@ object IpAsnMapping {
       	row[Int]("id"), 
 			  row[Long]("ip"),
 			  row[Int]("asn"),
-			  row[Date]("mapped_at").getTime / 1000
+			  row[Date]("first_mapped_at").getTime / 1000,
+			  row[Date]("last_mapped_at").getTime / 1000
       )
     }.toOption
   }
