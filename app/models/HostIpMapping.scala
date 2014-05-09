@@ -59,17 +59,18 @@ object HostIpMapping {
         WHERE resolved_at>={resolvedAt} AND ip>0 GROUP BY ip ORDER BY cnt DESC LIMIT {limit}""")
         .on("resolvedAt" -> new Timestamp(resolvedAt * 1000), "limit" -> max)()
         .map(row => (row[Long]("ip"), row[Long]("cnt").toInt)).toMap
-      println(ipsUris)	//DELME WTSN-15
-      
       val ipsHosts = ipHostCounts(ipsUris.keySet, resolvedAt)
-      println(ipsHosts)	//DELME WTSN-15
-      
       val ipsAsns = ipAsInfo(ipsUris.keySet, resolvedAt)
-      println(ipsAsns)	//DELME WTSN-15
       
-      //TODO WTSN-15
-      //TopIp(row[Long]("ip"), row[Int]("num"), row[String]("name"), row[Int]("hosts"), row[Int]("uris"))
-      List()				//DELME WTSN-15
+      ipsUris.map { case (ip, uris) =>
+        Try(TopIp(
+      		ip,
+      		ipsAsns(ip)._1,
+      		ipsAsns(ip)._2,
+      		ipsHosts(ip),
+      		uris
+        )).toOption
+      }.flatten.toList
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       List()
@@ -118,7 +119,7 @@ object HostIpMapping {
   
   def lastResolvedAt: Long = DB.withConnection { implicit conn =>
     return Try(SQL("SELECT resolved_at FROM host_ip_mappings ORDER BY resolved_at DESC LIMIT 1")()
-      .map(_[Date]("").getTime / 1000).head).getOrElse(0)
+      .map(_[Date]("resolved_at").getTime / 1000).head).getOrElse(0)
   }
   
   private def mapFromRow(row: SqlRow): Option[HostIpMapping] = {
