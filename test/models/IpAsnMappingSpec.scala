@@ -18,7 +18,7 @@ class IpAsnMappingSpec extends Specification {
   private def testIp: Long = {
     (privateIpRangeBegin to privateIpRangeEnd).foreach { ip =>
     	if (IpAsnMapping.findByIp(ip).isEmpty) {
-    	  AutonomousSystem.createOrUpdate(privateAsRangeBegin, System.currentTimeMillis.toHexString, "US")
+    	  AutonomousSystem.createOrUpdate(List(AsInfo(privateAsRangeBegin, System.currentTimeMillis.toHexString, "US")))
     	  IpAsnMapping.createOrUpdate(ip, privateAsRangeBegin, asOf)
     	  return ip
     	}
@@ -29,7 +29,7 @@ class IpAsnMappingSpec extends Specification {
   private def nextAsn(ip: Long): Int = {
     val asns = IpAsnMapping.findByIp(ip).map(_.asn)
   	val newAsn = if (asns.isEmpty) privateAsRangeBegin else asns.max + 1
-    AutonomousSystem.createOrUpdate(newAsn, System.currentTimeMillis.toHexString, "US")
+    AutonomousSystem.createOrUpdate(List(AsInfo(newAsn, System.currentTimeMillis.toHexString, "US")))
     return newAsn
   }
   

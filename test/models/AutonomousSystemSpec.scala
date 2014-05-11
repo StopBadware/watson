@@ -12,7 +12,7 @@ class AutonomousSystemSpec extends Specification {
   private val privateAsRangeBegin = 64512
   private val testCountry = "US"
     
-  private def testName: String = System.currentTimeMillis.toHexString
+  private def testName: String = System.nanoTime.toHexString
   
   private def availableAsn: Int = {
     (privateAsRangeBegin to Integer.MAX_VALUE).foreach { asn =>
@@ -25,7 +25,7 @@ class AutonomousSystemSpec extends Specification {
   
   private def testAs: AutonomousSystem = {
     val asn = availableAsn
-    AutonomousSystem.createOrUpdate(asn, testName, testCountry)
+    AutonomousSystem.createOrUpdate(List(AsInfo(asn, testName, testCountry)))
     AutonomousSystem.find(asn).get
   }
   
@@ -33,7 +33,8 @@ class AutonomousSystemSpec extends Specification {
     
     "create an AutonomousSystem" in {
       running(FakeApplication()) {
-        AutonomousSystem.createOrUpdate(availableAsn, testName, testCountry) must beTrue
+        val infos = List(AsInfo(availableAsn, testName, testCountry), AsInfo(availableAsn+1, testName, testCountry))
+        AutonomousSystem.createOrUpdate(infos) must equalTo(infos.size)
       }
     }
     

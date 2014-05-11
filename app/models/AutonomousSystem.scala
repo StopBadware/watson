@@ -1,12 +1,14 @@
 package models
 
 import java.util.Date
+import java.sql.Timestamp
 import anorm._
 import play.api.db._
 import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
 import scala.util.Try
+import controllers.PostgreSql
 
 case class AutonomousSystem(number: Int, name: String, country: String, updatedAt: Long) {
   
@@ -33,28 +35,55 @@ case class AutonomousSystem(number: Int, name: String, country: String, updatedA
 
 object AutonomousSystem {
   
-  private def create(number: Int, name: String, country: String): Boolean = DB.withConnection { implicit conn =>
+  def createOrUpdate(infos: List[AsInfo]): Int = update(infos) + create(infos)
+  
+  private def create(infos: List[AsInfo]): Int = DB.withTransaction { implicit conn =>
     return try {
-      SQL("""INSERT INTO autonomous_systems (number, name, country) SELECT {number}, {name}, {country}  
-    		WHERE NOT EXISTS (SELECT 1 FROM autonomous_systems WHERE number={number})""")
-        .on("number" -> number, "name" -> name, "country" -> country.toUpperCase).executeUpdate() > 0
+      val sql = """INSERT INTO autonomous_systems (number, name, country) SELECT ?, ?, ? WHERE NOT EXISTS 
+        (SELECT 1 FROM autonomous_systems WHERE number=?)"""
+      val ps = conn.prepareStatement(sql)
+      infos.grouped(PostgreSql.batchSize).foldLeft(0) { (total, group) =>
+        group.foreach { as =>
+          ps.setInt(1, as.number)
+          ps.setString(2, as.name)
+          ps.setString(3, as.country)
+          ps.setInt(4, as.number)
+          ps.addBatch()
+        }
+        val batch = ps.executeBatch()
+	  		ps.clearBatch()
+	  		total + batch.foldLeft(0)((cnt, b) => cnt + b)
+      }
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
-      false
+      0
     }
   }
   
-  def createOrUpdate(number: Int, name: String, country: String): Boolean = {
-    val existing = find(number)
-    return if (existing.isDefined) {
-      val as = existing.get
-      if (!as.name.equalsIgnoreCase(name) || !as.country.equalsIgnoreCase(country)) {
-      	existing.get.update(name, country)
-      } else {
-        true
+  private def update(infos: List[AsInfo]): Int = DB.withTransaction { implicit conn =>
+    val now = new Timestamp(System.currentTimeMillis)
+    return try {
+      val sql = """UPDATE autonomous_systems SET name=?, country=?, updated_at=? WHERE number=? AND NOT EXISTS 
+        (SELECT 1 FROM autonomous_systems WHERE number=? AND name=? AND country=?)"""
+      val ps = conn.prepareStatement(sql)
+      infos.grouped(PostgreSql.batchSize).foldLeft(0) { (total, group) =>
+        group.foreach { as =>
+          ps.setString(1, as.name)
+          ps.setString(2, as.country)
+          ps.setTimestamp(3, now)
+          ps.setInt(4, as.number)
+          ps.setInt(5, as.number)
+          ps.setString(6, as.name)
+          ps.setString(7, as.country)
+          ps.addBatch()
+        }
+        val batch = ps.executeBatch()
+	  		ps.clearBatch()
+	  		total + batch.foldLeft(0)((cnt, b) => cnt + b)
       }
-    } else {
-      create(number, name, country)
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      0
     }
   }
   
@@ -74,3 +103,5 @@ object AutonomousSystem {
   }
   
 }
+
+case class AsInfo(number: Int, name: String, country: String)

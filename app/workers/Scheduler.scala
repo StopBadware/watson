@@ -11,7 +11,7 @@ import play.api.libs.concurrent.Execution.Implicits._
 import io.iron.ironmq.{Client, Cloud, Queue}
 import com.fasterxml.jackson.databind.JsonNode
 import controllers.{Blacklist, Host, JsonMapper, Mailer, Redis}
-import models.{AutonomousSystem, HostIpMapping, IpAsnMapping}
+import models._
 import models.enums.Source
 
 object Scheduler {
@@ -110,10 +110,10 @@ case class ImportResolverResults() extends Runnable with JsonMapper {
 	    val asOf = json.get("time").asLong
 	    val ipsAsns = json.get("ip_to_as").fields.toList
 	    
-	    val asWrites = ipsAsns.map(_.getValue).foldLeft(0) { (writes, asInfo) =>
-	      val wrote = AutonomousSystem.createOrUpdate(asInfo.get("asn").asInt, asInfo.get("name").asText, asInfo.get("country").asText)
-	      if (wrote) writes + 1 else writes
+	    val asInfos = ipsAsns.map(_.getValue).map { asInfo =>
+	      AsInfo(asInfo.get("asn").asInt, asInfo.get("name").asText, asInfo.get("country").asText)
 	    }
+	    val asWrites = AutonomousSystem.createOrUpdate(asInfos)
 	    Logger.info("Added or updated " + asWrites + " Autonomous Systems")
 	    
 	    val ipAsWrites = ipsAsns.foldLeft(0) { (writes, ipAsinfo) =>
