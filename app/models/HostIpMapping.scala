@@ -8,6 +8,7 @@ import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
 import scala.util.Try
+import controllers.PostgreSql
 
 case class HostIpMapping(id: Int, reversedHost: String, ip: Long, firstresolvedAt: Long, lastresolvedAt: Long) {
   
@@ -24,35 +25,59 @@ case class HostIpMapping(id: Int, reversedHost: String, ip: Long, firstresolvedA
 
 object HostIpMapping {
   
-  private def create(reversedHost: String, ip: Long, resolvedAt: Long): Boolean = DB.withConnection { implicit conn =>
-    return try {
-      SQL("""INSERT INTO host_ip_mappings (reversed_host, ip, first_resolved_at, last_resolved_at) 
-        SELECT {reversedHost}, {ip}, {resolvedAt}, {resolvedAt} 
-        WHERE NOT EXISTS (SELECT 1 FROM (SELECT ip FROM host_ip_mappings WHERE reversed_host={reversedHost} 
-        ORDER BY last_resolved_at DESC LIMIT 1) AS ip WHERE ip={ip} LIMIT 1)""")
-        .on("reversedHost" -> reversedHost, "ip" -> ip, "resolvedAt" -> new Timestamp(resolvedAt * 1000))
-        .executeUpdate() > 0
-    } catch {
-      case e: PSQLException => Logger.error(e.getMessage)
-      false
-    }
-  }
+  def createOrUpdate(mappings: Map[String, Long], resolvedAt: Long): Int = update(mappings, resolvedAt) + create(mappings, resolvedAt)
   
-  def createOrUpdate(reversedHost: String, ip: Long, resolvedAt: Long): Boolean = DB.withConnection { implicit conn =>
+  private def create(mappings: Map[String, Long], resolvedAt: Long): Int = DB.withTransaction { implicit conn =>
+    val time = new Timestamp(resolvedAt * 1000)
     return try {
-      val found = Try(mapFromRow(SQL("SELECT * FROM host_ip_mappings WHERE reversed_host={reversedHost} ORDER BY last_resolved_at DESC LIMIT 1")
-        .on("reversedHost" -> reversedHost)().head).get).toOption
-      if (found.isDefined && found.get.ip==ip) {
-        SQL("UPDATE host_ip_mappings SET last_resolved_at={resolvedAt} WHERE id={id}")
-        	.on("id" -> found.get.id, "resolvedAt" -> new Timestamp(resolvedAt * 1000)).executeUpdate() > 0
-      } else {
-        create(reversedHost, ip, resolvedAt)
+      val sql = """INSERT INTO host_ip_mappings (reversed_host, ip, first_resolved_at, last_resolved_at) SELECT ?, ?, ?, ? 
+        WHERE NOT EXISTS (SELECT 1 FROM (SELECT ip FROM host_ip_mappings WHERE reversed_host=? ORDER BY last_resolved_at DESC LIMIT 1) 
+        AS ip WHERE ip=? LIMIT 1)"""
+      val ps = conn.prepareStatement(sql)
+      mappings.grouped(PostgreSql.batchSize).foldLeft(0) { (total, group) =>
+        group.foreach { case (revHost, ip) =>
+          ps.setString(1, revHost)
+          ps.setLong(2, ip)
+          ps.setTimestamp(3, time)
+          ps.setTimestamp(4, time)
+          ps.setString(5, revHost)
+          ps.setLong(6, ip)
+          ps.addBatch()
+        }
+        val batch = ps.executeBatch()
+	  		ps.clearBatch()
+	  		total + batch.foldLeft(0)((cnt, b) => cnt + b)
       }
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
-      false
+      0
     }
   }
+  
+  private def update(mappings: Map[String, Long], resolvedAt: Long): Int = DB.withTransaction { implicit conn =>
+    val time = new Timestamp(resolvedAt * 1000)
+    return try {
+      val sql = """UPDATE host_ip_mappings SET last_resolved_at=? WHERE reversed_host=? AND ip=? AND EXISTS (SELECT 1 FROM 
+        (SELECT ip FROM host_ip_mappings WHERE reversed_host=? ORDER BY last_resolved_at DESC LIMIT 1) AS ip WHERE ip=?)"""
+      val ps = conn.prepareStatement(sql)
+      mappings.grouped(PostgreSql.batchSize).foldLeft(0) { (total, group) =>
+        group.foreach { case (revHost, ip) =>
+          ps.setTimestamp(1, time)
+          ps.setString(2, revHost)
+          ps.setLong(3, ip)
+          ps.setString(4, revHost)
+          ps.setLong(5, ip)
+          ps.addBatch()
+        }
+        val batch = ps.executeBatch()
+	  		ps.clearBatch()
+	  		total + batch.foldLeft(0)((cnt, b) => cnt + b)
+      }
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      0
+    }
+  }  
   
   def find(id: Int): Option[HostIpMapping] = DB.withConnection { implicit conn =>
     return Try(mapFromRow(SQL("SELECT * FROM host_ip_mappings WHERE id={id} LIMIT 1")

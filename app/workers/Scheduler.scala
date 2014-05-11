@@ -116,14 +116,14 @@ case class ImportResolverResults() extends Runnable with JsonMapper {
 	    val asWrites = AutonomousSystem.createOrUpdate(asInfos)
 	    Logger.info("Added or updated " + asWrites + " Autonomous Systems")
 	    
-	    val ipAsMappings = ipsAsns.map(ipAsInfo => (ipAsInfo.getKey.toLong, ipAsInfo.getValue.get("asn").asInt)).toMap
+	    val ipAsMappings = ipsAsns.map(ipAs => (ipAs.getKey.toLong, ipAs.getValue.get("asn").asInt)).toMap
 	    val ipAsWrites = IpAsnMapping.createOrUpdate(ipAsMappings, asOf)
 	    Logger.info("Wrote " + ipAsWrites + " IP=>AS mappings")
 	    
-	    val hostIpWrites = json.get("host_to_ip").fields.toList.foldLeft(0) { (writes, hostIpInfo) =>
-	      val wrote = HostIpMapping.createOrUpdate(Host.reverse(hostIpInfo.getKey.toString), hostIpInfo.getValue.asLong, asOf)
-	      if (wrote) writes + 1 else writes
-	    }
+	    val hostIpMappings = json.get("host_to_ip").fields.map { hostIp =>
+	      (Host.reverse(hostIp.getKey.toString), hostIp.getValue.asLong)
+	    }.toMap
+	    val hostIpWrites = HostIpMapping.createOrUpdate(hostIpMappings, asOf)
 	    Logger.info("Wrote " + hostIpWrites + " host=>IP mappings")
 	    
 	    return (asWrites + ipAsWrites + hostIpWrites) > 0

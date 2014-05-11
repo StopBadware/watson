@@ -26,7 +26,8 @@ class HostIpMappingSpec extends Specification {
     "create a HostIpMapping" in {
       running(FakeApplication()) {
         val host = testReversedHost
-        HostIpMapping.createOrUpdate(host, nextIp(host), asOf) must beTrue
+        val mappings = Map(host -> nextIp(host))
+        HostIpMapping.createOrUpdate(mappings, asOf) must equalTo(mappings.size)
       }
     }
     
@@ -35,11 +36,11 @@ class HostIpMappingSpec extends Specification {
         val host = testReversedHost
         val ip = nextIp(host)
         val initialTime = asOf - 1000
-        HostIpMapping.createOrUpdate(host, ip, initialTime) must beTrue
+        HostIpMapping.createOrUpdate(Map(host -> ip), initialTime) must equalTo(1)
         val initial = HostIpMapping.findByHost(host).head
         initial.firstresolvedAt must equalTo(initialTime)
         initial.lastresolvedAt must equalTo(initialTime)
-        HostIpMapping.createOrUpdate(host, ip, asOf) must beTrue
+        HostIpMapping.createOrUpdate(Map(host -> ip), asOf) must equalTo(1)
         val updated = HostIpMapping.findByHost(host).head
         updated.firstresolvedAt must equalTo(initialTime)
         updated.lastresolvedAt must equalTo(asOf)
@@ -50,7 +51,7 @@ class HostIpMappingSpec extends Specification {
       running(FakeApplication()) {
         val host = testReversedHost
         val ip = nextIp(host)
-        HostIpMapping.createOrUpdate(host, ip, asOf)
+        HostIpMapping.createOrUpdate(Map(host -> ip), asOf)
         val found = HostIpMapping.findByHost(host)
         found.nonEmpty must beTrue
         found.map(_.ip).contains(ip) must beTrue
@@ -62,7 +63,7 @@ class HostIpMappingSpec extends Specification {
     "find a HostIpMapping" in {
       running(FakeApplication()) {
         val host = testReversedHost
-        HostIpMapping.createOrUpdate(host, nextIp(host), asOf)
+        HostIpMapping.createOrUpdate(Map(host -> nextIp(host)), asOf)
         HostIpMapping.find(HostIpMapping.findByHost(host).head.id) must beSome
       }
     }
@@ -71,7 +72,7 @@ class HostIpMappingSpec extends Specification {
       running(FakeApplication()) {
         val host = testReversedHost
         val ip = nextIp(host)
-        HostIpMapping.createOrUpdate(host, ip, asOf)
+        HostIpMapping.createOrUpdate(Map(host -> ip), asOf)
         HostIpMapping.findByIp(ip).map(_.reversedHost).contains(host) must beTrue
       }
     }
@@ -80,7 +81,7 @@ class HostIpMappingSpec extends Specification {
       running(FakeApplication()) {
         val host = testReversedHost
         val ip = nextIp(host)
-        HostIpMapping.createOrUpdate(host, ip, asOf)
+        HostIpMapping.createOrUpdate(Map(host -> ip), asOf)
         HostIpMapping.findByHost(host).map(_.ip).contains(ip) must beTrue
       }
     }
@@ -88,7 +89,7 @@ class HostIpMappingSpec extends Specification {
     "get last resolved at time" in {
       running(FakeApplication()) {
         val host = testReversedHost
-        HostIpMapping.createOrUpdate(host, nextIp(host), asOf)
+        HostIpMapping.createOrUpdate(Map(host -> nextIp(host)), asOf)
         HostIpMapping.lastResolvedAt must be_>=(asOf)
       }
     }
@@ -98,7 +99,7 @@ class HostIpMappingSpec extends Specification {
         val host = testReversedHost
         val ip = nextIp(host)
         Uri.create(Host.reverse(host))
-        HostIpMapping.createOrUpdate(host, ip, asOf)
+        HostIpMapping.createOrUpdate(Map(host -> ip), asOf)
         IpAsnMapping.createOrUpdate(Map(ip -> privateAsRangeBegin), asOf)
         HostIpMapping.top(5).nonEmpty must beTrue
       }
