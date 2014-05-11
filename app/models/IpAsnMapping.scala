@@ -8,6 +8,7 @@ import play.api.Play.current
 import play.api.Logger
 import org.postgresql.util.PSQLException
 import scala.util.Try
+import controllers.PostgreSql
 
 case class IpAsnMapping(id: Int, ip: Long, asn: Int, firstMappedAt: Long, lastMappedAt: Long) {
 
@@ -24,33 +25,59 @@ case class IpAsnMapping(id: Int, ip: Long, asn: Int, firstMappedAt: Long, lastMa
 
 object IpAsnMapping {
   
-  private def create(ip: Long, asn: Int, mappedAt: Long): Boolean = DB.withConnection { implicit conn =>
-    return try {
-      SQL("""INSERT INTO ip_asn_mappings (ip, asn, first_mapped_at, last_mapped_at) SELECT {ip}, {asn}, {mappedAt}, {mappedAt} 
-        WHERE NOT EXISTS (SELECT 1 FROM (SELECT asn FROM ip_asn_mappings WHERE ip={ip} ORDER BY last_mapped_at DESC LIMIT 1) 
-        AS asn WHERE asn={asn} LIMIT 1)""")
-        .on("ip" -> ip, "asn" -> asn, "mappedAt" -> new Timestamp(mappedAt * 1000)).executeUpdate() > 0
-    } catch {
-      case e: PSQLException => Logger.error(e.getMessage)
-      false
-    }
-  }
+  def createOrUpdate(mappings: Map[Long, Int], mappedAt: Long): Int = update(mappings, mappedAt) + create(mappings, mappedAt)
   
-  def createOrUpdate(ip: Long, asn: Int, mappedAt: Long): Boolean = DB.withConnection { implicit conn =>
+  private def create(mappings: Map[Long, Int], mappedAt: Long): Int = DB.withTransaction { implicit conn =>
+    val time = new Timestamp(mappedAt * 1000)
     return try {
-      val found = Try(mapFromRow(SQL("SELECT * FROM ip_asn_mappings WHERE ip={ip} ORDER BY last_mapped_at DESC LIMIT 1")
-        .on("ip" -> ip)().head).get).toOption
-      if (found.isDefined && found.get.asn==asn) {
-        SQL("UPDATE ip_asn_mappings SET last_mapped_at={mappedAt} WHERE id={id}")
-        	.on("id" -> found.get.id, "mappedAt" -> new Timestamp(mappedAt * 1000)).executeUpdate() > 0
-      } else {
-        create(ip, asn, mappedAt)
+      val sql = """INSERT INTO ip_asn_mappings (ip, asn, first_mapped_at, last_mapped_at) SELECT ?, ?, ?, ? WHERE NOT EXISTS 
+        (SELECT 1 FROM (SELECT asn FROM ip_asn_mappings WHERE ip=? ORDER BY last_mapped_at DESC LIMIT 1) AS asn 
+        WHERE asn=? LIMIT 1)"""
+      val ps = conn.prepareStatement(sql)
+      mappings.grouped(PostgreSql.batchSize).foldLeft(0) { (total, group) =>
+        group.foreach { case (ip, asn) =>
+          ps.setLong(1, ip)
+          ps.setInt(2, asn)
+          ps.setTimestamp(3, time)
+          ps.setTimestamp(4, time)
+          ps.setLong(5, ip)
+          ps.setInt(6, asn)
+          ps.addBatch()
+        }
+        val batch = ps.executeBatch()
+	  		ps.clearBatch()
+	  		total + batch.foldLeft(0)((cnt, b) => cnt + b)
       }
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
-      false
+      0
     }
   }
+  
+  private def update(mappings: Map[Long, Int], mappedAt: Long): Int = DB.withTransaction { implicit conn =>
+    val time = new Timestamp(mappedAt * 1000)
+    return try {
+      val sql = """UPDATE ip_asn_mappings SET last_mapped_at=? WHERE ip=? AND asn=? AND EXISTS (SELECT 1 FROM 
+        (SELECT asn FROM ip_asn_mappings WHERE ip=? ORDER BY last_mapped_at DESC LIMIT 1) AS asn WHERE asn=?)"""
+      val ps = conn.prepareStatement(sql)
+      mappings.grouped(PostgreSql.batchSize).foldLeft(0) { (total, group) =>
+        group.foreach { case (ip, asn) =>
+          ps.setTimestamp(1, time)
+          ps.setLong(2, ip)
+          ps.setInt(3, asn)
+          ps.setLong(4, ip)
+          ps.setInt(5, asn)
+          ps.addBatch()
+        }
+        val batch = ps.executeBatch()
+	  		ps.clearBatch()
+	  		total + batch.foldLeft(0)((cnt, b) => cnt + b)
+      }
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      0
+    }
+  }  
   
   def find(id: Int): Option[IpAsnMapping] = DB.withConnection { implicit conn =>
     return Try(mapFromRow(SQL("SELECT * FROM ip_asn_mappings WHERE id={id} LIMIT 1")

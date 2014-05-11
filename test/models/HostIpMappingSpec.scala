@@ -99,7 +99,7 @@ class HostIpMappingSpec extends Specification {
         val ip = nextIp(host)
         Uri.create(Host.reverse(host))
         HostIpMapping.createOrUpdate(host, ip, asOf)
-        IpAsnMapping.createOrUpdate(ip, privateAsRangeBegin, asOf)
+        IpAsnMapping.createOrUpdate(Map(ip -> privateAsRangeBegin), asOf)
         HostIpMapping.top(5).nonEmpty must beTrue
       }
     }
