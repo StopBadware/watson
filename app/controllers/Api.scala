@@ -15,6 +15,8 @@ import models.cr._
 
 object Api extends Controller with ApiSecured with JsonMapper {
   
+  private val numTop = Try(sys.env("NUM_TOP_IP_AS").toInt).getOrElse(50)
+  
   def counts = withAuth { implicit request =>
     val byStatus = Review.uniqueUrisByStatus
     val helped = Try(byStatus(ReviewStatus.CLOSED_CLEAN) + byStatus(ReviewStatus.CLOSED_NO_LONGER_REPORTED)).getOrElse(0)
@@ -37,16 +39,17 @@ object Api extends Controller with ApiSecured with JsonMapper {
   }
 	
 	def topIps = withAuth { implicit request =>
-    val topIps = HostIpMapping.top(50).map { ip =>
+    val topIps = HostIpMapping.top(numTop).map { ip =>
 	    Json.obj("ip" -> ip.ip, "asn" -> ip.asNum, "name" -> ip.asName, "num_hosts" -> ip.numHosts, "num_urls" -> ip.numUris)
 	  }
 	  Ok(Json.obj("as_of" -> HostIpMapping.lastResolvedAt, "top_ip" -> topIps))
   }
 	
 	def topAsns = withAuth { implicit request =>
-	  val asOf = 0 	//TODO WTSN-15
-	  val topAs = List(Json.obj("number" -> 0, "name" -> "", "num_ips" -> 0, "num_urls" -> 0)) //TODO WTSN-15
-    Ok(Json.obj("as_of" -> asOf, "top_as" -> topAs))
+	  val topAs = IpAsnMapping.top(numTop).map { as =>
+	    Json.obj("number" -> as.asNum, "name" -> as.asName, "num_ips" -> as.numIps, "num_urls" -> as.numUris)
+	  }
+    Ok(Json.obj("as_of" -> IpAsnMapping.lastMappedAt, "top_as" -> topAs))
   }
 	
 	def importList(abbr: String) = withAuth { implicit request =>

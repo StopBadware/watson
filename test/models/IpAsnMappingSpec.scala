@@ -5,7 +5,7 @@ import org.junit.runner._
 import org.specs2.runner._
 import play.api.test._
 import play.api.test.Helpers._
-import controllers.Ip
+import controllers.{Host, Ip}
 
 @RunWith(classOf[JUnitRunner])
 class IpAsnMappingSpec extends Specification {
@@ -78,6 +78,27 @@ class IpAsnMappingSpec extends Specification {
         val asn = nextAsn(ip)
         IpAsnMapping.createOrUpdate(ip, asn, asOf)
         IpAsnMapping.findByAsn(asn).map(_.ip).contains(ip) must beTrue
+      }
+    }
+    
+    "get last mapped time" in {
+      running(FakeApplication()) {
+        val ip = testIp
+        val asn = nextAsn(ip)
+        IpAsnMapping.createOrUpdate(ip, asn, asOf)
+        IpAsnMapping.lastMappedAt must be_>=(asOf)
+      }
+    }
+    
+    "get autonomous systems with most URIs blacklisted" in {
+      running(FakeApplication()) {
+      	val host = "example" + System.currentTimeMillis + ".com"
+        val ip = testIp
+        val asn = nextAsn(ip)
+        Uri.create(host)
+        HostIpMapping.createOrUpdate(Host.reverse(host), ip, asOf)
+        IpAsnMapping.createOrUpdate(ip, privateAsRangeBegin, asOf)
+        IpAsnMapping.top(5).nonEmpty must beTrue
       }
     }
     
