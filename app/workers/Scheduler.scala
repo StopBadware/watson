@@ -134,6 +134,7 @@ case class ImportResolverResults() extends Runnable with JsonMapper {
   def run() = {
     val json = Try(mapJson(Redis.getResolverResults.get).get).toOption
     if (json.isDefined) {
+      Logger.info("Importing resolver results...")
     	val imported = importResolverResults(json.get)
     	if (imported) {
     	  Redis.dropResolverResults()
