@@ -36,22 +36,6 @@ object Api extends Controller with ApiSecured with JsonMapper {
     Ok(Json.obj("hosts" -> BlacklistEvent.blacklistedHosts))
   }
 	
-	def addResolved = withAuth { implicit request =>
-	  Logger.info("Received resolver results")
-	  future(bufferResolverResults(request.body.asJson.mkString))
-	  Ok
-	}
-	
-	private def bufferResolverResults(results: String) = {
-	  Logger.info("Buffering resolver results...")
-    val buffered = Redis.addResolverResults(results)
-    if (buffered) {
-      Logger.info("Resolver results added to buffer")
-    } else {
-      Logger.error("Adding resolver results to buffer failed")
-    }
-	}
-	
 	def topIps = withAuth { implicit request =>
     val topIps = HostIpMapping.top(50).map { ip =>
 	    Json.obj("ip" -> ip.ip, "asn" -> ip.asNum, "name" -> ip.asName, "num_hosts" -> ip.numHosts, "num_urls" -> ip.numUris)

@@ -8,7 +8,6 @@ GET     /asns/top						   	controllers.Api.topAsns
 GET     /ips/top						   	controllers.Api.topIps
 GET     /blacklists/timeoflast/:source   	controllers.Api.timeoflast(source)
 POST    /blacklists/add/:source				controllers.Api.importList(source)
-POST    /hosts/resolved					   	controllers.Api.addResolved
 POST    /reviews/request					controllers.Api.requestReview
 
 # VIEWS
