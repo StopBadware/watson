@@ -34,6 +34,21 @@ object Api extends Controller with ApiSecured with JsonMapper {
 		}
   }
 	
+	def reviewResults(since: Long) = withAuth { implicit request =>
+	  val json = ReviewResult.closedSince(since).map { r =>
+	    Json.obj(
+        "uri" -> r.uri, 
+        "opened" -> r.opened, 
+        "closed" -> r.closed, 
+        "status" -> r.status.toString, 
+        "category" -> r.category,
+        "bad_code" -> r.badCode,
+        "exec_sha2_256" -> r.executableSha256
+      )
+	  }
+    Ok(Json.obj("review_results" -> json))
+  }
+	
 	def blacklistedHosts = withAuth { implicit request =>
     Ok(Json.obj("hosts" -> BlacklistEvent.blacklistedHosts))
   }

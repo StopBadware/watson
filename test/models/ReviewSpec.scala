@@ -388,4 +388,26 @@ class ReviewSpec extends Specification {
     
   }
   
+  "ReviewResult" should {
+    
+    "get ReviewResults closed since a timestamp" in {
+      running(FakeApplication()) {
+        val since = System.currentTimeMillis / 1000
+        val revBad = createAndFind
+        revBad.addTag(ReviewTag.categories.head.id)
+        ReviewCode.create(revBad.id, Some("<iframe src=\"http://thecakeisalie.com/\"><iframe>"), None)
+        revBad.verifyBad(testUser)
+        val revClean = createAndFind
+        revClean.closeClean(testUser)
+        val results = ReviewResult.closedSince(since)
+        results.nonEmpty must beTrue
+        results.filter(_.status.isOpen).isEmpty must beTrue
+        val uris = results.map(_.uri) 
+        uris.contains(Uri.find(revBad.uriId).get.uri) must beTrue
+        uris.contains(Uri.find(revClean.uriId).get.uri) must beTrue
+      }
+    }
+    
+  }
+  
 }

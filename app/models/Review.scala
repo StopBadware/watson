@@ -427,3 +427,60 @@ object Note {
   }
   
 }
+
+case class ReviewResult(
+		uri: String,
+		opened: Long,
+		closed: Long,
+		status: ReviewStatus,
+		category: Option[String],
+		badCode: Option[String],
+		executableSha256: Option[String]
+)
+
+object ReviewResult {
+  
+  def closedSince(since: Long): List[ReviewResult] = DB.withConnection { implicit conn =>
+    return try {
+      val rows = SQL("""SELECT reviews.id, uri, reviews.created_at, status_updated_at, status, bad_code, exec_sha2_256 FROM reviews 
+        JOIN uris ON reviews.uri_id=uris.id LEFT JOIN review_code ON review_code.review_id=reviews.id WHERE status>='CLOSED_BAD'::REVIEW_STATUS 
+        AND status_updated_at>={since}""")
+      	.on("since" -> new Timestamp(since * 1000))().toList
+      val categories = mapCategories(rows.map(_[Int]("id")))
+    	rows.map { row =>
+        ReviewResult(
+      		row[String]("uri"),
+      		row[Date]("created_at").getTime / 1000,
+      		row[Date]("status_updated_at").getTime / 1000,
+      		row[ReviewStatus]("status"),
+      		categories.get(row[Int]("id")),
+      		row[Option[String]]("bad_code"),
+      		row[Option[String]]("exec_sha2_256")
+        )
+      }.toList
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      List()
+    }
+  }
+  
+  private def mapCategories(reviewIds: List[Int]): Map[Int, String] = DB.withTransaction { implicit conn =>
+    return try {
+      val sql = "SELECT review_id, name FROM review_taggings JOIN review_tags ON review_tag_id=review_tags.id WHERE review_id IN (?"+
+      (",?"*(reviewIds.size-1)) + ") AND is_category=true"
+      val ps = conn.prepareStatement(sql)
+      reviewIds.foldLeft(1) { (i, id) =>
+        ps.setInt(i, id)
+        i + 1
+      }
+      val rs = ps.executeQuery
+      Iterator.continually((rs, rs.next())).takeWhile(_._2).map { case (row, hasNext) =>
+        (row.getInt("review_id"), row.getString("name"))
+      }.toMap
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      Map()
+    }
+  }
+  
+}
