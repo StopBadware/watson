@@ -108,7 +108,8 @@ object Api extends Controller with ApiSecured with JsonMapper {
 	      val notes = json.\("notes").asOpt[String]
 	    	if (uri.requestReview(email, ip, notes)) Ok else UnprocessableEntity
 	    } catch {
-	      case _: Exception => BadRequest
+	      case e: Exception => Logger.debug("Review request failed: "+e.getMessage)
+        BadRequest
 	    }
 	  } else {
 	  	UnsupportedMediaType
