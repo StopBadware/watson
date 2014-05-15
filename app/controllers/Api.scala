@@ -104,7 +104,7 @@ object Api extends Controller with ApiSecured with JsonMapper {
 	    try {
 	      val uri = Uri.findOrCreate(json.\("uri").as[String]).get
 		    val email = json.\("email").as[String]
-		    val ip = json.\("ip").asOpt[Long]
+		    val ip = Try(Ip.toLong(json.\("ip").as[String]).get).toOption
 	      val notes = json.\("notes").asOpt[String]
 	    	if (uri.requestReview(email, ip, notes)) Ok else UnprocessableEntity
 	    } catch {
