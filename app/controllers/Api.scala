@@ -49,6 +49,19 @@ object Api extends Controller with ApiSecured with JsonMapper {
     Ok(Json.obj("review_results" -> json))
   }
 	
+	def communityReports(since: Long) = withAuth { implicit request =>
+	  val json = CommunityReport.findSummariesSince(since).map { cr =>
+	    Json.obj(
+        "uri" -> cr.uri, 
+        "description" -> cr.description, 
+        "type" -> cr.crType, 
+        "source" -> cr.crSource,
+        "reported_at" -> cr.reportedAt
+      )
+	  }
+    Ok(Json.obj("community_reports" -> json))
+  }
+	
 	def blacklistedHosts = withAuth { implicit request =>
     Ok(Json.obj("hosts" -> BlacklistEvent.blacklistedHosts))
   }

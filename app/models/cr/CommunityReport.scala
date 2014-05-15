@@ -101,6 +101,10 @@ object CommunityReport {
     findSummaries(None, None, PostgreSql.parseTimes(""), defaultLimit, Some(uriId))
   }
   
+  def findSummariesSince(since: Long): List[CommunityReportSummary] = {
+    findSummaries(None, None, (new Timestamp(since * 1000), new Timestamp(System.currentTimeMillis)), PostgreSql.batchSize, None)
+  }
+  
   def findSummaries(
       crTypeId: Option[Int], 
       crSourceId: Option[Int], 

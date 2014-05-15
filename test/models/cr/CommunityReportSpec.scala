@@ -64,6 +64,21 @@ class CommunityReportSpec extends Specification {
       } 
   	}
     
+    "find CommunityReportSummaries for CRs submitted since specified time" in {
+      running(FakeApplication()) {
+        val since = System.currentTimeMillis / 1000
+        val uri1 = validUri
+        CommunityReport.create(uri1.id)
+        val uri2 = validUri
+        CommunityReport.create(uri2.id)
+        val summaries = CommunityReport.findSummariesSince(since)
+        summaries.nonEmpty must beTrue
+        val uris = summaries.map(_.uri)
+        uris.contains(uri1.uri) must beTrue
+        uris.contains(uri2.uri) must beTrue
+      } 
+  	}
+    
   }  
 
 }

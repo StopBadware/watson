@@ -1,12 +1,15 @@
 # Routes
 # ~~~~~~
 
+GET  	/*path/								controllers.Application.untrail(path)
+
 # API ENDPOINTS
 GET     /reviews/counts					   	controllers.Api.counts
 GET     /blacklists/hosts				   	controllers.Api.blacklistedHosts
 GET     /asns/top						   	controllers.Api.topAsns
 GET     /ips/top						   	controllers.Api.topIps
-GET    	/reviews/closed/since/:since		controllers.Api.reviewResults(since: Long)
+GET    	/reviews/since/:since				controllers.Api.reviewResults(since: Long)
+GET    	/crs/since/:since					controllers.Api.communityReports(since: Long)
 GET     /blacklists/timeoflast/:source   	controllers.Api.timeoflast(source)
 POST    /blacklists/add/:source				controllers.Api.importList(source)
 POST    /reviews/request					controllers.Api.requestReview
@@ -14,7 +17,6 @@ POST    /crs/report							controllers.Api.submitCommunityReport
 
 # VIEWS
 GET     /                           		controllers.Application.index
-GET  	/*path/								controllers.Application.untrail(path)
 GET		/reviews							controllers.Application.reviews
 GET		/reviews/:id						controllers.Application.review(id: Int)
 GET		/requests							controllers.Application.requests
