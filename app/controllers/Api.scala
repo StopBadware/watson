@@ -29,6 +29,8 @@ object Api extends Controller with ApiSecured with JsonMapper {
 		  val blTimeOfLast = BlacklistEvent.timeOfLast(source.get)
 		  val redisTimeOfLast = Try(Redis.blacklistTimes(source.get).max).getOrElse(0L)
 			Ok(Math.max(blTimeOfLast, redisTimeOfLast).toString)
+		} else if (abbr.equalsIgnoreCase("googapl")) {
+		  Ok(GoogleRescan.timeOfLast.toString)
 		} else {
 		  NotFound
 		}
