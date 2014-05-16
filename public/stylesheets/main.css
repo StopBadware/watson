@@ -204,10 +204,17 @@ td a {
 .table-hover>tbody>tr:hover>td {
 	background-color: #E8F1F3;
 }
+#users th,
 #responded-request-responses th,
 #all-request-responses th {
 	color: #90B9C3;
 	background: none;
+}
+#users td {
+	text-align: center;
+}
+#users button {
+	margin: 0;
 }
 .no-panel-headers .panel-heading {
 	display: none;
@@ -292,6 +299,10 @@ input[type=checkbox]:focus {
 #add-request-response input {
 	margin-bottom: 0.5em;
 }
+.toggle-role {
+	height: 100%;
+}
+.toggle-role,
 .toggle-response {
 	width: 5em;
 	margin-left: 1em;

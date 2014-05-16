@@ -1,0 +1,41 @@
+@(user: User)
+@import models.enums.Role
+@main("Users") {
+@defining(user.hasRole(Role.VERIFIER) || user.hasRole(Role.ADMIN)) { canModify =>
+@defining(if (canModify) "" else "disabled") { disabled =>
+@defining(if (canModify) "Click to toggle" else "VERIFIER or ADMIN role required to change") { hovertext =>
+<h3 class="text-center sbw-red">Users</h3>
+<table id="users" class="table table-condensed auto-margin width-50">
+	<thead>
+		<tr>
+			<th>Username</th>
+			<th>USER</th>
+			<th>REVIEWER</th>
+			<th>VERIFIER</th>
+			<th>ADMIN</th>
+		</tr>
+	</thead>
+	<tbody>
+	@User.all.map { u =>
+		<tr>
+			<td class="text-left">@u.username</td>
+			@defining(if (u.hasRole(Role.USER)) "btn-success" else "btn-default") { btnType =>
+			<td title="@hovertext"><button data-user-id="@u.id" data-role="USER" type="button" class="btn @btnType btn-xs toggle-role" @disabled></button></td>
+			}
+			@defining(if (u.hasRole(Role.REVIEWER)) "btn-success" else "btn-default") { btnType =>
+			<td title="@hovertext"><button data-user-id="@u.id" data-role="REVIEWER" type="button" class="btn @btnType btn-xs toggle-role" @disabled></button></td>
+			}
+			@defining(if (u.hasRole(Role.VERIFIER)) "btn-success" else "btn-default") { btnType =>
+			<td title="@hovertext"><button data-user-id="@u.id" data-role="VERIFIER" type="button" class="btn @btnType btn-xs toggle-role" @disabled></button></td>
+			}
+			@defining(if (u.hasRole(Role.ADMIN)) "btn-success" else "btn-default") { btnType =>
+			<td title="@hovertext"><button data-user-id="@u.id" data-role="ADMIN" type="button" class="btn @btnType btn-xs toggle-role" @disabled></button></td>
+			}
+		</tr>	
+	}
+	</tbody>
+</table>
+}
+}	
+}
+}

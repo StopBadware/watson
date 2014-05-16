@@ -341,6 +341,10 @@ object Application extends Controller with Secured with Cookies {
     }
   }
   
+  def users = withAuth { userId => implicit request =>
+    Ok(views.html.users(User.find(userId.get).get))
+  }
+  
   def tags = TODO	//TODO WTSN-56 view/add/toggle tags
   
   def tag(name: String) = TODO	//TODO WTSN-56 view tag

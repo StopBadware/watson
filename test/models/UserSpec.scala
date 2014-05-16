@@ -76,6 +76,15 @@ class UserSpec extends Specification {
   	  }
   	}
   	
+  	"find all users" in {
+  	  running(FakeApplication()) {
+  	    val user = createAndGetUser
+  	    val all = User.all
+  	    all.nonEmpty must beTrue
+  	    all.map(_.id).contains(user.id) must beTrue
+  	  }
+  	}
+  	
   	"find a user by username/email" in {
   	  running(FakeApplication()) {
   	    val user = createAndGetUser

@@ -95,6 +95,10 @@ object User {
     return Try(mapFromRow(SQL("SELECT * FROM users WHERE email={email} LIMIT 1").on("email"->email)().head)).getOrElse(None)
   }
   
+  def all: List[User] = DB.withConnection { implicit conn =>
+    return Try(SQL("SELECT * FROM users ORDER BY username ASC")().map(mapFromRow).flatten.toList).getOrElse(List())
+  }
+  
   private def mapFromRow(row: SqlRow): Option[User] = {
     val lastLogin = if (row[Option[Date]]("last_login").isDefined) {
       Some(row[Option[Date]]("last_login").get.getTime / 1000)

@@ -7,7 +7,7 @@
 	<li><a href="#all" data-toggle="tab">All</a></li>
 </ul>
 @defining(if (canModify) "" else "disabled") { disabled =>
-@defining(if (canModify) "Click to toggle" else "VERIFIER role required to change") { hovertext =>
+@defining(if (canModify) "Click to toggle" else "VERIFIER or ADMIN role required to change") { hovertext =>
 <div class="tab-content">
 	<div id="responded" class="well well-lg tab-pane fade in active">
 		@RequestResponse.allResponses.groupBy(_.question).map { case (question, summaries) =>

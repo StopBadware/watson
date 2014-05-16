@@ -40,6 +40,7 @@ GET		/crs/new							controllers.Application.newCommunityReport
 GET		/crs/:id							controllers.Application.communityReport(id: Int)
 GET		/emailtemplates						controllers.Application.emailTemplates
 GET		/rescans							controllers.Application.rescans
+GET		/users								controllers.Application.users
 
 
 # AJAX ROUTES
