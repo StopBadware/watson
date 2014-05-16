@@ -102,13 +102,18 @@ object Api extends Controller with ApiSecured with JsonMapper {
 	  if (body.isSuccess) {
 	    val json = body.get.get
 	    try {
+	      Logger.debug("Review requested for '"+json.\("uri")+"'")	//DELME WTSN-50
 	      val uri = Uri.findOrCreate(json.\("uri").as[String]).get
+	      Logger.debug("uri: "+uri)			//DELME WTSN-50
 		    val email = json.\("email").as[String]
+	      Logger.debug("email: "+email)	//DELME WTSN-50
 		    val ip = Try(Ip.toLong(json.\("ip").as[String]).get).toOption
+		    Logger.debug("ip: "+ip)				//DELME WTSN-50
 	      val notes = json.\("notes").asOpt[String]
+	      Logger.debug("notes:"+notes)	//DELME WTSN-50
 	    	if (uri.requestReview(email, ip, notes)) Ok else UnprocessableEntity
 	    } catch {
-	      case e: Exception => Logger.debug("Review request failed: "+e.getMessage)
+	      case e: Exception => Logger.debug("Review request failed: "+e.getMessage)	//DELME WTSN-50
         BadRequest
 	    }
 	  } else {
