@@ -412,6 +412,24 @@ object Application extends Controller with Secured with Cookies {
     }
   }
   
+  def toggleRole = withAuth { userId => implicit request =>
+    val user = User.find(userId.get)
+    if (user.isDefined && (user.get.hasRole(Role.VERIFIER) || user.get.hasRole(Role.ADMIN))) {
+    	val json = request.body.asJson
+    	try {
+		    val targetUser = User.find(json.get.\("user_id").as[Int]).get
+    	  val role = Role.fromStr(json.get.\("role").as[String]).get
+		    val removeRole = json.get.\("remove").as[Boolean]
+	      val toggled = if (removeRole) targetUser.removeRole(role) else targetUser.addRole(role)
+	      if (toggled) Ok else BadRequest
+	    } catch {
+	      case _: Exception => BadRequest
+	    }
+    } else {
+      Unauthorized
+    }
+  }
+  
   def emailTemplates = withAuth { userId => implicit request =>
     Ok(views.html.emailtemplates(User.find(userId.get).get.email))
   }
@@ -548,6 +566,7 @@ object Application extends Controller with Secured with Cookies {
       routes.javascript.Application.addNote,
       routes.javascript.Application.addResponse,
       routes.javascript.Application.toggleResponse,
+      routes.javascript.Application.toggleRole,
       routes.javascript.Application.sendEmailTemplatePreview,
       routes.javascript.Application.updateEmailTemplate,
       routes.javascript.Application.addToRescanQueue

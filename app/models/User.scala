@@ -38,7 +38,7 @@ case class User(
       val roles = Try(SQL("SELECT roles FROM users WHERE id={id}").on("id" -> id)()
         .head[Option[Array[Role]]]("roles").getOrElse(Array()).toSet).getOrElse(Set())
       val newRoles = roles.filter(_ != role).map("'"+_+"'::ROLE").mkString(",")
-      SQL("UPDATE users SET roles=ARRAY["+newRoles+"] WHERE id={id}").on("id"->id).executeUpdate() > 0
+      SQL("UPDATE users SET roles=ARRAY["+newRoles+"]::ROLE[] WHERE id={id}").on("id"->id).executeUpdate() > 0
     } catch {
       case e: PSQLException => Logger.error(e.getMessage)
       false

@@ -118,6 +118,11 @@ $(document).ready(function($) {
 		toggleResponse($(this).data("qa-id"));
 	});
 	
+	$(".toggle-role").click(function() {
+		$(this).focus().blur();
+		toggleRole($(this).data("user-id"), $(this).data("role"));
+	});
+	
 	$(".edit-email-template").click(function() {
 		toggleEmailTemplateInputs($(this).data("template"), true);
 	});
@@ -684,6 +689,30 @@ function toggleResponse(id) {
 			button.addClass("btn-success");
 			button.removeClass("btn-danger");
 			button.text("Enabled");
+		}
+	}).fail(function(res) {
+		alert("Toggle failed");
+	});
+}
+
+function toggleRole(userId, role) {
+	var button = $("."+userId+"-"+role);
+	var hasRole = button.hasClass("btn-success");
+	var obj = {
+		"user_id": userId,
+		"role": role,
+		"remove": hasRole
+	};
+	appRoute.toggleRole().ajax({
+		contentType: jsonContentType,
+		data: JSON.stringify(obj)
+	}).done(function() {
+		if (hasRole) {
+			button.addClass("btn-default");
+			button.removeClass("btn-success");
+		} else {
+			button.addClass("btn-success");
+			button.removeClass("btn-default");
 		}
 	}).fail(function(res) {
 		alert("Toggle failed");

@@ -20,16 +20,16 @@
 		<tr>
 			<td class="text-left">@u.username</td>
 			@defining(if (u.hasRole(Role.USER)) "btn-success" else "btn-default") { btnType =>
-			<td title="@hovertext"><button data-user-id="@u.id" data-role="USER" type="button" class="btn @btnType btn-xs toggle-role" @disabled></button></td>
+			<td title="@hovertext"><button data-user-id="@u.id" data-role="USER" type="button" class="btn @btnType btn-xs toggle-role @u.id-USER" @disabled></button></td>
 			}
 			@defining(if (u.hasRole(Role.REVIEWER)) "btn-success" else "btn-default") { btnType =>
-			<td title="@hovertext"><button data-user-id="@u.id" data-role="REVIEWER" type="button" class="btn @btnType btn-xs toggle-role" @disabled></button></td>
+			<td title="@hovertext"><button data-user-id="@u.id" data-role="REVIEWER" type="button" class="btn @btnType btn-xs toggle-role @u.id-REVIEWER" @disabled></button></td>
 			}
 			@defining(if (u.hasRole(Role.VERIFIER)) "btn-success" else "btn-default") { btnType =>
-			<td title="@hovertext"><button data-user-id="@u.id" data-role="VERIFIER" type="button" class="btn @btnType btn-xs toggle-role" @disabled></button></td>
+			<td title="@hovertext"><button data-user-id="@u.id" data-role="VERIFIER" type="button" class="btn @btnType btn-xs toggle-role @u.id-VERIFIER" @disabled></button></td>
 			}
 			@defining(if (u.hasRole(Role.ADMIN)) "btn-success" else "btn-default") { btnType =>
-			<td title="@hovertext"><button data-user-id="@u.id" data-role="ADMIN" type="button" class="btn @btnType btn-xs toggle-role" @disabled></button></td>
+			<td title="@hovertext"><button data-user-id="@u.id" data-role="ADMIN" type="button" class="btn @btnType btn-xs toggle-role @u.id-ADMIN" @disabled></button></td>
 			}
 		</tr>	
 	}

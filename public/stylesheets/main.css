@@ -301,6 +301,7 @@ input[type=checkbox]:focus {
 }
 .toggle-role {
 	height: 100%;
+	min-height: 1.25em;
 }
 .toggle-role,
 .toggle-response {

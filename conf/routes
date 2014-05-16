@@ -60,6 +60,7 @@ POST	/note								controllers.Application.addNote
 POST	/emailtemplates/update				controllers.Application.updateEmailTemplate
 POST	/emailtemplates/send				controllers.Application.sendEmailTemplatePreview
 POST	/rescans/submit						controllers.Application.addToRescanQueue
+POST	/users/togglerole					controllers.Application.toggleRole
 
 # MISC RESOURCES
 GET     /robots.txt		               		controllers.Assets.at(path="/public", file="robots.txt")
