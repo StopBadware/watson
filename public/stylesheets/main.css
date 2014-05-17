@@ -255,9 +255,6 @@ input[type=email] {
 #reviews-filter .form-btn {
 	margin-left: 0.5em;
 }
-.keepwhite.form-control[readonly] {
-	background-color: #FFFFFF;
-}
 textarea.form-control {
 	min-width: 100%;
 	max-width: 100%;

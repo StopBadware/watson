@@ -178,8 +178,13 @@ $(document).ready(function($) {
 	var zc = new ZeroClipboard($(".clipboard"));
 	
 	if ($("#associated-uris").length) {
+		var id = "#associated-uris";
 		renderAssociatedUris(".associated-uris-data", "#associated-uris");
-		addAssociatedUriInput("#associated-uris");
+		addAssociatedUriInput(id);
+		if ($(id).data("readonly") == "disabled") {
+			$(id+" input, "+id+" select").prop("disabled", true);
+		}
+		
 	}
 	
 	$(".date-picker").daterangepicker({
@@ -310,7 +315,7 @@ function addAssociatedUriInput(id) {
 }
 
 function associatedUriInput(index) {
-	return '<li id="associated-'+index+'" data-index="'+index+'">'+
+	return '<li id="associated-'+index+'" class="associated-uri" data-index="'+index+'">'+
 	'<input type="url" id="associated-uri-'+index+'" class="input-large form-control uri inline" placeholder="Associated URI">'+
 	'<select id="associated-resolved-'+index+'" class="inline form-control auto-width">'+
 	'<option value="RESOLVED">Resolved</option>'+

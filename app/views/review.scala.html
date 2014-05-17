@@ -61,11 +61,11 @@
 	</div>
 	
 	<div id="review-test-data" class="well well-lg watson-green-bg">
-		@defining(if (user.hasRole(Role.REVIEWER)) "" else "readonly") { readonly =>
+		@defining(if (user.hasRole(Role.REVIEWER)) "" else "disabled") { readonly =>
 		<form id="review-test-data-box">
 			<div class="inline width-100">
 				<label for="badware-category">Category</label>
-				<select name="badware-category" id="badware-category" class="inline form-control auto-width">
+				<select name="badware-category" id="badware-category" class="inline form-control auto-width keep-white" @readonly>
 				@defining(details.category) { category =>
 				@ReviewTag.categories.map { cat =>
 					@defining(if ((category.isDefined && cat.equals(category.get)) || (category.isEmpty && cat.equals("SCRIPT"))) "selected" else "") { selected =>
@@ -84,13 +84,13 @@
 				</div>
 			</div>
 			@defining(if (details.reviewCode.isDefined) details.reviewCode.get.badCode else None) { badCode =>
-			<textarea id="badcode" name="badcode" class="form-control keepwhite has-char-counter margin-top-1em" rows="5" placeholder="Bad Code" maxlength="4096" spellcheck="false" @readonly>@badCode</textarea>
+			<textarea id="badcode" name="badcode" class="form-control has-char-counter margin-top-1em" rows="5" placeholder="Bad Code" maxlength="4096" spellcheck="false" @readonly>@badCode</textarea>
 			}
 			@partials.charcounter("badcode", 4096)
 			@details.associatedUris.map { au =>
 			<span class="associated-uris-data non-vis" data-uri="@details.uris(au.uriId)" data-resolved="@au.resolved" data-type="@au.uriType" data-intent="@au.intent"></span>
 			}
-			<ul id="associated-uris" class="list-style-none"></ul>
+			<ul id="associated-uris" class="list-style-none" data-readonly="@readonly"></ul>
 			@if(user.hasRole(Role.REVIEWER)) {
 			<div class="text-right">
 			@defining(details.review.id + " - " + details.uri.uri) { snapshot =>
