@@ -401,7 +401,6 @@ case class ReviewDetails(review: Review) {
 	val reviewCode = ReviewCode.findByReview(review.id)
 	val associatedUris = AssociatedUri.findByReviewId(review.id)
   val uris: Map[Int, String] = {
-    //TODO WTSN-55 get all related goog rescan uris
     val urisToFind = {
       googleRescans.map(rescan => List(rescan.uriId, rescan.relatedUriId.getOrElse(0))).flatten ++ 
       associatedUris.map(_.uriId)
