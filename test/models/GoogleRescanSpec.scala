@@ -16,7 +16,9 @@ class GoogleRescanSpec extends Specification {
         val uriA = Uri.findOrCreate(UriSpec.validUri).get
         val uriB = Uri.findOrCreate(UriSpec.validUri).get
         GoogleRescan.create(uriA.id, None, "clean", "autoappeal", uriA.createdAt) must beTrue
+        GoogleRescan.create(uriA.id, None, "clean", "autoappeal", uriA.createdAt) must beFalse
         GoogleRescan.create(uriA.id, Some(uriB.id), "bad", "autoappeal", uriA.createdAt) must beTrue
+        GoogleRescan.create(uriA.id, Some(uriB.id), "bad", "autoappeal", uriA.createdAt) must beFalse
       }
       
     }

@@ -41,11 +41,11 @@ object GoogleRescan {
 	    val inserted = try {
 	      SQL("""INSERT INTO google_rescans (uri_id, related_uri_id, status, requested_via, rescanned_at) 
 	        SELECT {uriId}, {relatedUriId}, {status}, {requestedVia}, {rescannedAt} WHERE NOT EXISTS (SELECT 1 FROM 
-	        google_rescans WHERE uri_id={uriId} AND related_uri_id={relatedUriId} AND rescanned_at={rescannedAt})""").on(
+	        google_rescans WHERE uri_id={uriId} AND related_uri_id"""+
+	        (if (relatedUriId.isDefined) "={relatedUriId}" else " IS NULL")+
+	        " AND rescanned_at={rescannedAt})").on(
 	          "uriId" -> uriId,
-	          "relatedUriId" -> {
-	            if (relatedUriId.isDefined) relatedUriId.get else None
-	          },
+	          "relatedUriId" -> relatedUriId,
 	          "status" -> status,
 	          "requestedVia" -> requestedVia,
 	          "rescannedAt" -> new Timestamp(rescannedAt * 1000)).executeUpdate()
