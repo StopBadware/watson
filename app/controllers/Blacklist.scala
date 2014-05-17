@@ -2,6 +2,7 @@ package controllers
 
 import java.net.URISyntaxException
 import scala.collection.JavaConversions._
+import scala.util.Try
 import play.api.Logger
 import play.api.mvc.Controller
 import play.api.libs.json._
@@ -28,25 +29,27 @@ object Blacklist extends Controller with JsonMapper {
       Logger.info("Importing "+rescans.size+" Google rescans")
       val added = rescans.foldLeft(0) { (ctr, node) =>
         val url = node.get("url").asText
-        val link = if (node.has("link")) Some(node.get("link").asText) else None
         val status = node.get("status").asText
         val requestedVia = node.get("source").asText
         val rescannedAt = node.get("time").asLong
-        val uriId = Uri.findOrCreate(url)
-        val relatedUriId = if (link.isDefined) {
-          val related = Uri.findOrCreate(link.get)
-          if (related.isDefined) Some(related.get.id) else None
+        val uriId = Try(Uri.findOrCreate(url).get.id).toOption
+        val links = if (node.has("links")) node.get("links").map(_.asText).toList else List()
+        
+        if (uriId.isDefined) {
+	        ctr + (if (links.isEmpty) {
+		          val created = GoogleRescan.create(uriId.get, None, status, requestedVia, rescannedAt)
+		          if (created) 1 else 0
+		        } else {
+		          links.foldLeft(0) { (c, link) =>
+		            val created = Try(GoogleRescan.create(uriId.get, Some(Uri.findOrCreate(link).get.id), status, requestedVia, rescannedAt))
+		            if (created.isSuccess && created.get) c + 1 else c
+		          }
+		        })
         } else {
-          None
+          ctr
         }
-        val created = if (uriId.isDefined) {
-          GoogleRescan.create(uriId.get.id, relatedUriId, status, requestedVia, rescannedAt)
-        } else {
-          false
-        }
-        if (created) ctr + 1 else ctr
       }
-      Logger.info("Added "+added+" Google rescans")
+      Logger.info("Added " + added + " Google rescans")
     }
   }
   

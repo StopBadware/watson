@@ -98,15 +98,19 @@ class BlacklistSpec extends Specification {
       running(FakeApplication()) {
         val time = System.currentTimeMillis / 1000
 	      val badUrl = validUrl
-	      val badLink = "http://" + badUrl + time
+	      val badLinkA = "http://" + badUrl + time
+	      val badLinkB = "http://" + badUrl + System.nanoTime.toHexString
 	      val cleanUrl = validUrl
-	      val appealsJson = "[{\"url\":\""+badUrl+"\",\"status\":\"bad\",\"time\":"+time+",\"source\":\"autoappeal\",\"link\":\""+badLink+"\"},"+
+	      val appealsJson = "[{\"url\":\""+badUrl+"\",\"status\":\"bad\",\"time\":"+time+
+	      	",\"source\":\"autoappeal\",\"links\":[\""+badLinkA+"\",\""+badLinkB+"\"]},"+
 	        "{\"url\":\""+cleanUrl+"\",\"status\":\"clean\",\"time\":"+time+",\"source\":\"autoappeal\"},"+
 	        "{\"url\":\""+invalidUrl+"\",\"status\":\"bad\",\"time\":"+time+",\"source\":\"autoappeal\"}]"
 	      Blacklist.importGoogleAppeals(appealsJson)
 	      val bad = find(badUrl)
 	      GoogleRescan.findByUri(bad.id).nonEmpty must beTrue
-	      GoogleRescan.findByUri(bad.id).head.relatedUriId.get must equalTo(find(badLink).id)
+	      val relatedIds = GoogleRescan.findByUri(bad.id).map(_.relatedUriId).flatten
+	      relatedIds.contains(find(badLinkA).id) must beTrue
+	      relatedIds.contains(find(badLinkB).id) must beTrue
 	      GoogleRescan.findByUri(find(cleanUrl).id).nonEmpty must beTrue
       }
     }
