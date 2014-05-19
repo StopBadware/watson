@@ -5,13 +5,15 @@ import org.junit.runner._
 import org.specs2.runner._
 import play.api.test._
 import play.api.test.Helpers._
-import models.Uri
+import models.{BlacklistEvent, HostIpMapping, IpAsnMapping, Uri}
 import models.enums.Source
 
 @RunWith(classOf[JUnitRunner])
 class ClearinghouseSpec extends Specification {
   
 	private val source = Source.GOOG
+	private val privateAsRangeBegin = 64512
+  private val privateIpRangeBegin = Ip.toLong("10.0.0.0").get
   private def validUri(base: String): Uri = Uri.findOrCreate(base+".com/" + System.nanoTime.toHexString).get
   
   "Clearinghouse" should {
@@ -67,7 +69,16 @@ class ClearinghouseSpec extends Specification {
     
     "find blacklisted URI count and AS info for an IP" in {
       running(FakeApplication()) {
-        false must beTrue	//TODO WTSN-50
+        val uri = validUri("chspec" + System.nanoTime.toHexString)
+        val ip = privateIpRangeBegin
+        val asn = privateAsRangeBegin
+        val now = System.currentTimeMillis / 1000
+        BlacklistEvent.create(List(uri.id), Source.GOOG, now, None)
+        HostIpMapping.createOrUpdate(Map(uri.reversedHost -> ip), now)
+        IpAsnMapping.createOrUpdate(Map(ip -> asn), now)
+        val chIp = Clearinghouse.ipSearch(ip)
+        chIp.asNum must equalTo(Some(asn))
+        chIp.numBlacklistedUris must be_>(0)
       }
     }
     

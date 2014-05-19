@@ -1,5 +1,6 @@
 package controllers
 
+import java.sql.Timestamp
 import anorm._
 import scala.util.Try
 import play.api.db._
@@ -8,6 +9,7 @@ import play.api.Logger
 import play.api.mvc.Controller
 import play.api.Play.current
 import org.postgresql.util.PSQLException
+import models.HostIpMapping
 
 object Clearinghouse extends Controller with ApiSecured {
   
@@ -15,7 +17,7 @@ object Clearinghouse extends Controller with ApiSecured {
   
   def search = withAuth { implicit request =>
 	  val host = request.getQueryString("host")
-	  val ip = request.getQueryString("ip")
+	  val ip = Try(request.getQueryString("ip").get.toLong).toOption
 	  val asn = request.getQueryString("asn")
 	  
 	  if (host.isDefined) {
@@ -25,9 +27,23 @@ object Clearinghouse extends Controller with ApiSecured {
 	    }.splitAt(blacklistLimit)._1.map { chUri =>
 	      Json.obj("uri_id" -> chUri.uriId, "uri" -> chUri.uri, "blacklisted" -> chUri.blacklisted)
 	    }
-	  	Ok(Json.obj("results" -> json))
+	  	Ok(Json.obj("uris" -> json))
 	  } else if (ip.isDefined) {
-	    NotFound	//TODO WTSN-50
+	    val chIp = ipSearch(ip.get)
+	    val uris = uriSearch(ip.get.toString, false)
+	    val json = {
+	      Json.obj(
+          "ip" -> ip.get,
+          "num_blacklisted" -> chIp.numBlacklistedUris, 
+          "asn" -> chIp.asNum, 
+          "as_name" -> chIp.asName, 
+          "as_country" -> chIp.asCounry,
+      		"uris" -> uris.map { chUri =>
+      		  Json.obj("uri_id" -> chUri.uriId, "uri" -> chUri.uri, "blacklisted" -> chUri.blacklisted)
+      		}
+	      )
+	    }
+	    Ok(json)
 	  } else if (asn.isDefined) {
 	    NotFound	//TODO WTSN-50
 	  } else {
@@ -72,6 +88,29 @@ object Clearinghouse extends Controller with ApiSecured {
     }
   }
   
+  def ipSearch(ip: Long): ChIp = DB.withConnection { implicit conn =>
+    return try {
+      val numUris = SQL("""SELECT COUNT(DISTINCT uris.id) AS count FROM host_ip_mappings JOIN uris ON 
+        host_ip_mappings.reversed_host=uris.reversed_host JOIN blacklist_events ON uris.id=blacklist_events.uri_id WHERE 
+        ip={ip} AND blacklisted=true AND last_resolved_at>={lastResolved}""")
+        .on("ip" -> ip, "lastResolved" -> new Timestamp(HostIpMapping.lastResolvedAt * 1000))().head[Int]("count").toInt
+      val row = SQL("""SELECT ip, number, name, country FROM ip_asn_mappings LEFT JOIN autonomous_systems ON asn=number 
+        WHERE ip={ip} ORDER BY last_mapped_at DESC LIMIT 1""").on("ip" -> ip)().head
+      ChIp(row[Long]("ip"), row[Option[Int]]("number"), row[Option[String]]("name"), row[Option[String]]("country"), numUris)
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      ChIp(ip)
+    }
+  }
+  
   case class ChUri(uriId: Int, uri: String, blacklisted: Boolean)
+  
+  case class ChIp(
+      ip: Long, 
+      asNum: Option[Int]=None, 
+      asName: Option[String]=None, 
+      asCounry: Option[String]=None, 
+      numBlacklistedUris: Int=0
+  )
 
 }
