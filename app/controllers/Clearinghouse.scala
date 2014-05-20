@@ -9,7 +9,7 @@ import play.api.Logger
 import play.api.mvc.Controller
 import play.api.Play.current
 import org.postgresql.util.PSQLException
-import models.HostIpMapping
+import models.{AutonomousSystem, HostIpMapping}
 
 object Clearinghouse extends Controller with ApiSecured {
   
@@ -18,38 +18,53 @@ object Clearinghouse extends Controller with ApiSecured {
   def search = withAuth { implicit request =>
 	  val host = request.getQueryString("host")
 	  val ip = Try(request.getQueryString("ip").get.toLong).toOption
-	  val asn = request.getQueryString("asn")
+	  val asn = Try(request.getQueryString("asn").get.toInt).toOption
 	  
 	  if (host.isDefined) {
-	    val json = {
-	      val blacklistedOnly = request.getQueryString("blacklisted").getOrElse("").equalsIgnoreCase("true")
-	      findUrisWithSiblingsAndChildren(host.get, blacklistedOnly)
-	    }.splitAt(blacklistLimit)._1.map { chUri =>
-	      Json.obj("uri_id" -> chUri.uriId, "uri" -> chUri.uri, "blacklisted" -> chUri.blacklisted)
-	    }
-	  	Ok(Json.obj("uris" -> json))
+	    val blacklistedOnly = request.getQueryString("blacklisted").getOrElse("").equalsIgnoreCase("true")
+	  	Ok(uriJson(host.get, blacklistedOnly))
 	  } else if (ip.isDefined) {
-	    val chIp = ipSearch(ip.get)
-	    val uris = uriSearch(ip.get.toString, false)
-	    val json = {
-	      Json.obj(
-          "ip" -> ip.get,
-          "num_blacklisted" -> chIp.numBlacklistedUris, 
-          "asn" -> chIp.asNum, 
-          "as_name" -> chIp.asName, 
-          "as_country" -> chIp.asCounry,
-      		"uris" -> uris.map { chUri =>
-      		  Json.obj("uri_id" -> chUri.uriId, "uri" -> chUri.uri, "blacklisted" -> chUri.blacklisted)
-      		}
-	      )
-	    }
-	    Ok(json)
+	    Ok(ipJson(ip.get))
 	  } else if (asn.isDefined) {
-	    NotFound	//TODO WTSN-50
+	    Ok(asnJson(asn.get))
 	  } else {
 	    BadRequest
 	  }
 	}
+  
+  private def uriJson(host: String, blacklistedOnly: Boolean): JsObject = {
+    val uris = findUrisWithSiblingsAndChildren(host, blacklistedOnly).splitAt(blacklistLimit)._1.map { chUri =>
+      Json.obj("uri_id" -> chUri.uriId, "uri" -> chUri.uri, "blacklisted" -> chUri.blacklisted)
+    }
+    return Json.obj("uris" -> uris)
+  }
+  
+  private def ipJson(ip: Long): JsObject = {
+    val chIp = ipSearch(ip)
+    val uris = uriSearch(ip.toString, false)
+    return Json.obj(
+      "ip" -> ip,
+      "num_blacklisted_uris" -> chIp.numBlacklistedUris, 
+      "asn" -> chIp.asNum, 
+      "as_name" -> chIp.asName, 
+      "as_country" -> chIp.asCountry,
+  		"uris" -> uris.map { chUri =>
+  		  Json.obj("uri_id" -> chUri.uriId, "uri" -> chUri.uri, "blacklisted" -> chUri.blacklisted)
+  		}
+    )
+  }
+  
+  private def asnJson(asn: Int): JsObject = {
+    val as = AutonomousSystem.find(asn)
+    val ips = blacklistedIps(asn)
+    Json.obj(
+      "num_blacklisted_ips" -> ips.size,
+      "num_blacklisted_uris" -> blacklistedUrisCount(ips),
+      "asn" -> asn, 
+      "as_name" -> Try(as.get.name).toOption, 
+      "as_country" -> Try(as.get.country).toOption
+    )
+  }
   
   def findUrisWithSiblingsAndChildren(host: String, blacklistedOnly: Boolean): List[ChUri] = {
     val initial = uriSearch(host, blacklistedOnly)
@@ -90,10 +105,7 @@ object Clearinghouse extends Controller with ApiSecured {
   
   def ipSearch(ip: Long): ChIp = DB.withConnection { implicit conn =>
     return try {
-      val numUris = SQL("""SELECT COUNT(DISTINCT uris.id) AS count FROM host_ip_mappings JOIN uris ON 
-        host_ip_mappings.reversed_host=uris.reversed_host JOIN blacklist_events ON uris.id=blacklist_events.uri_id WHERE 
-        ip={ip} AND blacklisted=true AND last_resolved_at>={lastResolved}""")
-        .on("ip" -> ip, "lastResolved" -> new Timestamp(HostIpMapping.lastResolvedAt * 1000))().head[Int]("count").toInt
+      val numUris = blacklistedUrisCount(List(ip))
       val row = SQL("""SELECT ip, number, name, country FROM ip_asn_mappings LEFT JOIN autonomous_systems ON asn=number 
         WHERE ip={ip} ORDER BY last_mapped_at DESC LIMIT 1""").on("ip" -> ip)().head
       ChIp(row[Long]("ip"), row[Option[Int]]("number"), row[Option[String]]("name"), row[Option[String]]("country"), numUris)
@@ -103,14 +115,48 @@ object Clearinghouse extends Controller with ApiSecured {
     }
   }
   
+  def blacklistedUrisCount(ips: List[Long]): Int = DB.withTransaction { implicit conn =>
+    return try {
+      val resolvedAt = new Timestamp(HostIpMapping.lastResolvedAt * 1000)
+      val sql = """SELECT COUNT(DISTINCT uris.id) AS count FROM host_ip_mappings JOIN uris ON 
+        host_ip_mappings.reversed_host=uris.reversed_host JOIN blacklist_events ON uris.id=blacklist_events.uri_id 
+        WHERE blacklisted=true AND last_resolved_at=? AND ip IN (?"""+(",?" * (ips.size - 1))+")"
+      val ps = conn.prepareStatement(sql)
+      ps.setTimestamp(1, resolvedAt)
+      ips.foldLeft(2) { (i, ip) =>
+        ps.setLong(i, ip)
+        i + 1
+      }
+    	val rs = ps.executeQuery
+    	Iterator.continually((rs, rs.next())).takeWhile(_._2).foldLeft(0) { (cnt, tuple) =>
+    	  cnt + tuple._1.getLong("count").toInt
+    	}
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      0
+    }
+  }
+  
+  def blacklistedIps(asn: Int): List[Long] = DB.withTransaction { implicit conn =>
+    return try {
+      SQL("""SELECT DISTINCT ip_asn_mappings.ip AS ip FROM ip_asn_mappings JOIN host_ip_mappings ON 
+        ip_asn_mappings.ip=host_ip_mappings.ip JOIN uris ON host_ip_mappings.reversed_host=uris.reversed_host JOIN blacklist_events 
+        ON uris.id=blacklist_events.uri_id WHERE asn={asn} AND blacklisted=true AND last_mapped_at={resolvedAt}""")
+        .on("asn" -> asn, "resolvedAt" -> new Timestamp(HostIpMapping.lastResolvedAt * 1000))().map(_[Long]("ip")).toList
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      List()
+    }
+  }
+  
   case class ChUri(uriId: Int, uri: String, blacklisted: Boolean)
   
   case class ChIp(
       ip: Long, 
       asNum: Option[Int]=None, 
       asName: Option[String]=None, 
-      asCounry: Option[String]=None, 
+      asCountry: Option[String]=None, 
       numBlacklistedUris: Int=0
   )
-
+  
 }

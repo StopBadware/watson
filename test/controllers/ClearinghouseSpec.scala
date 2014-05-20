@@ -84,7 +84,20 @@ class ClearinghouseSpec extends Specification {
     
     "find blacklisted URI and IP counts for an Autonomous System" in {
       running(FakeApplication()) {
-        false must beTrue	//TODO WTSN-50
+        val uriA = validUri("a" + System.nanoTime.toHexString)
+        val uriB = validUri("b" + System.nanoTime.toHexString)
+        val ipA = privateIpRangeBegin
+        val ipB = privateIpRangeBegin + 1
+        val asn = privateAsRangeBegin
+        val now = System.currentTimeMillis / 1000
+        BlacklistEvent.create(List(uriA.id, uriB.id), Source.GOOG, now, None)
+        HostIpMapping.createOrUpdate(Map(uriA.reversedHost -> ipA, uriB.reversedHost -> ipB), now)
+        IpAsnMapping.createOrUpdate(Map(ipA -> asn, ipB -> asn), now)
+        val blacklistedIps = Clearinghouse.blacklistedIps(asn)
+        blacklistedIps.size must be_>=(2)
+        blacklistedIps.contains(ipA) must beTrue
+        blacklistedIps.contains(ipB) must beTrue
+        Clearinghouse.blacklistedUrisCount(blacklistedIps) must be_>=(2)
       }
     }
     
