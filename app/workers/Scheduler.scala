@@ -20,7 +20,6 @@ object Scheduler {
     Play.start(new DefaultApplication(new File("."), Scheduler.getClass.getClassLoader, None, Mode.Prod))
     val everyMinute = new FiniteDuration(1, TimeUnit.MINUTES)
     val everyHour = new FiniteDuration(1, TimeUnit.HOURS)
-    val resolverHours = new FiniteDuration(Try(sys.env("RESOLVER_INTERVAL_HOURS").toLong).getOrElse(12), TimeUnit.HOURS)
     
     val importBlacklistSystem = ActorSystem("ImportBlacklistQueue")
     importBlacklistSystem.scheduler.schedule(Duration.Zero, everyMinute, BlacklistQueue())
@@ -28,8 +27,12 @@ object Scheduler {
     val sendGoogleRescanQueue = ActorSystem("SendGoogleRescanQueue")
     sendGoogleRescanQueue.scheduler.schedule(Duration.Zero, everyHour, GoogleRescanQueue())
     
-    val addResolverRequest = ActorSystem("AddResolverRequest")
-    addResolverRequest.scheduler.schedule(Duration.Zero, resolverHours, AddResolverRequest())
+    val resolverInterval = Try(sys.env("RESOLVER_INTERVAL_HOURS").toLong).toOption
+    if (resolverInterval.isEmpty || (resolverInterval.isDefined && resolverInterval.get > 0)) {
+      val resolverHours = new FiniteDuration(resolverInterval.getOrElse(12), TimeUnit.HOURS)
+	    val addResolverRequest = ActorSystem("AddResolverRequest")
+	    addResolverRequest.scheduler.schedule(Duration.Zero, resolverHours, AddResolverRequest())
+    }
     
     val importResolverResults = ActorSystem("ImportResolverResults")
     importResolverResults.scheduler.schedule(Duration.Zero, everyMinute, ImportResolverResults())
