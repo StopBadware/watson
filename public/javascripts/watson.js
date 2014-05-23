@@ -317,18 +317,18 @@ function addAssociatedUriInput(id) {
 function associatedUriInput(index) {
 	return '<li id="associated-'+index+'" class="associated-uri" data-index="'+index+'">'+
 	'<input type="url" id="associated-uri-'+index+'" class="input-large form-control uri inline" placeholder="Associated URI">'+
-	'<select id="associated-resolved-'+index+'" class="inline form-control auto-width">'+
+	'<select id="associated-resolved-'+index+'" class="inline form-control">'+
 	'<option value="RESOLVED">Resolved</option>'+
 	'<option value="DNR">Did Not Resolve</option>'+
 	'<option value="">Unchecked</option>'+
 	'</select>'+
-	'<select id="associated-type-'+index+'" class="inline form-control auto-width">'+
+	'<select id="associated-type-'+index+'" class="inline form-control">'+
 	'<option value="PAYLOAD">Payload</option>'+
 	'<option value="INTERMEDIARY">Intermediary</option>'+
 	'<option value="LANDING">Landing</option>'+
 	'<option value="">Unknown</option>'+
 	'</select>'+
-	'<select id="associated-intent-'+index+'" class="inline form-control auto-width">'+
+	'<select id="associated-intent-'+index+'" class="inline form-control">'+
 	'<option value="HACKED">Hacked</option>'+
 	'<option value="MALICIOUS">Malicious</option>'+
 	'<option value="FREE_HOST">Free Host</option>'+

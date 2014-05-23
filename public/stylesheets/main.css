@@ -268,11 +268,11 @@ textarea.form-control {
 	margin-bottom: 0.2em;
 }
 #associated-uris li input[type=url] {
-	width: calc(100% - 406px);
+	width: calc(100% - 390px - 0.85em);
 }
-#associated-uris li input,
 #associated-uris li select {
-	margin-right: 0.25em;
+	width: 130px;
+	margin-left: 0.25em;
 }
 input[type=radio], 
 input[type=checkbox],
