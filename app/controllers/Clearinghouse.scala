@@ -9,11 +9,70 @@ import play.api.Logger
 import play.api.mvc.Controller
 import play.api.Play.current
 import org.postgresql.util.PSQLException
-import models.{AutonomousSystem, HostIpMapping}
+import models._
+import models.cr._
 
 object Clearinghouse extends Controller with ApiSecured {
   
   private val blacklistLimit = Try(sys.env("BLACKLIST_LIMIT").toInt).getOrElse(250)
+  
+  def findUri(id: Int) = withAuth { implicit request =>
+    val uri = Uri.find(id)
+    if (uri.isDefined) {
+      val u = uri.get
+      val ipMapping = Try {
+      	val hostIp = HostIpMapping.findByHost(u.reversedHost).maxBy(_.lastresolvedAt)
+      	(Some(hostIp.ip), Some(hostIp.lastresolvedAt))
+      }.getOrElse((None, None))
+      val asInfo = Try(AutonomousSystem.find(IpAsnMapping.findByIp(ipMapping._1.get).maxBy(_.lastMappedAt).asn).get).toOption
+      val json = Json.obj(
+	      "ip" -> ipMapping._1,
+	      "ip_resolved_at" -> ipMapping._2, 
+	      "asn" -> Try(asInfo.get.number).toOption, 
+	      "as_name" -> Try(asInfo.get.name).toOption, 
+	      "as_country" -> Try(asInfo.get.country).toOption,
+	  		"blacklist_events" -> blacklistEventJson(u.id),
+	  		"reviews" -> reviewsJson(u.id),
+	  		"community_reports" -> communityReportsJson(u.id)
+	    )
+    	Ok(json)
+    } else {
+      NotFound
+    }
+  }
+  
+  private def blacklistEventJson(uriId: Int): List[JsObject] = {
+    BlacklistEvent.findByUri(uriId).map { event =>
+		  Json.obj(
+	      "source" -> event.source.abbr,
+	      "status" -> event.blacklisted,
+	      "blacklisted_at" -> event.blacklistedAt,
+	      "unblacklisted_at" -> event.unblacklistedAt
+      )
+		}
+  }
+  
+  private def reviewsJson(uriId: Int): List[JsObject] = {
+    Review.findByUri(uriId).map { review =>
+		  Json.obj(
+	      "status" -> review.status.toString,
+	      "bad_code" -> Try(ReviewCode.findByReview(review.id).maxBy(_.updatedAt).badCode).toOption,
+	      "review_opened" -> review.createdAt,
+	      "review_closed" -> review.statusUpdatedAt
+      )
+		}
+  }
+  
+  private def communityReportsJson(uriId: Int): List[JsObject] = {
+    CommunityReport.findByUri(uriId).map { cr =>
+		  Json.obj(
+	      "description" -> cr.description,
+	      "bad_code" -> cr.badCode,
+	      "type" -> Try(CrType.find(cr.crTypeId.get).get.crType).toOption,
+	      "reported_at" -> cr.reportedAt
+      )
+		}
+  }
   
   def search = withAuth { implicit request =>
 	  val host = request.getQueryString("host")

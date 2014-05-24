@@ -5,6 +5,7 @@ GET  	/*path/								controllers.Application.untrail(path)
 
 # API ENDPOINTS
 GET		/clearinghouse/search				controllers.Clearinghouse.search
+GET		/clearinghouse/uris/:id				controllers.Clearinghouse.findUri(id: Int)
 GET     /reviews/counts					   	controllers.Api.counts
 GET     /blacklists/hosts				   	controllers.Api.blacklistedHosts
 GET     /asns/top						   	controllers.Api.topAsns
