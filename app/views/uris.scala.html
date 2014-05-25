@@ -1,0 +1,40 @@
+@(uris: List[controllers.Clearinghouse.ChUri], blistedBy: Map[Int, List[String]], max: Int)
+@main("URIs") {
+@if(uris.size >= max) {
+<h3 class="text-center sbw-red">Limiting display to @max closest matches</h3>
+}
+<div class="panel panel-default">
+	<div class="panel-body">
+		<form id="uris-filter" class="form-inline text-center">
+			<label class="control-label" for="search">URI or host</label>
+			<input type="text" class="form-control text-center width-375px" id="search" name="search">
+			
+			<button type="submit" id="btn-filter" class="btn btn-default form-btn">Search</button>
+		</form>
+	</div>
+	<table id="uris-table" class="table table-striped table-hover table-condensed table-sorted">
+    	<thead>
+    		<tr>
+    			<th title="Click URI to view details" class="width-75">URI</th>
+    			<th>Currently blacklisted by</th>
+    		</tr>
+    	</thead>
+    	<tbody>
+    	@uris.map { uri =>
+    		<tr>
+    			<td><a href="/uris/@uri.uriId">@uri.uri</a></td>
+    			<td>
+	   			@blistedBy(uri.uriId).map { source =>
+   					<div class="inline source-icon icon-@source.toLowerCase" title="@source.toUpperCase">
+   						<span class="vis-hidden">@source</span>
+   					</div>
+   				}
+	   			</td>
+    		</tr>
+   		}
+    	</tbody>
+   	</table>
+	@partials.noresults()
+</div>
+}
+

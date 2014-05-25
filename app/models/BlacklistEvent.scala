@@ -287,6 +287,38 @@ object BlacklistEvent {
     return unBlacklist(toUnblacklist, time)
   }
   
+  def urisBlacklistedBy(uriIds: List[Int]): Map[Int, List[Source]] = DB.withTransaction { implicit conn =>
+    import Source._
+    return try {
+      val sql = "SELECT uri_id, source FROM blacklist_events WHERE blacklisted=true AND uri_id IN (?"+(",?"*(uriIds.size-1))+")"
+      val ps = conn.prepareStatement(sql)
+      uriIds.foldLeft(1) { (i, id) =>
+        ps.setInt(i, id)
+        i + 1
+      }
+      val rs = ps.executeQuery
+      val sources = Set(GOOG, NSF, TTS)
+      val initialMap = sources.map(_ -> Set.empty[Int]).toMap
+    	val blacklisted = Iterator.continually((rs, rs.next())).takeWhile(_._2).foldLeft(initialMap) { (map, tuple) =>
+    	  val id = tuple._1.getInt("uri_id")
+    	  Source.withAbbr(tuple._1.getString("source")).get match {
+    	    case GOOG => Map(GOOG -> map(GOOG).+(id), NSF -> map(NSF), TTS -> map(TTS))
+    	    case NSF => Map(NSF -> map(NSF).+(id), GOOG -> map(GOOG), TTS -> map(TTS))
+    	    case TTS => Map(TTS -> map(TTS).+(id), GOOG -> map(GOOG), NSF -> map(NSF))
+    	    case _ => map
+    	  }
+    	}
+      uriIds.map { uriId =>
+        uriId -> sources.foldLeft(List.empty[Source]) { (list, source) =>
+          if (blacklisted(source).contains(uriId)) source +: list else list
+        }
+      }.toMap
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      Map()
+    }
+  }
+  
   private def findEventsByUri(
       uriId: Int, 
       source: Option[Source]=None,

@@ -349,7 +349,17 @@ object Application extends Controller with Secured with Cookies {
   
   def tag(name: String) = TODO	//TODO WTSN-56 view tag
   
-  def uris = TODO	//TODO WTSN-57 uris view
+  def uris = withAuth { userId => implicit request =>
+    val chUris = try {
+	    val searchFor = new ReportedUri(request.getQueryString("search").get)
+	    Try(Clearinghouse.findUrisWithSiblingsAndChildren(searchFor.uri.getHost)).getOrElse(List()).partition(_.blacklisted)
+    } catch {
+      case _: Exception => (List(), List())
+    }
+    val blistedBy = (BlacklistEvent.urisBlacklistedBy(chUris._1.map(_.uriId)) ++ chUris._2.map(_.uriId).map(_ -> List()))
+  		.map{case (id, sources) => id -> sources.map(_.abbr)}.toMap
+    Ok(views.html.uris(chUris._1 ++ chUris._2, blistedBy, limit)).withCookies(cookies(request, List("search")):_*)
+  }
   
   def uri(id: Int) = TODO	//TODO WTSN-57 view uri
   

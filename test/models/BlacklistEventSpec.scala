@@ -265,6 +265,21 @@ class BlacklistEventSpec extends Specification {
       }
     }
     
+    "find sources for currently blacklisted Uris" in {
+      running(FakeApplication()) {
+        val time = System.currentTimeMillis / 1000
+        val uriId = validUri.id
+        val sources = Set(Source.GOOG, Source.NSF, Source.TTS)
+        sources.foreach { s =>
+          BlacklistEvent.createOrUpdate(ReportedEvent(uriId, s, time, None))
+        }
+        val uriSourceMap = BlacklistEvent.urisBlacklistedBy(List(uriId))
+        uriSourceMap.nonEmpty must beTrue
+        uriSourceMap.contains(uriId) must beTrue
+        uriSourceMap(uriId).size must equalTo(sources.size)
+      }
+    }
+    
     "find currently blacklisted hosts" in {
       running(FakeApplication()) {
         val time = System.currentTimeMillis / 1000

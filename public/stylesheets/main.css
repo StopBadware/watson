@@ -305,6 +305,10 @@ input[type=checkbox]:focus {
 	width: 5em;
 	margin-left: 1em;
 }
+#uris-filter #search {
+	width: 50%;
+	text-align: left;
+}
 /* DATE PICKER */
 .form-inline .form-control.date-picker {
 	width: 15em;

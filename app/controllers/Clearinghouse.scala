@@ -125,7 +125,7 @@ object Clearinghouse extends Controller with ApiSecured {
     )
   }
   
-  def findUrisWithSiblingsAndChildren(host: String, blacklistedOnly: Boolean): List[ChUri] = {
+  def findUrisWithSiblingsAndChildren(host: String, blacklistedOnly: Boolean=false): List[ChUri] = {
     val initial = uriSearch(host, blacklistedOnly)
     if (initial.size >= blacklistLimit) {
       return initial

@@ -254,6 +254,7 @@ $(document).ready(function($) {
 	
 	var tableFilters = [{id:"#reviews-table",fields:["status", "blacklisted", "created"]},
 	                    {id:"#requests-table",fields:["status", "email", "requested"]},
+	                    {id:"#uris-table",fields:["search"]},
 	                    {id:"#crs-table",fields:["source", "reported"]}];
 	tableFilters.map(function(table) {
 		if ($(table.id).length) {
