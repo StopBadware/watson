@@ -268,7 +268,7 @@ $(document).ready(function($) {
 	
 	var tableSorts = [{id:"#blacklist-events-table",sortOn:1},
 	              {id:"#reviews-requests-table",sortOn:4},
-	              {id:"#reviews-others-table",sortOn:2},
+	              {id:"#reviews-no-uri-table",sortOn:2},
 	              {id:"#reviews-rescans-table",sortOn:3},
 	              {id:"#reviews-table",sortOn:4},
 	              {id:"#requests-table",sortOn:4},

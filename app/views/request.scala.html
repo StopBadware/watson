@@ -31,4 +31,5 @@
 	</div>
 	@partials.ajaxstatus("Unable to close review request", "Closing review request", "Review request closed")()
 	@tables.requestsummaries(otherRequests, "Other Requests for URI")
+	@tables.reviewsummaries(Review.findByUri(request.uriId))
 }

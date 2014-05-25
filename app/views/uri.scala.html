@@ -1,0 +1,49 @@
+@(uri: Uri)
+@import scala.util.Try
+@main("URI "+uri.id) {
+<div id="uri-details" class="well well-lg">
+	<h3>
+		<label>URI:</label>
+		@uri.uri
+		@partials.clipboard(uri.uri)
+	</h3>
+	@defining(Try(HostIpMapping.findByHost(uri.reversedHost).maxBy(_.lastresolvedAt)).toOption) { hostIp =>
+	<h4>
+		<label>IP:</label>
+		@if(hostIp.isDefined) {
+			@defining(hostIp.get.ip) { ip =>
+			<span title="@ip"><a href="/ips/@ip" class="ipv4">@ip</a></span>
+			}
+			<span class="ital">(as of <span class="unixtime-full">@hostIp.get.lastresolvedAt</span>)</span>
+		} else {
+			<span>Unknown</span>
+		}
+	</h4>
+	@defining(Try(AutonomousSystem.find(IpAsnMapping.findByIp(hostIp.get.ip).maxBy(_.lastMappedAt).asn).get).toOption) { asInfo =>
+	<h4>
+		<label>AS Number:</label>
+		@if(asInfo.isDefined) {
+			<a href="/asns/@asInfo.get.number">@asInfo.get.number</a>
+		} else {
+			<span>Unknown</span>
+		}
+	</h4>
+	<h4>
+		<label>AS Name:</label>
+		<span>@Try(asInfo.get.name).getOrElse("Unknown")</span>
+	</h4>
+	<h4>
+		<label>AS Country:</label>
+		<span>@Try(asInfo.get.country).getOrElse("Unknown")</span>
+	</h4>
+	}
+	}
+	
+</div>
+
+@tables.blacklistsummaries(BlacklistEvent.findByUri(uri.id))
+@tables.reviewsummaries(Review.findByUri(uri.id))
+@tables.requestsummaries(ReviewRequest.findByUri(uri.id))
+@tables.crsummaries(models.cr.CommunityReport.findSummariesByUri(uri.id))
+	
+}

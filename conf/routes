@@ -37,6 +37,8 @@ GET		/uris								controllers.Application.uris
 GET		/uris/:id							controllers.Application.uri(id: Int)
 GET		/ips								controllers.Application.ips
 GET		/ips/:ip							controllers.Application.ip(ip: Long)
+GET		/asns								controllers.Application.asns
+GET		/asns/:asn							controllers.Application.asn(asn: Int)
 GET		/crs								controllers.Application.communityReports
 GET		/crs/new							controllers.Application.newCommunityReport
 GET		/crs/:id							controllers.Application.communityReport(id: Int)

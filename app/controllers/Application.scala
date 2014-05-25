@@ -358,14 +358,25 @@ object Application extends Controller with Secured with Cookies {
     }
     val blistedBy = (BlacklistEvent.urisBlacklistedBy(chUris._1.map(_.uriId)) ++ chUris._2.map(_.uriId).map(_ -> List()))
   		.map{case (id, sources) => id -> sources.map(_.abbr)}.toMap
-    Ok(views.html.uris(chUris._1 ++ chUris._2, blistedBy, limit)).withCookies(cookies(request, List("search")):_*)
+    Ok(views.html.uris((chUris._1 ++ chUris._2).splitAt(limit)._1, blistedBy, limit)).withCookies(cookies(request, List("search")):_*)
   }
   
-  def uri(id: Int) = TODO	//TODO WTSN-57 view uri
+  def uri(id: Int) = withAuth { userId => implicit request =>
+    val uri = Uri.find(id)
+    if (uri.isDefined) {
+      Ok(views.html.uri(uri.get))
+    } else {
+      Ok(views.html.partials.modelnotfound("URI "+id))
+    }
+  }
   
   def ips = TODO	//TODO WTSN-59 ips view
   
   def ip(ip: Long) = TODO	//TODO WTSN-59 view ip
+  
+  def asns = TODO	//TODO WTSN-59 ips view
+  
+  def asn(asn: Int) = TODO	//TODO WTSN-59 view ip
   
   def responses = withAuth { userId => implicit request =>
     Ok(views.html.responses(User.find(userId.get).get))

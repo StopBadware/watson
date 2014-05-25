@@ -1,0 +1,36 @@
+@(reviews: List[Review], title: String="Reviews")
+<div class="panel panel-default">
+	<div class="panel-heading">
+		<h3 class="panel-title">@title</h3>
+	</div>
+	<table id="reviews-no-uri-table" class="table table-striped table-hover table-condensed table-sorted">
+    	<thead>
+    		<tr>
+    			<th title="click to view full review">ID</th>
+    			<th>Tags</th>
+    			<th>Created At</th>
+    			<th>Status Updated</th>
+    			<th>Status</th>
+    		</tr>
+    	</thead>
+    	<tbody>
+    	@defining(ReviewTag.find((reviews).map(_.reviewTags).flatten.distinct).map(t => (t.id, t)).toMap) { tags =>
+    	@reviews.map { review =>
+			<tr class="text-center">
+				<td><a href="/reviews/@review.id">@review.id</a></td>
+				<td>
+				@review.reviewTags.map { tagId =>
+					@defining(tags(tagId)) { tag =>
+   					<a href="/tags/@tag.name" class="no-dec"><span class="tag" data-tagbg="@tag.hexColor">@tag</span></a>
+ 					}
+ 				}
+  				</td>
+				<td class="unixtime text-right">@review.createdAt</td>
+				@if(review.statusUpdatedAt!=review.createdAt){<td class="unixtime text-right">@review.statusUpdatedAt</td>}else{<td></td>}
+				<td class="enum">@review.status</td>
+			</tr>			
+		}
+		}
+    	</tbody>
+   	</table>
+</div>	
