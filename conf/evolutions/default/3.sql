@@ -11,10 +11,10 @@ CREATE TABLE email_templates (
 );
 
 INSERT INTO email_templates (name, subject, body) VALUES  
-  ('NoLongerBlacklisted', '[StopBadware] replace me', 'Use [URI] and/or [SAFE_URI] to insert links to URI or Clearinghouse entry'), 
-  ('ReviewClosedBad', '[StopBadware] replace me', 'Use [URI] and/or [SAFE_URI] to insert links to URI or Clearinghouse entry and [BAD_CODE] for comments from reviewer'),
-  ('ReviewClosedCleanTts', '[StopBadware] replace me', 'Use [URI] and/or [SAFE_URI] to insert links to URI or Clearinghouse entry'), 
-  ('ReviewRequestReceived', '[StopBadware] replace me', 'Use [URI] and/or [SAFE_URI] to insert links to URI or Clearinghouse entry');
+  ('NoLongerBlacklisted', '[StopBadware] NoLongerBlacklisted', 'Use [URI] and/or [SAFE_URI] to insert links to URI or Clearinghouse entry'), 
+  ('ReviewClosedBad', '[StopBadware] ReviewClosedBad', 'Use [URI] and/or [SAFE_URI] to insert links to URI or Clearinghouse entry and [BAD_CODE] for comments from reviewer'),
+  ('ReviewClosedCleanTts', '[StopBadware] ReviewClosedCleanTts', 'Use [URI] and/or [SAFE_URI] to insert links to URI or Clearinghouse entry'), 
+  ('ReviewRequestReceived', '[StopBadware] ReviewRequestReceived', 'Use [URI] and/or [SAFE_URI] to insert links to URI or Clearinghouse entry');
 
 # --- !Downs
 
