@@ -235,16 +235,6 @@ object Uri {
     }
   }   
   
-  def findByHierarchicalPart(hierarchicalPart: String): List[Uri] = DB.withConnection { implicit conn =>
-    return try {
-      val rs = SQL("SELECT * FROM uris WHERE hierarchical_part={hierarchicalPart}").on("hierarchicalPart"->hierarchicalPart).apply()
-      if (rs.nonEmpty) rs.map(mapFromRow).flatten.toList else List()
-    } catch {
-      case e: PSQLException => Logger.error(e.getMessage)
-      List()
-    }    
-  }
-  
   private def mapFromRow(row: SqlRow): Option[Uri] = {
     return Try {  
 	    Uri(

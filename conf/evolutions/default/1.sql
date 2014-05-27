@@ -29,7 +29,6 @@ CREATE TABLE uris (
 );
 
 CREATE INDEX ON uris (reversed_host);
-CREATE INDEX ON uris (hierarchical_part);
 
 CREATE TABLE sources (
   abbr SOURCE PRIMARY KEY,
@@ -101,7 +100,6 @@ CREATE TABLE reviews (
 
 CREATE INDEX ON reviews (uri_id);
 CREATE INDEX ON reviews (status, created_at, status_updated_at);
-CREATE INDEX ON reviews (reviewed_by, verified_by);
 
 CREATE TABLE review_taggings (
   review_id INTEGER NOT NULL REFERENCES reviews (id) ON DELETE CASCADE,
@@ -145,7 +143,6 @@ CREATE TABLE review_code (
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX ON review_code (review_id);
 CREATE INDEX ON review_code (exec_sha2_256);
 
 CREATE TABLE review_requests (

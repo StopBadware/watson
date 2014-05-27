@@ -92,18 +92,6 @@ class UriSpec extends Specification {
       }
     }     
     
-    "find Uris by hierarchical part" in {
-      running(FakeApplication()) {
-        val reported = reportedUri
-      	Uri.create(reported) must beTrue
-      	val foundByHp = Uri.findByHierarchicalPart(reported.hierarchicalPart)
-      	foundByHp.nonEmpty must beTrue
-      	val foundBySha = Uri.findBySha256(reported.sha256)
-      	foundBySha must beSome
-      	foundByHp.contains(foundBySha.get) must beTrue
-      }
-    }    
-    
     "find or create a Uri" in {
       running(FakeApplication()) {
         val reported = reportedUri
