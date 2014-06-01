@@ -123,6 +123,11 @@ $(document).ready(function($) {
 		toggleRole($(this).data("user-id"), $(this).data("role"));
 	});
 	
+	$(".toggle-abusive").click(function() {
+		$(this).focus().blur();
+		toggleAbusive($(this).data("email"));
+	});
+	
 	$(".edit-email-template").click(function() {
 		toggleEmailTemplateInputs($(this).data("template"), true);
 	});
@@ -705,7 +710,9 @@ function toggleResponse(id) {
 
 function toggleRole(userId, role) {
 	var button = $("."+userId+"-"+role);
-	var hasRole = button.hasClass("btn-success");
+	var hasRoleClass = "btn-success";
+	var doesNotHaveRoleClass = "btn-default";
+	var hasRole = button.hasClass(hasRoleClass);
 	var obj = {
 		"user_id": userId,
 		"role": role,
@@ -716,11 +723,36 @@ function toggleRole(userId, role) {
 		data: JSON.stringify(obj)
 	}).done(function() {
 		if (hasRole) {
-			button.addClass("btn-default");
-			button.removeClass("btn-success");
+			button.addClass(doesNotHaveRoleClass);
+			button.removeClass(hasRoleClass);
 		} else {
-			button.addClass("btn-success");
-			button.removeClass("btn-default");
+			button.addClass(hasRoleClass);
+			button.removeClass(doesNotHaveRoleClass);
+		}
+	}).fail(function(res) {
+		alert("Toggle failed");
+	});
+}
+
+function toggleAbusive(email) {
+	var button = $("#"+email.replace(/[@.]/g, '-'));
+	var flaggedClass = "btn-danger";
+	var unflaggedClass = "btn-default";
+	var flagAbusive = button.hasClass(unflaggedClass);
+	var obj = {
+		"email": email,
+		"flag": flagAbusive
+	};
+	appRoute.toggleAbusive().ajax({
+		contentType: jsonContentType,
+		data: JSON.stringify(obj)
+	}).done(function() {
+		if (flagAbusive) {
+			button.addClass(flaggedClass);
+			button.removeClass(unflaggedClass);
+		} else {
+			button.addClass(unflaggedClass);
+			button.removeClass(flaggedClass);
 		}
 	}).fail(function(res) {
 		alert("Toggle failed");

@@ -39,8 +39,10 @@
     			@defining(if (AbusiveRequester.isFlagged(email)) "btn-danger" else "btn-default") { btnType =>
     			<td title="@hovertext" class="text-center">
     				<span class="non-vis">@btnType</span> @(/* give the sorter something to sort with */)
-    				<button data-email="@email" type="button" class="btn @btnType btn-xs toggle-abusive @email-flagged" @disabled>
+    				@defining(email.replaceAll("[.@]", "-")) { id =>
+    				<button id="@id" data-email="@email" type="button" class="btn @btnType btn-xs toggle-abusive" @disabled>
     				</button>
+    				}
    				</td>
     			}
     			<td title="Click to view requests"><a href="/requests?status=all&email=@email">@email</a></td>

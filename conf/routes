@@ -58,6 +58,7 @@ POST	/requests/closerequest				controllers.Application.closeReviewRequest
 POST	/requests/closerequests				controllers.Application.closeReviewRequests
 POST	/requests/addresponse				controllers.Application.addResponse
 POST	/requests/toggleresponse			controllers.Application.toggleResponse
+POST	/requests/toggleabusive				controllers.Application.toggleAbusive
 POST	/reviews/updatestatus				controllers.Application.updateReviewStatus
 POST	/reviews/updatetestdata				controllers.Application.updateReviewTestData
 POST	/crs/submit							controllers.Application.submitCommunityReports
