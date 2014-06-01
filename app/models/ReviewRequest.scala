@@ -128,33 +128,37 @@ object ReviewRequest {
     }
     
     if (created) {
-      val uri = Uri.find(uriId)
-      if (uri.isDefined) {
-	      Mailer.sendReviewRequestReceived(email, uri.get.uri)
-	      if (uri.get.isBlacklistedBy(Source.GOOG)) {
-	      	Redis.addToGoogleRescanQueue(uri.get.uri)
+      Uri.find(uriId).foreach { uri =>
+	      Mailer.sendReviewRequestReceived(email, uri.uri)
+	      if (uri.isBlacklistedBy(Source.GOOG)) {
+	      	Redis.addToGoogleRescanQueue(uri.uri)
 	      }
       }
+      
+      if (AbusiveRequester.isFlagged(email)) {
+        findMostRecentByUriAndEmail(uriId, email).get.close(ClosedReason.ABUSIVE)
+      }
     }
-    created
+    return created
   }
   
   def createAndFind(
-    uriId: Int,
-    email: String,
-    ip: Option[Long]=None,
-    notes: Option[String]=None): Option[ReviewRequest] = DB.withConnection { implicit conn =>
-      val created = create(uriId, email, ip, notes)
-      if (created) {
-      	Try(mapFromRow(SQL("""SELECT * FROM review_requests WHERE uri_id={uriId} AND email={email} AND open=true 
-    	    ORDER BY requested_at DESC LIMIT 1""").on("uriId" -> uriId, "email" -> email)().head)).getOrElse(None)
-      } else {
-        None
-      }
-    }
+	    uriId: Int,
+	    email: String,
+	    ip: Option[Long]=None,
+	    notes: Option[String]=None
+	    ): Option[ReviewRequest] = DB.withConnection { implicit conn =>
+    val created = create(uriId, email, ip, notes)
+    return if (created) findMostRecentByUriAndEmail(uriId, email) else None
+  }
   
   def find(id: Int): Option[ReviewRequest] = DB.withConnection { implicit conn =>
     return Try(mapFromRow(SQL("SELECT * FROM review_requests WHERE id={id}").on("id" -> id)().head)).getOrElse(None)
+  }
+  
+  private def findMostRecentByUriAndEmail(uriId: Int, email: String): Option[ReviewRequest] = DB.withConnection { implicit conn =>
+    return Try(mapFromRow(SQL("""SELECT * FROM review_requests WHERE uri_id={uriId} AND email={email}  
+    	    ORDER BY requested_at DESC LIMIT 1""").on("uriId" -> uriId, "email" -> email)().head)).getOrElse(None)
   }
   
   def findByUri(uriId: Int): List[ReviewRequest] = DB.withConnection { implicit conn =>

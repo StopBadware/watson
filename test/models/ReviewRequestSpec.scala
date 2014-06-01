@@ -48,6 +48,29 @@ class ReviewRequestSpec extends Specification {
       }
     }
     
+    "create and immediately close review request as abusive if requester flagged" in {
+      running(FakeApplication()) {
+        val uri = validUri
+        val flaggedEmail = "abusive@example.com"
+        val userId = {
+          val testEmail = sys.env("TEST_EMAIL")
+				  if (User.findByEmail(testEmail).isEmpty) {
+				    User.create(testEmail.split("@").head, testEmail)
+				  }
+			    val user = User.findByEmail(testEmail).get
+			    user.addRole(models.enums.Role.VERIFIER)
+			    user.id
+        }
+        AbusiveRequester.flag(flaggedEmail, userId)
+        AbusiveRequester.isFlagged(flaggedEmail) must beTrue
+        ReviewRequest.findByUri(uri.id).isEmpty must beTrue
+        val request = ReviewRequest.createAndFind(uri.id, flaggedEmail)
+        request must beSome
+        request.get.open must beFalse
+        request.get.closedReason.get must equalTo(ClosedReason.ABUSIVE)
+      }
+    }
+    
     "do not create a review request with invalid email" in {
       running(FakeApplication()) {
         val uri = validUri
