@@ -25,6 +25,7 @@ GET		/requests							controllers.Application.requests
 GET		/requests/new						controllers.Application.newReviewRequest
 GET		/requests/responses					controllers.Application.responses
 GET		/requests/responses/new				controllers.Application.newQuestion
+GET		/requests/requesters				controllers.Application.requesters
 GET		/requests/:id						controllers.Application.request(id: Int)
 GET     /welcome                       		controllers.Application.welcome
 GET     /register                       	controllers.Application.register

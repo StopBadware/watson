@@ -254,6 +254,7 @@ $(document).ready(function($) {
 	
 	var tableFilters = [{id:"#reviews-table",fields:["status", "blacklisted", "created"]},
 	                    {id:"#requests-table",fields:["status", "email", "requested"]},
+	                    {id:"#requesters-table",fields:["email", "requested"]},
 	                    {id:"#uris-table",fields:["search"]},
 	                    {id:"#crs-table",fields:["source", "reported"]}];
 	tableFilters.map(function(table) {
@@ -272,6 +273,7 @@ $(document).ready(function($) {
 	              {id:"#reviews-rescans-table",sortOn:3},
 	              {id:"#reviews-table",sortOn:4},
 	              {id:"#requests-table",sortOn:4},
+	              {id:"#requesters-table",sortOn:8},
 	              {id:"#crs-table",sortOn:3}];
 	tableSorts.map(function(table) {
 		initSortTable(table.id, table.sortOn);

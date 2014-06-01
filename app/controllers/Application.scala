@@ -170,12 +170,12 @@ object Application extends Controller with Secured with Cookies {
     val status = request.getQueryString("status").getOrElse("open")
     val times = PostgreSql.parseTimes(request.getQueryString("requested").getOrElse(""))
     val email = request.getQueryString("email").getOrElse("")
-    val find = if (status.matches("open")) {
-      ReviewRequest.findOpen(Some(times))
-    } else {
-      ReviewRequest.findByClosedReason(ClosedReason.fromStr(status), times, limit)
+    val find = status match {
+      case "open" => ReviewRequest.findOpen(Some(times))
+      case "all" => ReviewRequest.findOpen(Some(times)) ++ ReviewRequest.findByClosedReason(None, times, limit)
+      case _ => ReviewRequest.findByClosedReason(ClosedReason.fromStr(status), times, limit)
     }
-    val requests = if (email.nonEmpty) find.filter(_.email.equalsIgnoreCase(email)) else find
+    val requests = (if (email.nonEmpty) find.filter(_.email.equalsIgnoreCase(email)) else find).splitAt(limit)._1
     val uris = Uri.find(requests.map(_.uriId)).map(uri => (uri.id, uri.uri.toString)).toMap
     Ok(views.html.requests(requests, uris, limit, User.find(userId.get).get))
     	.withCookies(cookies(request, List("status", "email", "requested")):_*)
@@ -374,9 +374,17 @@ object Application extends Controller with Secured with Cookies {
   
   def ip(ip: Long) = TODO	//TODO WTSN-59 view ip
   
-  def asns = TODO	//TODO WTSN-59 ips view
+  def asns = TODO	//TODO WTSN-60 asns view
   
-  def asn(asn: Int) = TODO	//TODO WTSN-59 view ip
+  def asn(asn: Int) = TODO	//TODO WTSN-60 view asn
+  
+  def requesters = withAuth { userId => implicit request =>
+    val email = request.getQueryString("email")
+    val times = PostgreSql.parseTimes(request.getQueryString("requested").getOrElse(""))
+    val requesters = ReviewRequest.findGroupedByRequester(times, email, limit)
+    Ok(views.html.requesters(requesters, limit, User.find(userId.get).get))
+    	.withCookies(cookies(request, List("email", "requested")):_*)
+  }
   
   def responses = withAuth { userId => implicit request =>
     Ok(views.html.responses(User.find(userId.get).get))

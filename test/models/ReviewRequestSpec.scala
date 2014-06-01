@@ -48,7 +48,7 @@ class ReviewRequestSpec extends Specification {
       }
     }
     
-    "not create a review request with invalid email" in {
+    "do not create a review request with invalid email" in {
       running(FakeApplication()) {
         val uri = validUri
         ReviewRequest.create(uri.id, "") must beFalse
@@ -165,6 +165,20 @@ class ReviewRequestSpec extends Specification {
         val closed = ReviewRequest.findByClosedReason(Some(ClosedReason.ADMINISTRATIVE), PostgreSql.parseTimes(""))
         closed.nonEmpty must beTrue
         closed.map(_.id).contains(rr.id) must beTrue
+      }
+    }
+    
+    "group review requests by email with counts" in {
+      running(FakeApplication()) {
+        ClosedReason.reasons.values.foreach(request.close(_))
+        val grouped = ReviewRequest.findGroupedByRequester(PostgreSql.parseTimes(""))
+        grouped.nonEmpty must beTrue
+        grouped.contains(email) must beTrue
+        val requests = grouped(email)
+        ClosedReason.reasons.keys.map(requests.contains(_) must beTrue)
+        requests.contains("OPEN") must beTrue
+        requests.contains("TOTAL") must beTrue
+        ReviewRequest.findGroupedByRequester(PostgreSql.parseTimes(""), Some(email)).nonEmpty must beTrue
       }
     }
     

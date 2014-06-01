@@ -197,6 +197,29 @@ object ReviewRequest {
       case e: PSQLException => Logger.error(e.getMessage)
       List()
     }
+  }
+  
+  def findGroupedByRequester(times: (Timestamp, Timestamp), email: Option[String]=None, limit: Int=500): Map[String, Map[String, Int]] = DB.withConnection { implicit conn =>
+    return try {
+      val reviewRequests = SQL("SELECT * FROM review_requests WHERE requested_at BETWEEN {start} AND {end} " +
+        (if (email.isDefined && email.get.nonEmpty) "AND email={email} " else "") +
+        "ORDER BY requested_at DESC, email ASC LIMIT {limit}")
+      	.on("start" -> times._1, 
+      	    "end" -> times._2,
+      	    "email" -> email,
+      	    "limit" -> limit * 10)()
+  	    .map(mapFromRow).toList.flatten
+      reviewRequests.groupBy(_.email).map { case (email, allRequests) =>
+        val openClosed = allRequests.partition(_.open)
+        val closed = openClosed._2.groupBy(_.closedReason).map { case (reason, requests) =>
+        	reason.get.toString -> requests.size
+        }
+        email -> (closed ++ Map("OPEN" -> openClosed._1.size, "TOTAL" -> allRequests.size))
+      }.splitAt(limit)._1
+    } catch {
+      case e: PSQLException => Logger.error(e.getMessage)
+      Map()
+    }
   }  
   
   def findOpen(times: Option[(Timestamp, Timestamp)]=None): List[ReviewRequest] = DB.withConnection { implicit conn =>

@@ -1,0 +1,52 @@
+@(requesters: Map[String, Map[String, Int]], max: Int, user: User)
+@import models.enums.{ClosedReason, Role}
+@main("Requests") {
+@if(requesters.size >= max) {
+<h3 class="text-center sbw-red">Limiting display to requesters with the @max most recent requests</h3>
+}
+<div class="panel panel-default">
+	<div class="panel-body">
+		<form id="requesters-filter" class="form-inline text-center">
+			<label class="control-label" for="email">Email</label>
+			<input type="email" class="form-control" id="email" name="email">	
+			
+			<label class="control-label" for="requested">Requested</label>
+			<input type="text" class="form-control date-picker text-center" id="requested" name="requested">
+			
+			<button type="submit" id="btn-filter" class="btn btn-default form-btn">Filter</button>
+		</form>
+	</div>
+	<table id="requesters-table" class="table table-striped table-hover table-condensed table-sorted">
+    	<thead>
+    		<tr>
+    			<th title="New Review Requests from flagged email addresses are automatically closed as abusive">Flagged</th>
+    			<th title="Click email to view requests">Email</th>
+    			<th title="Number of Review Requests not yet reviewed">Open</th>
+    			<th title="Number of Review Requests with confirmed badware">Reviewed<br />Bad</th>
+    			<th title="Number of Review Requests without badware">Reviewed<br />Clean</th>
+    			<th title="Number of Review Requests closed due to no longer blacklisted by any partner">No Partners<br />Reporting</th>
+    			<th title="Number of Review Requests closed as abusive">Abusive</th>
+    			<th title="Number of Review Requests closed without review for non-abusive reasons">Administrative</th>
+    			<th title="Total number of reviews requested">Total</th>
+    		</tr>
+    	</thead>    	
+    	<tbody>
+    	@requesters.map { case (email, requests) =>
+    		<tr>
+    			<td></td>
+    			<td title="Click to view requests"><a href="/requests?status=all&email=@email">@email</a></td>
+    			<td>@requests("OPEN")</td>
+    			<td>@requests.get(ClosedReason.REVIEWED_BAD.toString)</td>
+    			<td>@requests.get(ClosedReason.REVIEWED_CLEAN.toString)</td>
+    			<td>@requests.get(ClosedReason.NO_PARTNERS_REPORTING.toString)</td>
+    			<td>@requests.get(ClosedReason.ABUSIVE.toString)</td>
+    			<td>@requests.get(ClosedReason.ADMINISTRATIVE.toString)</td>
+    			<td>@requests("TOTAL")</td>
+    		</tr>
+   		}
+    	</tbody>
+   	</table>
+	@partials.noresults()
+</div>
+}
+
