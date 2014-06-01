@@ -69,7 +69,7 @@ class SchedulerSpec extends Specification with JsonMapper {
       }      
     }
     
-    "submit resolver request" in {
+    "add resolver request to queue" in {
       running(FakeApplication()) {
         AddResolverRequest().addResolveRequestToQueue() must beTrue
       }      

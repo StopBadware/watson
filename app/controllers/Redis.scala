@@ -10,6 +10,7 @@ import models.enums.Source
 object Redis extends Controller {
   
   private val googleRescanQueue = "GOOG_RESCAN_QUEUE"
+  private val resolverQueue = "RESOLVER_QUEUE"
   private val resolverResults = "RESOLVER_RESULTS"
   private val redisUrl = new URI(sys.env("REDIS_URL"))
   private lazy val redisPw = redisUrl.getUserInfo match {
@@ -42,7 +43,7 @@ object Redis extends Controller {
   }
   
   def addToGoogleRescanQueue(uri: String): Boolean = {
-    return pool.withClient(_.sadd(googleRescanQueue, uri)) == Some(1)
+    return pool.withClient(_.sadd(googleRescanQueue, uri)).equals(Some(1))
   }  
   
   def getGoogleRescanQueue: Set[String] = {
@@ -56,6 +57,17 @@ object Redis extends Controller {
       }
     }
   }
+  
+  def setResolverQueue(hosts: List[String]): Boolean = {
+    pool.withClient(_.del(resolverQueue))
+    return hosts.size match {
+      case 0 => false
+      case 1 => pool.withClient(_.sadd(resolverQueue, hosts.head)).getOrElse(0L) == 1L
+      case _ => pool.withClient(_.sadd(resolverQueue, hosts.head, hosts.tail:_*)).getOrElse(0L) > 0L
+    }
+  }
+  
+  def getResolverQueue: Set[String] = pool.withClient(_.smembers(resolverQueue)).get.flatten
   
   def addResolverResults(json: String): Boolean = set(resolverResults, json)
   

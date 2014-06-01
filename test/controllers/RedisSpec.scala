@@ -15,6 +15,11 @@ class RedisSpec extends Specification with AfterExample {
   sequential	//running in parallel can cause tests to overwrite each other (or be removed while still needed)
   private val source = Source.GOOG
   private val url = "example.com"
+  private val resolveHosts = List(
+    "example.com", 
+    "example"+System.nanoTime.toHexString+".com",
+    "example"+System.currentTimeMillis.toHexString+".com"
+  )
     
   def after = Redis.blacklistTimes(source).foreach(Redis.dropBlacklist(source, _))
   
@@ -63,6 +68,16 @@ class RedisSpec extends Specification with AfterExample {
       val queue = Redis.getGoogleRescanQueue
       queue.nonEmpty must beTrue
       queue.contains(str) must beTrue
+    }
+    
+    "add to resolver queue" in {
+      Redis.setResolverQueue(resolveHosts) must beTrue
+    }
+    
+    "get resolver queue" in {
+      val hosts = Redis.getResolverQueue
+      hosts.nonEmpty must beTrue
+      resolveHosts.map(host => hosts.contains(host) must beTrue)
     }
     
   }

@@ -65,7 +65,7 @@ object Api extends Controller with ApiSecured with JsonMapper {
   }
 	
 	def blacklistedHosts = withAuth { implicit request =>
-    Ok(Json.obj("hosts" -> BlacklistEvent.blacklistedHosts))
+    Ok(Json.obj("hosts" -> Redis.getResolverQueue))
   }
 	
 	def topIps = withAuth { implicit request =>

@@ -93,7 +93,14 @@ case class AddResolverRequest() extends Runnable {
   def addResolveRequestToQueue(): Boolean = {
     val client = new Client(ironMqProjectId, ironMqToken, cloud)
     val queue = client.queue("resolve_queue")
-    val added = Try(queue.push("WTSN")).isSuccess
+    
+    val queued = Redis.setResolverQueue(BlacklistEvent.blacklistedHosts)
+    val added = if (queued) {
+      Try(queue.push("WTSN")).isSuccess
+    } else {
+      Logger.error("Queuing hosts to resovle failed")
+      false
+    }
     
     if (added) {
       Logger.info("Added resolve request for WTSN to resolver queue")
