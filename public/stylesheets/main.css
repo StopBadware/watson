@@ -207,6 +207,9 @@ td a {
 #requesters-table td {
 	text-align: right;
 }
+#requesters-table td.text-center {
+	text-align: center;
+}
 #users th,
 #responded-request-responses th,
 #all-request-responses th {
@@ -299,13 +302,18 @@ input[type=checkbox]:focus {
 #add-request-response input {
 	margin-bottom: 0.5em;
 }
+.toggle-abusive,
 .toggle-role {
 	height: 100%;
 	min-height: 1.25em;
 }
+.toggle-abusive,
 .toggle-role,
 .toggle-response {
 	width: 5em;
+}
+.toggle-role,
+.toggle-response {
 	margin-left: 1em;
 }
 #uris-filter #search {

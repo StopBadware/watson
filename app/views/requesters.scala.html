@@ -4,6 +4,9 @@
 @if(requesters.size >= max) {
 <h3 class="text-center sbw-red">Limiting display to requesters with the @max most recent requests</h3>
 }
+@defining(user.hasRole(Role.VERIFIER) || user.hasRole(Role.ADMIN)) { canModify =>
+@defining(if (canModify) "" else "disabled") { disabled =>
+@defining(if (canModify) "Click to toggle" else "VERIFIER or ADMIN role required to change") { hovertext =>
 <div class="panel panel-default">
 	<div class="panel-body">
 		<form id="requesters-filter" class="form-inline text-center">
@@ -33,7 +36,13 @@
     	<tbody>
     	@requesters.map { case (email, requests) =>
     		<tr>
-    			<td></td>
+    			@defining(if (AbusiveRequester.isFlagged(email)) "btn-danger" else "btn-default") { btnType =>
+    			<td title="@hovertext" class="text-center">
+    				<span class="non-vis">@btnType</span> @(/* give the sorter something to sort with */)
+    				<button data-email="@email" type="button" class="btn @btnType btn-xs toggle-abusive @email-flagged" @disabled>
+    				</button>
+   				</td>
+    			}
     			<td title="Click to view requests"><a href="/requests?status=all&email=@email">@email</a></td>
     			<td>@requests("OPEN")</td>
     			<td>@requests.get(ClosedReason.REVIEWED_BAD.toString)</td>
@@ -49,4 +58,6 @@
 	@partials.noresults()
 </div>
 }
-
+}
+}
+}
