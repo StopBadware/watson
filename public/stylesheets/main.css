@@ -5,8 +5,11 @@ h1,
 option {
 	color: #2B373A;
 }
-label {
+label,
+.watson-dark-green {
 	color: #566F75;
+}
+label {
 	font-size: 1.2em;
 }
 h3 label,

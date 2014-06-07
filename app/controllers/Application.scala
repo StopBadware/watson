@@ -7,6 +7,7 @@ import play.api.libs.json._
 import play.api.cache.Cache
 import play.api.Play.current
 import scala.util.Try
+import scalaj.http.Http
 import routes.javascript._
 import models._
 import models.cr._
@@ -480,6 +481,37 @@ object Application extends Controller with Secured with Cookies {
     } else {
       Unauthorized
     }
+  }
+  
+  def googleSbd = withAuth { userId => implicit request =>
+    Ok(views.html.googlesbd())
+  }
+  
+  def checkSbd = withAuth { userId => implicit request =>
+    val json = request.body.asJson
+    val uris = Try(json.get.\("uris").as[String].split("\n").toList).getOrElse(List())
+    if (json.isDefined && uris.nonEmpty) {
+      val sbdUri = "https://sb-ssl.google.com/safebrowsing/api/lookup?client=watsonsbw&apikey=" +
+    		sys.env("GOOG_SBD_KEY") + "&appver=1&pver=3.0"
+  		val results = uris.grouped(500).foldLeft(Map.empty[String, String]) { (map, group) =>
+	    	val body = (group.+:(group.size)).mkString("\n")
+	    	val request = Http.postData(sbdUri, body)
+	    	map ++ (request.responseCode match {
+	    	  case 200 => {
+	    	    val verdicts = request.asString.split("\n").toList
+	    	    verdicts.indices.map(i => group(i) -> verdicts(i)).toMap
+	    	  }
+	    	  case 204 => group.map(_ -> "ok").toMap
+	    	  case _ => {
+	    	    Logger.error("Received HTTP status " + request.responseCode + " checking Google SBD")
+	    	    Map.empty[String, String]
+	    	  }
+	    	})
+      }
+      Ok(Json.obj("results" -> results))
+    } else {
+      BadRequest
+    }
   }  
   
   def emailTemplates = withAuth { userId => implicit request =>
@@ -622,6 +654,7 @@ object Application extends Controller with Secured with Cookies {
       routes.javascript.Application.toggleRole,
       routes.javascript.Application.sendEmailTemplatePreview,
       routes.javascript.Application.updateEmailTemplate,
+      routes.javascript.Application.checkSbd,
       routes.javascript.Application.addToRescanQueue
 		)).as("text/javascript")
   }

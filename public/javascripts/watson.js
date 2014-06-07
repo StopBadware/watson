@@ -99,6 +99,13 @@ $(document).ready(function($) {
 		addCommunityReports(uris, description, badCode, crType, crSource)
 	});
 	
+	$(".goog-sbd-box").submit(function(e) {
+		e.preventDefault();
+		var uris = $("#"+this.id+" #uris").val();
+		$("#"+this.id+" button").focus().blur();
+		checkSBD(uris, "#goog-sbd-results");
+	});
+	
 	$("#add-request-response").submit(function(e) {
 		e.preventDefault();
 		$("#"+this.id+" button").focus().blur();
@@ -870,6 +877,44 @@ function addToRescanQueue(uris) {
 		} else {
 			$(ajaxStatus+".alert-msg").text("URI required!");
 			$(ajaxStatus+".form-alert").show();
+		}
+	}
+}
+
+function checkSBD(uris, resultsId) {
+	if ($(".form-info").is(":hidden")) {
+		$(resultsId).hide();
+		var hasUris = uris && uris.length > 0;
+		if (hasUris) {
+			$(".form-alert, .form-success").hide();
+			$(".form-info").show();
+			var obj = {
+				"uris": uris
+			};
+			appRoute.checkSbd().ajax({
+				contentType: jsonContentType,
+				data: JSON.stringify(obj)
+			}).done(function(res) {
+				$(resultsId + " tbody tr").remove();
+				var results = res.results;
+				for (var uri in results) {
+					var verdict = results[uri];
+					var verdictClass = (verdict.indexOf("ok") == 0) ? "watson-dark-green" : "sbw-red";
+					var row = "<tr><td class='"+verdictClass+"'>"+verdict+"</td>"+
+						"<td><a href='https://www.google.com/safebrowsing/diagnostic?site="+uri+"'>"+uri+"</a></td></tr>";
+					$(resultsId + " tbody").append(row);
+				}
+				$(".form-info").hide();
+				$(resultsId).show();
+			}).fail(function() {
+				$(".alert-msg").text("Lookup failed");
+				$(".form-alert").show();
+			}).always(function() {
+				$(".form-info").hide();
+			});
+		} else {
+			$(".alert-msg").text("At least one URI is required!");
+			$(".form-alert").show();
 		}
 	}
 }

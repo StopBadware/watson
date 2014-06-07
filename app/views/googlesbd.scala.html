@@ -1,0 +1,27 @@
+@main("Google Blacklist Lookup") {
+<div class="well well-lg watson-green-bg text-center">
+	<form id="goog-sbd-lookup" class="form-box form-horizontal goog-sbd-box" role="form">
+		<div id="uris-form-group" class="form-group">
+			<label class="control-label col-md-1" for="uris">URIs</label>
+			<div class="col-md-11">
+				<textarea id="uris" class="input-large form-control has-char-counter sbd-uris" rows="10" maxlength="4096" name="uris" spellcheck="false" placeholder="One URI per line (scheme optional, 5000 URIs maximum)" autofocus></textarea>
+				@partials.charcounter("uris", 4096)
+			</div>
+		</div>
+		<button type="submit" id="btn-sbd-lookup" class="btn btn-default form-btn">Check URIs</button>
+	</form>
+</div>
+@partials.ajaxstatus("Lookup failed", "Checking URIs", "Lookup complete!")()
+<div id="goog-sbd-results" class="panel panel-default">
+    <table id="goog-sbd-table" class="table table-striped table-hover table-condensed table-sorted">
+    	<thead>
+    		<tr>
+    			<th>Status</th>
+    			<th title="Click to view Safe Browsing Diagnostics results">URI</th>
+    		</tr>
+    	</thead>
+    	<tbody>
+    	</tbody>
+    </table>
+</div>
+}
