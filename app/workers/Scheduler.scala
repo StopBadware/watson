@@ -98,14 +98,14 @@ case class AddResolverRequest() extends Runnable {
     val added = if (queued) {
       Try(queue.push("WTSN")).isSuccess
     } else {
-      Logger.error("Queuing hosts to resovle failed")
+      Logger.error("Queuing hosts to resolve failed")
       false
     }
     
     if (added) {
       Logger.info("Added resolve request for WTSN to resolver queue")
     } else {
-    	Logger.error("Adding message to resovler queue failed")
+    	Logger.error("Adding message to resolver queue failed")
     }
     return added
   }
