@@ -483,6 +483,10 @@ object Application extends Controller with Secured with Cookies {
     }
   }
   
+  def utilities = withAuth { userId => implicit request =>
+    Ok(views.html.utilities())
+  }  
+  
   def googleSbd = withAuth { userId => implicit request =>
     Ok(views.html.googlesbd())
   }

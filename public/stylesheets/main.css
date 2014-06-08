@@ -17,6 +17,9 @@ h4 label {
 	font-size: 1em;
 	padding-right: 0.2em;
 }
+#hashes label {
+	padding-right: 0.5em;
+}
 .sbw-red {
 	color: #E34125;
 }
@@ -76,6 +79,9 @@ a,
 .margin-top-1em {
 	margin-top: 1em;
 }
+.margin-top-2em {
+	margin-top: 2em;
+}
 .with-top-border {
 	border-top-style: solid;
 	border-top-width: thin;
@@ -83,6 +89,12 @@ a,
 }
 .auto-width {
 	width: auto;
+}
+.width-25 {
+	width: 25%;
+}
+.width-40 {
+	width: 40%;
 }
 .width-50 {
 	width: 50%;

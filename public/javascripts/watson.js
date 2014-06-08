@@ -238,6 +238,59 @@ $(document).ready(function($) {
 		}
 	});
 	
+	$("#whois-form").submit(function(e) {
+		e.preventDefault();
+		$("button").focus().blur();
+		//TODO WTSN-22
+	});
+	
+	$("#ip-long").keyup(function() {
+		$("#ip-dots").val(longToDots($(this).val()));
+	});
+	
+	$("#ip-dots").keyup(function() {
+		$("#ip-long").val(dotsToLong($(this).val()));
+	});
+	
+	$("#unix-time").keyup(function() {
+		var date = new Date($(this).val() * 1000);
+		$("#iso-8601").val(date.toISOString());
+		$("#pretty-time").val(date.toString());
+	});
+	
+	$("#iso-8601").keyup(function() {
+		var date = new Date(Date.parse($(this).val()));
+		$("#pretty-time").val(date.toString());
+		$("#unix-time").val(getUnixTime(date));
+	});
+	
+	$("#pretty-time").keyup(function() {
+		var date = new Date(Date.parse($(this).val()));
+		$("#iso-8601").val(date.toISOString());
+		$("#unix-time").val(getUnixTime(date));
+	});
+	
+	$("#unencoded").keyup(function() {
+		$("#encoded").val(btoa($(this).val()));
+	});
+	
+	$("#encoded").keyup(function() {
+		$("#unencoded").val(atob($(this).val()));
+	});
+	
+	$("#cleartext").keyup(function() {
+		var cleartext = $(this).val();
+		var md = forge.md.md5.create();
+		md.update(cleartext);
+		$("#md5").text(md.digest().toHex());
+		md = forge.md.sha1.create();
+		md.update(cleartext);
+		$("#sha1").text(md.digest().toHex());
+		md = forge.md.sha256.create();
+		md.update(cleartext);
+		$("#sha-256").text(md.digest().toHex());
+	});	
+	
 	$("th.sorter-false").click(function() {
 		var wasChecked = $("#"+this.id+" input").is(":checked");
 		$("td.selectable").each(function() {
@@ -919,6 +972,37 @@ function checkSBD(uris, resultsId) {
 	}
 }
 
+function whois(domain, resultsId) {
+	if ($(".form-info").is(":hidden")) {
+		$(resultsId).hide();
+		var hasDomain = domain && domain.length > 0;
+		if (hasDomain) {
+			$(".form-alert, .form-success").hide();
+			$(".form-info").show();
+			var obj = {
+				"domain": domain
+			};
+			appRoute.whoisLookup().ajax({
+				contentType: jsonContentType,
+				data: JSON.stringify(obj)
+			}).done(function(res) {
+				$(resultsId).html(res.results);
+				$(".form-info").hide();
+				$(resultsId).show();
+			}).fail(function() {
+				$(".alert-msg").text("Lookup failed");
+				$(".form-alert").show();
+				$(resultsId).html("");
+			}).always(function() {
+				$(".form-info").hide();
+			});
+		} else {
+			$(".alert-msg").text("Domain required!");
+			$(".form-alert").show();
+		}
+	}
+}
+
 function loginSubmit() {
 	$("#btn-login").focus().blur();
 	var email = $("#input-email").val();
@@ -1089,12 +1173,21 @@ function ip4sToDots(selector) {
 }
 
 function longToDots(ip) {
-	var d = ip%256;
+	var d = (isNaN(ip)) ? 0 : ip%256;
 	for (var i = 3; i > 0; i--) { 
 		ip = Math.floor(ip/256);
-		d = ip%256 + '.' + d;
+		d = ((isNaN(ip)) ? 0 : ip%256) + '.' + d;
 	}
 	return d;
+}
+
+function dotsToLong(ipDots) {
+	var d = ipDots.split('.');
+	return (d.length == 4) ? ((((((+d[0])*256)+(+d[1]))*256)+(+d[2]))*256)+(+d[3]) : 0;
+}
+
+function getUnixTime(date) {
+	return (isNaN(date.getTime())) ? "" : Math.round(date.getTime() / 1000);
 }
 
 function getDatesFromUnix(selector, full) {

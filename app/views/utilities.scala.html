@@ -1,0 +1,66 @@
+
+@main("Utilities") {
+<script src="@routes.Assets.at("javascripts/forge.min.js")"></script>
+<div class="width-75 auto-margin">
+	<ul class="nav nav-pills panel">
+		<li class="active"><a href="#conversions" data-toggle="tab">Conversions</a></li>
+		<li><a href="#hashes" data-toggle="tab">Hashes</a></li>
+		<li><a href="#whois" data-toggle="tab">WHOIS</a></li>
+	</ul>
+	<div class="tab-content">
+		<div class="tab-pane fade in active" id="conversions">
+			<div class="inline width-25">
+				<label class="control-label" for="ip-long">IP (address)</label>
+				<input type="text" class="input-large form-control" id="ip-long" placeholder="4294967295">
+			</div>
+			<div class="inline width-25">
+				<label class="control-label" for="ip-dots">IP (dot-decimal)</label>
+				<input type="text" class="input-large form-control" id="ip-dots" placeholder="255.255.255.255">
+			</div>
+			
+			<div class="margin-top-2em"></div>
+			<div class="inline width-25">
+				<label class="control-label" for="unix-time">Unix Time</label>
+				<input type="text" class="input-large form-control" id="unix-time" placeholder="1337421138">
+			</div>
+			<div class="inline width-25">
+				<label class="control-label" for="iso-8601">ISO 8601</label>
+				<input type="text" class="input-large form-control" id="iso-8601" placeholder="2012-05-19T09:52:18.000Z">
+			</div>
+			<div class="inline width-40">
+				<label class="control-label" for="pretty-time">Pretty</label>
+				<input type="text" class="input-large form-control" id="pretty-time" placeholder="Sat May 19 2012 05:52:18 GMT-0400 (EDT)">
+			</div>
+			
+			<div class="margin-top-2em"></div>
+			<div class="inline width-40">
+				<label class="control-label" for="unencoded">Unencoded (UTF-8)</label>
+				<textarea id="unencoded" class="input-large form-control" name="unencoded" spellcheck="false" placeholder="Unencoded text"></textarea>
+			</div>
+			<div class="inline width-40">
+				<label class="control-label" for="encoded">Encoded (Base64)</label>
+				<textarea id="encoded" class="input-large form-control" name="encoded" spellcheck="false" placeholder="VW5lbmNvZGVkIHRleHQ="></textarea>
+			</div>
+		</div>
+		
+		<div class="tab-pane fade" id="hashes">
+			<label class="control-label" for="cleartext">Cleartext</label>
+			<textarea id="cleartext" class="input-large form-control" name="cleartext" spellcheck="false" placeholder="Cleartext"></textarea>
+			<div>
+				<div><label class="margin-top-2em">MD5:</label><span id="md5"></span></div>
+				<div><label class="margin-top-1em">SHA1:</label><span id="sha1"></span></div>
+				<div><label class="margin-top-1em">SHA2-256:</label><span id="sha-256"></span></div>
+			</div>
+		</div>
+		
+		<div class="tab-pane fade" id="whois">
+			<form id="whois-form">
+				<label class="control-label inline" for="domain">Domain</label>
+				<input type="text" class="input-large form-control inline width-40" id="domain" name="domain" placeholder="example.com">
+				<button type="submit" id="btn-whois-lookup" class="btn btn-default inline">Query</button>
+			</form>
+			<div class="margin-top-2em" id="whois-results"></div>
+		</div>
+	</div>
+</div>
+}

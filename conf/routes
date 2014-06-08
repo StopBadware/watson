@@ -47,7 +47,7 @@ GET		/emailtemplates						controllers.Application.emailTemplates
 GET		/rescans							controllers.Application.rescans
 GET		/users								controllers.Application.users
 GET		/googlesbd							controllers.Application.googleSbd
-
+GET		/utilities							controllers.Application.utilities
 
 # AJAX ROUTES
 GET		/javascriptRoutes					controllers.Application.javascriptRoutes
