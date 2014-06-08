@@ -241,7 +241,7 @@ $(document).ready(function($) {
 	$("#whois-form").submit(function(e) {
 		e.preventDefault();
 		$("button").focus().blur();
-		//TODO WTSN-22
+		whois($("#domain").val(), "#whois-results");
 	});
 	
 	$("#ip-long").keyup(function() {
@@ -986,7 +986,7 @@ function whois(domain, resultsId) {
 				contentType: jsonContentType,
 				data: JSON.stringify(obj)
 			}).done(function(res) {
-				$(resultsId).html(res.results);
+				$(resultsId).html(res.whois.replace(/\n/g, "<br />"));
 				$(".form-info").hide();
 				$(resultsId).show();
 			}).fail(function() {

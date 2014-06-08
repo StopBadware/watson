@@ -69,6 +69,7 @@ POST	/emailtemplates/send				controllers.Application.sendEmailTemplatePreview
 POST	/rescans/submit						controllers.Application.addToRescanQueue
 POST	/users/togglerole					controllers.Application.toggleRole
 POST	/checksbd							controllers.Application.checkSbd
+POST	/whois								controllers.Application.whoisLookup
 
 # MISC RESOURCES
 GET     /robots.txt		               		controllers.Assets.at(path="/public", file="robots.txt")

@@ -1,5 +1,6 @@
 package controllers
 
+import java.io.IOException
 import java.math.BigInteger
 import java.net.URI
 import java.security.MessageDigest
@@ -9,6 +10,7 @@ import scala.util.Try
 import sun.misc.BASE64Encoder
 import anorm._
 import play.api.mvc._
+import org.apache.commons.net.whois.WhoisClient
 import org.postgresql.jdbc4.Jdbc4Array
 import com.fasterxml.jackson.databind.{JsonNode, JsonMappingException, ObjectMapper}
 import com.fasterxml.jackson.core.JsonParseException
@@ -74,6 +76,18 @@ object Host {
       host.get
     })
   }  
+  
+  def whois(host: String): String = {
+    return try {
+	    val client = new WhoisClient()
+	    client.connect(WhoisClient.DEFAULT_HOST)
+	    val result = client.query("=" + host)
+	    client.disconnect()
+	    result
+    } catch {
+      case e: IOException => ""
+    }
+  }
 
 }
 

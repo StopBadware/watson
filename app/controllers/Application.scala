@@ -487,6 +487,16 @@ object Application extends Controller with Secured with Cookies {
     Ok(views.html.utilities())
   }  
   
+  def whoisLookup = withAuth { userId => implicit request =>
+    val json = request.body.asJson
+    val domain = json.get.\("domain").asOpt[String]
+    if (json.isDefined && domain.isDefined) {
+      Ok(Json.obj("whois" -> Host.whois(domain.get)))
+    } else {
+      BadRequest
+    }
+  }    
+  
   def googleSbd = withAuth { userId => implicit request =>
     Ok(views.html.googlesbd())
   }
@@ -659,6 +669,7 @@ object Application extends Controller with Secured with Cookies {
       routes.javascript.Application.sendEmailTemplatePreview,
       routes.javascript.Application.updateEmailTemplate,
       routes.javascript.Application.checkSbd,
+      routes.javascript.Application.whoisLookup,
       routes.javascript.Application.addToRescanQueue
 		)).as("text/javascript")
   }

@@ -56,9 +56,10 @@
 		<div class="tab-pane fade" id="whois">
 			<form id="whois-form">
 				<label class="control-label inline" for="domain">Domain</label>
-				<input type="text" class="input-large form-control inline width-40" id="domain" name="domain" placeholder="example.com">
+				<input type="text" class="input-large form-control inline width-40" id="domain" name="domain" placeholder="example.com (.COM, .NET, or .EDU)">
 				<button type="submit" id="btn-whois-lookup" class="btn btn-default inline">Query</button>
 			</form>
+			@partials.ajaxstatus("WHOIS lookup failed", "Checking WHOIS", "WHOIS lookup complete", "margin-top-1em")()
 			<div class="margin-top-2em" id="whois-results"></div>
 		</div>
 	</div>
